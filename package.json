@@ -2,7 +2,7 @@
     "name": "com.inworld.unity",
     "version": "3.2.0",
     "displayName": "Inworld Unity Core",
-    "description": "Use glTFast to import and export glTF 3D files efficiently at runtime or in the Editor",
+    "description": "Elevate NPCs beyond simple dialogue trees with AI characters that can mimic human expression. Give NPCs unscripted dialogue, EQ, and contextual awareness for a much more immersive gaming experience.",
     "unity": "2022.3",
     "keywords": [
       "AI",
