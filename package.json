@@ -16,7 +16,8 @@
       "chatbot"
     ],
     "dependencies": {
-      "com.unity.cloud.gltfast": "6.0.1"
+      "com.unity.cloud.gltfast": "6.0.1",
+      "com.unity.textmeshpro": "3.0.6"
     },
     "type": "library",
     "unityRelease": "48f1"
