@@ -26,6 +26,8 @@ namespace Inworld
         [Space(10)]
         [SerializeField] bool m_Initialized;
         [SerializeField] string m_Version;
+        [SerializeField] TextAsset m_MicrophoneWebGLModule;
+        [SerializeField] TextAsset m_MicrophoneWebGLResampler;
         [Space(10)][SerializeField] bool m_DebugMode;
         public const string k_CompanyName = "Inworld.AI";
         const string k_GlobalDataPath = "InworldAI";
@@ -157,6 +159,8 @@ namespace Inworld
             get => Instance.m_Initialized;
             set => Instance.m_Initialized = value;
         }
+        public static TextAsset WebGLMicModule => Instance.m_MicrophoneWebGLModule;
+        public static TextAsset WebGLMicResampler => Instance.m_MicrophoneWebGLResampler;
     }
 }
 

@@ -29,4 +29,6 @@ MonoBehaviour:
   m_SplashScreen: {fileID: 4393447035193857883, guid: 79956e5abae7ea2448261fd738eeaf6e, type: 3}
   m_Initialized: 0
   m_Version: 3.1.0
+  m_MicrophoneWebGLModule: {fileID: 4900000, guid: 2aaf0101853173b4c84d37154c65efd9, type: 3}
+  m_MicrophoneWebGLResampler: {fileID: 4900000, guid: 5efd0869c491b514ab95d9f34080993b, type: 3}
   m_DebugMode: 1
