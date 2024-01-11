@@ -24,6 +24,7 @@ namespace Inworld
         [SerializeField] InworldController m_ControllerPrefab;
         [SerializeField] SplashScreen m_SplashScreen;
         [Space(10)]
+        [SerializeField] bool m_Initialized;
         [SerializeField] string m_Version;
         [Space(10)][SerializeField] bool m_DebugMode;
         public const string k_CompanyName = "Inworld.AI";
@@ -150,6 +151,12 @@ namespace Inworld
         /// </summary>
         /// <param name="exception">The exception message to log</param>
         public static void LogException(string exception) => InworldLog.LogException(exception);
+        
+        public static bool Initialized
+        {
+            get => Instance.m_Initialized;
+            set => Instance.m_Initialized = value;
+        }
     }
 }
 
