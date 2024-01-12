@@ -1,14 +1,22 @@
 /*************************************************************************************************
- * Copyright 2022 Theai, Inc. (DBA Inworld)
+ * Copyright 2022-2024 Theai, Inc. dba Inworld AI
  *
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
+
 using Inworld.Sample;
 using Inworld.Entities;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
+
+#if !UNITY_WEBGL
+using System;
+using System.Reflection;
+#endif
+
 using UnityEngine;
 
 namespace Inworld
@@ -117,6 +125,23 @@ namespace Inworld
                 #endif
             }
         }
+                
+        /// <summary>
+        /// Get/Set if InworldAI package has been Initialized.
+        /// Use this flag to avoid repetitively load packages.
+        /// </summary>
+        public static bool Initialized
+        {
+            get => Instance.m_Initialized;
+            set => Instance.m_Initialized = value;
+        }
+#if UNITY_WEBGL
+        /// <summary>
+        /// Used to load extra JS Assets in building WebGL
+        /// </summary>
+        public static TextAsset WebGLMicModule => Instance.m_MicrophoneWebGLModule;
+        public static TextAsset WebGLMicResampler => Instance.m_MicrophoneWebGLResampler;
+#endif
         /// <summary>
         /// Logs a basic type of debug message used in Inworld.
         /// If the DebugMode is enabled, the message will also be displayed in the console.
@@ -153,14 +178,31 @@ namespace Inworld
         /// </summary>
         /// <param name="exception">The exception message to log</param>
         public static void LogException(string exception) => InworldLog.LogException(exception);
-        
-        public static bool Initialized
+
+        /// <summary>
+        /// Logs an event to Inworld Server by reflection.
+        /// Editor Only. Not logged in built application.
+        /// </summary>
+        public static void LogEvent(string attributionEvent)
         {
-            get => Instance.m_Initialized;
-            set => Instance.m_Initialized = value;
+            Log(attributionEvent);
+#if !UNITY_WEBGL
+            Type vsAttribution = Type.GetType("Inworld.VSAttribution");
+            if (vsAttribution == null)
+                return;
+            MethodInfo sendAttributionEvent = vsAttribution.GetMethod("SendAttributionEvent", BindingFlags.Static | BindingFlags.Public);
+            if (sendAttributionEvent != null)
+            {
+                sendAttributionEvent.Invoke
+                (
+                    null, new object[]
+                    {
+                        attributionEvent, k_CompanyName, User.Account
+                    }
+                );
+            }
+#endif
         }
-        public static TextAsset WebGLMicModule => Instance.m_MicrophoneWebGLModule;
-        public static TextAsset WebGLMicResampler => Instance.m_MicrophoneWebGLResampler;
     }
 }
 
