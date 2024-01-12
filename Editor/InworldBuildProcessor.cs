@@ -6,6 +6,7 @@
  *************************************************************************************************/
 
 #if UNITY_EDITOR
+using System;
 using System.IO;
 using UnityEditor;
 using UnityEditor.Build;
@@ -22,7 +23,6 @@ namespace Inworld
         {
             AssetDatabase.importPackageCompleted += async packageName =>
             {
-                Debug.Log("Importing with InworldAI.");
                 if (InworldAI.Initialized)
                     return;
                 _AddDebugMacro();
@@ -33,10 +33,6 @@ namespace Inworld
                 if (!Directory.Exists("Assets/Inworld/Inworld.Assets") && File.Exists("Assets/Inworld/InworldExtraAssets.unitypackage"))
                     AssetDatabase.ImportPackage("Assets/Inworld/InworldExtraAssets.unitypackage", false);
                 _SetDefaultUserName();
-#if UNITY_EDITOR && VSP
-                if (!string.IsNullOrEmpty(InworldAI.User.Account))
-                    VSAttribution.SendAttributionEvent("Login Studio", InworldAI.k_CompanyName, InworldAI.User.Account);     
-#endif
             };
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
@@ -64,14 +60,11 @@ namespace Inworld
                 return;
             _RemoveDebugMacro();
         }
-        const string k_NativeJSPath = "./Editor/Native";
-        
+
+#if UNITY_WEBGL
         [PostProcessBuild(1)]
         public static void OnPostprocessBuild(BuildTarget target, string pathToBuiltProject)
         {
-            if (target != BuildTarget.WebGL) 
-                return;
-			
             string indexPath = $"{pathToBuiltProject}/index.html";
 
             if (!File.Exists(indexPath))
@@ -85,12 +78,13 @@ namespace Inworld
 
             if (!indexData.Contains(dependencies))
             {
-                indexData = indexData.Insert(indexData.IndexOf("</head>"), $"\n{dependencies}\n");
+                indexData = indexData.Insert(indexData.IndexOf("</head>", StringComparison.Ordinal), $"\n{dependencies}\n");
                 File.WriteAllText(indexPath, indexData);
             }
             File.WriteAllText($"{pathToBuiltProject}/InworldMicrophone.js", InworldAI.WebGLMicModule.text);
             File.WriteAllText($"{pathToBuiltProject}/AudioResampler.js", InworldAI.WebGLMicResampler.text);
         }
+#endif
         static void _SetDefaultUserName()
         {
             string userName = CloudProjectSettings.userName;

@@ -306,7 +306,7 @@ namespace Inworld
             {
                 if (e.Data.Contains("error"))
                 {
-                    if (e.Data.Contains("inactivity")) // && m_AutoStart)
+                    if (e.Data.Contains("inactivity")) 
                         Status = InworldConnectionStatus.LostConnect;
                     else
                         Error = e.Data;
