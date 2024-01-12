@@ -186,7 +186,7 @@ namespace Inworld
         public static void LogEvent(string attributionEvent)
         {
             Log(attributionEvent);
-#if !UNITY_WEBGL
+#if UNITY_EDITOR && !UNITY_WEBGL
             Type vsAttribution = Type.GetType("Inworld.VSAttribution");
             if (vsAttribution == null)
                 return;

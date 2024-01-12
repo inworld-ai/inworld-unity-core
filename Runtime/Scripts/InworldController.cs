@@ -134,6 +134,7 @@ namespace Inworld
         /// <param name="sceneFullName">the full string of the scene to load.</param>
         public void LoadScene(string sceneFullName = "", string history = "")
         {
+            InworldAI.LogEvent("Login_Runtime");
             string sceneToLoad = string.IsNullOrEmpty(sceneFullName) ? m_SceneFullName : sceneFullName;
             string historyToLoad = string.IsNullOrEmpty(history) ? Client.SessionHistory : history;
             m_Client.LoadScene(sceneToLoad, historyToLoad);
