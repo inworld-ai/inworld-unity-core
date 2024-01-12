@@ -22,6 +22,7 @@ namespace Inworld
         {
             AssetDatabase.importPackageCompleted += async packageName =>
             {
+                Debug.Log("Importing with InworldAI.");
                 if (InworldAI.Initialized)
                     return;
                 _AddDebugMacro();
