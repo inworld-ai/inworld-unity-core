@@ -284,6 +284,7 @@ namespace Inworld
                 m_AudioCapture = GetComponent<AudioCapture>();
             if(!m_CharacterHandler)
                 m_CharacterHandler = GetComponent<CharacterHandler>();
+            DontDestroyOnLoad(gameObject);
         }
         protected virtual void OnEnable()
         {
