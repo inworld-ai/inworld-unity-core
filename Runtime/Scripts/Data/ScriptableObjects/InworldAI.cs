@@ -67,7 +67,11 @@ namespace Inworld
         /// <summary>
         /// Gets if it's in debug mode. Could be toggled in the `InworldAI.asset`.
         /// </summary>
-        public static bool IsDebugMode => Instance.m_DebugMode;
+        public static bool IsDebugMode
+        {
+            get => Instance.m_DebugMode;
+            set => Instance.m_DebugMode = value;
+        }
 
         /// <summary>
         /// Get the default Client Request that are sending to the server.
@@ -203,6 +207,8 @@ namespace Inworld
             }
 #endif
         }
+        
+        
     }
 }
 
