@@ -307,6 +307,7 @@ namespace Inworld
             m_BufferSize = m_BufferSeconds * k_SampleRate;
             m_ByteBuffer = new byte[m_BufferSize * k_Channel * k_SizeofInt16];
             m_InputBuffer = new float[m_BufferSize * k_Channel];
+            m_LastSampleMode = m_SamplingMode;
 #if UNITY_WEBGL && !UNITY_EDITOR
             s_WebGLBuffer = new float[m_BufferSize * k_Channel];
             WebGLInit(OnWebGLInitialized);
