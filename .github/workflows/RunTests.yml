@@ -36,7 +36,7 @@ jobs:
             restore-keys: Library-
 
         - name: Setup Unity
-          uses: game-ci/unity-setup@v2
+          uses: game-ci/unity-request-activation-file@v1
           env:
             UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           with:
