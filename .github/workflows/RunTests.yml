@@ -1,5 +1,5 @@
 
-name: BuildAllPlatforms
+name: RunTests
 
 on:
   workflow_dispatch:

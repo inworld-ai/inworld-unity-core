@@ -46,7 +46,7 @@ namespace Inworld.Sample
             }
             catch (InworldException e)
             {
-                InworldAI.LogWarning($"Failed to send text: {e}");
+                InworldAI.LogWarning($"Failed to send texts: {e}");
             }
         }
 
