@@ -37,8 +37,6 @@ jobs:
 
         - name: Setup Unity
           uses: game-ci/unity-request-activation-file@v1
-          env:
-            UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           with:
             unityVersion: 2022.3.17f1
          
