@@ -133,8 +133,7 @@ namespace Inworld
                 }
             };
             string jsonToSend = JsonUtility.ToJson(packet);
-            if (InworldController.Audio.IsPlayerSpeaking)
-                Dispatch(packet);
+            Dispatch(packet);
             m_Socket.SendAsync(jsonToSend);
         }
         protected IEnumerator _GetAccessToken(string workspaceFullName = "")

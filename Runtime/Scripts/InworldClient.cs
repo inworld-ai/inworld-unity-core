@@ -21,7 +21,11 @@ namespace Inworld
         [SerializeField] protected string m_CustomToken;
         [SerializeField] protected string m_PublicWorkspace;
         public event Action<InworldConnectionStatus> OnStatusChanged;
+        #if UNITY_INCLUDE_TESTS
+        public event Action<InworldPacket> OnPacketReceived;
+        #else
         internal event Action<InworldPacket> OnPacketReceived;
+        #endif
         const string k_NotImplented = "No InworldClient found. Need at least one connection protocol";
         protected Token m_Token;
         protected string m_SessionKey;
