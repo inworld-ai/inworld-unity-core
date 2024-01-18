@@ -40,11 +40,11 @@ jobs:
           env:
             UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           with:
-            unityVersion: 2022.3.10f1
+            unityVersion: 2022.3.11f1
          
         - name: Run Tests
           uses: game-ci/unity-test-runner@v2
           with:
-            unityVersion: '2022.3.10f1' 
+            unityVersion: '2022.3.11f1' 
             testMode: all
 
