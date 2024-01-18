@@ -1,0 +1,50 @@
+
+name: BuildAllPlatforms
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+      
+env:
+  UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+  UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+  UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+
+jobs:   
+  test:
+    name: Run Tests for ${{ matrix.targetPlatform }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        targetPlatform:
+          - StandaloneOSX # Build a macOS standalone (Intel 64-bit).
+          - StandaloneWindows # Build a Windows standalone.
+          - StandaloneWindows64 # Build a Windows 64-bit standalone.
+    steps:
+        - name: Checkout Repo
+          uses: actions/checkout@v3
+          with:
+            lfs: true        
+
+        - name: Cache Library          
+          uses: actions/cache@v3
+          with:
+            path: Library
+            key: Library-${{ matrix.targetPlatform }}
+            restore-keys: Library-
+
+        - name: Setup Unity
+          uses: game-ci/unity-setup@v2
+          env:
+            UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          with:
+            unityVersion: 2022.3.10f1
+         
+        - name: Run Tests
+          uses: game-ci/unity-test-runner@v2
+          with:
+            unityVersion: '2022.3.10f1' 
+            testMode: all
+
