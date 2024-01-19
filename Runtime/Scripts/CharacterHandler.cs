@@ -102,17 +102,18 @@ namespace Inworld
         {
             if (!character || string.IsNullOrEmpty(character.BrainName))
                 return null;
+            Debug.Log("Get live session ID");
             // ReSharper disable once CanSimplifyDictionaryLookupWithTryAdd
             if (!m_CharacterData.ContainsKey(character.BrainName))
+            {
                 m_CharacterData[character.BrainName] = character.Data;
-            
+                Debug.Log("Update character data");
+            }
             if (!m_CharacterList.Contains(character))
             {
                 m_CharacterList.Add(character);
-                character.destroyCancellationToken.Register((obj) => 
-                    OnCharacterDestroyed(obj as InworldCharacter), character);
+                character.onCharacterDestroyed.AddListener(() => OnCharacterDestroyed(character));
             }
-            
             return m_LiveSession[character.BrainName];
         }
         /// <summary>
@@ -216,14 +217,11 @@ namespace Inworld
             }
         }
         
-        protected void OnCharacterDestroyed(InworldCharacter character)
+        public void OnCharacterDestroyed(InworldCharacter character)
         {
             if (character == null || !InworldController.Instance)
                 return;
-            
             m_CharacterList.Remove(character);
-            m_CharacterData.Remove(character.BrainName);
-
             if (character == CurrentCharacter)
             {
                 _StopAudio();
