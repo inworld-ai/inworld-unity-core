@@ -23,7 +23,15 @@ jobs:
           uses: actions/checkout@v3
           with:
             lfs: true        
-         
+
+        - name: Setup Environment
+          run: |
+            mkdir Tmp
+            mv Editor Tmp/
+            mv Runtime Tmp/
+            mv Tests Tmp/
+            mv package.json Tmp/package.json         
+
         - name: Run Tests
           uses: game-ci/unity-test-runner@v4
           env:
@@ -32,6 +40,7 @@ jobs:
             UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
           with:             
             packageMode: true
+            projectPath: Tmp/
             testMode: all
             unityVersion: 2022.3.17f1
             
