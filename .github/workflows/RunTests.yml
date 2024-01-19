@@ -34,11 +34,6 @@ jobs:
             path: Library
             key: Library-${{ matrix.targetPlatform }}
             restore-keys: Library-
-
-        - name: Setup Unity
-          uses: game-ci/unity-request-activation-file@v1
-          with:
-            unityVersion: 2022.3.17f1
          
         - name: Run Tests
           uses: game-ci/unity-test-runner@v4
