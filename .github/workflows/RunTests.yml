@@ -28,12 +28,29 @@ jobs:
           with:
             lfs: true        
 
+        - name: Setup Environment
+          run: |
+            mkdir Tmp
+            mv -r Editor Tmp/
+            mv -r Runtime Tmp/
+            mv -r Tests Tmp/
+            mv package.json Tmp/
+
         - name: Cache Library          
           uses: actions/cache@v3
           with:
             path: Library
             key: Library-${{ matrix.targetPlatform }}
             restore-keys: Library-
+
+        - name: Setup Unity
+          uses: game-ci/unity-request-activation-file@v4
+          env:
+            UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+            UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+            UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          with:
+            unityVersion: 2022.3.17f1
          
         - name: Run Tests
           uses: game-ci/unity-test-runner@v4
