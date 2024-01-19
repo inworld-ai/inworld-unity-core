@@ -28,14 +28,6 @@ jobs:
           with:
             lfs: true        
 
-        - name: Setup Environment
-          run: |
-            mkdir Tmp
-            mv Editor Tmp/
-            mv Runtime Tmp/
-            mv Tests Tmp/
-            mv package.json Tmp/package.json
-
         - name: Cache Library          
           uses: actions/cache@v3
           with:
