@@ -31,9 +31,9 @@ jobs:
         - name: Setup Environment
           run: |
             mkdir Tmp
-            mv -r Editor Tmp/
-            mv -r Runtime Tmp/
-            mv -r Tests Tmp/
+            mv Editor Tmp/
+            mv Runtime Tmp/
+            mv Tests Tmp/
             mv package.json Tmp/
 
         - name: Cache Library          
