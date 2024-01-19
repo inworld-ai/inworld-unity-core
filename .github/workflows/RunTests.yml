@@ -53,5 +53,6 @@ jobs:
           with:             
             packageMode: true
             testMode: all
+            unityVersion: 2022.3.17f1
             
 
