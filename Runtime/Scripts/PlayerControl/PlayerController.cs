@@ -40,8 +40,11 @@ namespace Inworld.Sample
                 return;
             try
             {
-                if (InworldController.CurrentCharacter)
-                    InworldController.CurrentCharacter.SendText(m_InputField.text);
+                string text = m_InputField.text;
+                if (text.StartsWith("*"))
+                    InworldController.CurrentCharacter.SendNarrative(text.Remove(0, 1));
+                else
+                    InworldController.CurrentCharacter.SendText(text);
                 m_InputField.text = "";
             }
             catch (InworldException e)

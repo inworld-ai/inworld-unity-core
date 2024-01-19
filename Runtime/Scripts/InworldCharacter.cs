@@ -105,6 +105,16 @@ namespace Inworld
             // 2. Send Text.
             InworldController.Instance.SendText(ID, text);
         }
+
+        /// <summary>
+        /// Send a narrative action to this character.
+        /// </summary>
+        /// <param name="narrative">the narrative text to send</param>
+        public virtual void SendNarrative(string narrative)
+        {
+            InworldController.Instance.SendNarrativeAction(ID, narrative);
+        }
+
         /// <summary>
         /// Default Version of sending triggers that can be used in UnityEvent registration.
         /// Parameters and values not supported.

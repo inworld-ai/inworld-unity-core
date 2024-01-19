@@ -43,6 +43,29 @@ namespace Inworld
             Dispatch(packet);
             m_Socket.SendAsync(jsonToSend);
         }
+        public override void SendNarrativeAction(string characterID, string narrativeAction)
+        {
+            if (string.IsNullOrEmpty(characterID) || string.IsNullOrEmpty(narrativeAction))
+                return;
+            InworldPacket packet = new ActionPacket
+            {
+                timestamp = InworldDateTime.UtcNow,
+                type = "ACTION",
+                packetId = new PacketId(),
+                routing = new Routing(characterID),
+                action = new ActionEvent
+                {
+                    narratedAction = new NarrativeAction
+                    {
+                        content = narrativeAction
+                    }
+                }
+            };
+            string jsonToSend = JsonUtility.ToJson(packet);
+            Dispatch(packet);
+            Debug.Log("Send Narrative Action: " + jsonToSend);
+            m_Socket.SendAsync(jsonToSend);
+        }
         public override void SendCancelEvent(string characterID, string interactionID)
         {
             if (string.IsNullOrEmpty(characterID))

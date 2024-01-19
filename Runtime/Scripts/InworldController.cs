@@ -163,6 +163,17 @@ namespace Inworld
             m_Client.SendText(charID, text);
         }
         /// <summary>
+        /// Send a narrative action to an InworldCharacter in this current scene.
+        /// </summary>
+        /// <param name="charID">the live session ID of the character to send</param>
+        /// <param name="narrativeAction">the narrative action to send.</param>
+        public void SendNarrativeAction(string charID, string narrativeAction)
+        {
+            if (Client.Status != InworldConnectionStatus.Connected)
+                InworldAI.LogException($"Tried to send narrative action to {charID}, but not connected to server.");
+            m_Client.SendNarrativeAction(charID, narrativeAction);
+        }
+        /// <summary>
         /// Send the CancelResponse Event to InworldServer to interrupt the character's speaking.
         /// </summary>
         /// <param name="charID">the live session ID of the character to send</param>

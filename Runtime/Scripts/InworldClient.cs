@@ -150,6 +150,12 @@ namespace Inworld
         /// <param name="textToSend">the message to send.</param>
         public virtual void SendText(string characterID, string textToSend) => Error = k_NotImplented;
         /// <summary>
+        /// Send a narrative action to an InworldCharacter in this current scene.
+        /// </summary>
+        /// <param name="characterID">the live session ID of the character to send</param>
+        /// <param name="narrativeAction">the narrative action to send.</param>
+        public virtual void SendNarrativeAction(string characterID, string narrativeAction) => Error = k_NotImplented;
+        /// <summary>
         /// Send the CancelResponse Event to InworldServer to interrupt the character's speaking.
         /// </summary>
         /// <param name="characterID">the live session ID of the character to send</param>
