@@ -24,10 +24,23 @@ namespace Inworld
         
         protected string m_CurrentAudioID;
         public event Action<InworldPacket> OnCharacterInteraction;
+
         /// <summary>
         /// Gets the AudioCapture of the InworldController.
         /// </summary>
-        public static AudioCapture Audio => Instance ? Instance.m_AudioCapture : null;
+        public static AudioCapture Audio
+        {
+            get
+            {
+                if (!Instance) return null;
+
+                if (Instance.m_AudioCapture)
+                    return Instance.m_AudioCapture;
+
+                Instance.m_AudioCapture = Instance.GetComponent<AudioCapture>();
+                return Instance.m_AudioCapture;
+            }
+        }
         /// <summary>
         /// Gets the CharacterHandler of the InworldController.
         /// </summary>
@@ -49,7 +62,16 @@ namespace Inworld
         /// </summary>
         public static InworldClient Client
         {
-            get => Instance ? Instance.m_Client : null;
+            get
+            {
+                if (!Instance) return null;
+
+                if (Instance.m_Client)
+                    return Instance.m_Client;
+
+                Instance.m_Client = Instance.GetComponent<InworldClient>();
+                return Instance.m_Client;
+            }
             set
             {
                 if (!Instance)

@@ -223,11 +223,6 @@ namespace Inworld
             get => m_CustomToken;
             set => m_CustomToken = value;
         }
-
-        void Awake()
-        {
-            Init();
-        }
         void OnEnable()
         {
             Init();

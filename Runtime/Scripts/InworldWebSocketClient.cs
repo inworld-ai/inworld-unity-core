@@ -328,5 +328,12 @@ namespace Inworld
             if (e.Message != k_DisconnectMsg)
                 Error = e.Message;
         }
+        
+        void OnDestroy()
+        {
+            GameObject webSocketManagerGO = GameObject.Find("/[UnityWebSocket]");
+            if(webSocketManagerGO)
+                Destroy(webSocketManagerGO);
+        }
     }
 }

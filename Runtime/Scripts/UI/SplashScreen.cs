@@ -30,6 +30,11 @@ namespace Inworld.Sample
         {
             enabled = Init();
         }
+        void Start()
+        {
+            if (InworldController.Status == InworldConnectionStatus.Connected)
+                StartCoroutine(FadeOut());
+        }
         bool Init()
         {
             if (!m_Canvas)
