@@ -13,27 +13,16 @@ env:
 
 jobs:   
   test:
-    name: Run Tests for ${{ matrix.targetPlatform }}
+    name: Run Tests
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        targetPlatform:
-          - StandaloneOSX # Build a macOS standalone (Intel 64-bit).
-          - StandaloneWindows # Build a Windows standalone.
-          - StandaloneWindows64 # Build a Windows 64-bit standalone.
+
     steps:
         - name: Checkout Repo
           uses: actions/checkout@v3
           with:
             lfs: true        
-
-        - name: Cache Library          
-          uses: actions/cache@v3
-          with:
-            path: Library
-            key: Library-${{ matrix.targetPlatform }}
-            restore-keys: Library-
          
         - name: Run Tests
           uses: game-ci/unity-test-runner@v4
