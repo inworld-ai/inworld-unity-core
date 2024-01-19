@@ -102,13 +102,9 @@ namespace Inworld
         {
             if (!character || string.IsNullOrEmpty(character.BrainName))
                 return null;
-            Debug.Log("Get live session ID");
             // ReSharper disable once CanSimplifyDictionaryLookupWithTryAdd
             if (!m_CharacterData.ContainsKey(character.BrainName))
-            {
                 m_CharacterData[character.BrainName] = character.Data;
-                Debug.Log("Update character data");
-            }
             if (!m_CharacterList.Contains(character))
             {
                 m_CharacterList.Add(character);
