@@ -28,6 +28,14 @@ jobs:
           with:
             lfs: true        
 
+        - name: Setup Environment
+          run: |
+            mkdir Tmp
+            cp -r Editor Tmp/
+            cp -r Runtime Tmp/
+            cp -r Tests Tmp/
+            cp package.json Tmp/
+
         - name: Cache Library          
           uses: actions/cache@v3
           with:
@@ -36,7 +44,7 @@ jobs:
             restore-keys: Library-
 
         - name: Setup Unity
-          uses: game-ci/unity-request-activation-file@v1
+          uses: game-ci/unity-request-activation-file@v4
           env:
             UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
             UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
