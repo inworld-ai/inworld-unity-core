@@ -63,7 +63,6 @@ namespace Inworld
             };
             string jsonToSend = JsonUtility.ToJson(packet);
             Dispatch(packet);
-            Debug.Log("Send Narrative Action: " + jsonToSend);
             m_Socket.SendAsync(jsonToSend);
         }
         public override void SendCancelEvent(string characterID, string interactionID)
