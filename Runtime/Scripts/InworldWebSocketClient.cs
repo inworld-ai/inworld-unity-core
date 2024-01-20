@@ -267,7 +267,10 @@ namespace Inworld
                 yield break;
             string url = m_ServerConfig.SessionURL(m_Token.sessionId);
             if (!IsTokenValid)
+            {
+                Debug.LogError($"YAN Error!!!! Token: {m_Token.token} UTCNow: {DateTime.UtcNow} ExpTime {m_Token.expirationTime}");
                 yield break;
+            }
             yield return new WaitForEndOfFrame();
             string[] param = {m_Token.type, m_Token.token};
             m_Socket = WebSocketManager.GetWebSocket(url);
@@ -277,6 +280,7 @@ namespace Inworld
             m_Socket.OnMessage += OnMessageReceived;
             m_Socket.OnClose += OnSocketClosed;
             m_Socket.OnError += OnSocketError;
+            Debug.Log("YAN Not it's Connecting");
             Status = InworldConnectionStatus.Connecting;
             m_Socket.ConnectAsync();
         }

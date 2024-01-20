@@ -25,7 +25,6 @@ namespace Inworld.Entities
                     return false;
                 if (string.IsNullOrEmpty(type))
                     return false;
-                Debug.Log($"YAN UTC Now: {DateTime.UtcNow} TokenTime: {InworldDateTime.ToDateTime(expirationTime)}");
                 return DateTime.UtcNow < InworldDateTime.ToDateTime(expirationTime);
             }
         }
