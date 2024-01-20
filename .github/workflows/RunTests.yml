@@ -13,14 +13,14 @@ env:
 
 jobs:   
   test:
-    name: Run Tests
+    name: Run Tests 
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
 
     steps:
         - name: Checkout Repo
-          uses: actions/checkout@v3
+          uses: actions/checkout@v4
           with:
             lfs: true        
 
@@ -41,7 +41,7 @@ jobs:
           with:             
             packageMode: true
             projectPath: Tmp/
-            testMode: all
+            testMode: editmode
             unityVersion: 2022.3.17f1
             
 
