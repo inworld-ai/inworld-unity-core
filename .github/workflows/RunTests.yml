@@ -13,33 +13,39 @@ env:
 
 jobs:   
   test:
-    name: Run Tests for ${{ matrix.targetPlatform }}
+    name: Run Tests in ${{ matrix.testMode }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        targetPlatform:
-          - StandaloneOSX # Build a macOS standalone (Intel 64-bit).
-          - StandaloneWindows # Build a Windows standalone.
-          - StandaloneWindows64 # Build a Windows 64-bit standalone.
+        unityVersion: 2022.3.17f1 
+        testMode:
+          - playmode
+          - editmode
     steps:
         - name: Checkout Repo
-          uses: actions/checkout@v3
+          uses: actions/checkout@v4
           with:
             lfs: true        
 
-        - name: Cache Library          
-          uses: actions/cache@v3
-          with:
-            path: Library
-            key: Library-${{ matrix.targetPlatform }}
-            restore-keys: Library-
-         
+        - name: Setup Environment
+          run: |
+            mkdir Tmp
+            mv Editor Tmp/
+            mv Runtime Tmp/
+            mv Tests Tmp/
+            mv package.json Tmp/package.json         
+
         - name: Run Tests
           uses: game-ci/unity-test-runner@v4
-          with: 
-            unityVersion: 2022.3.17f1
+          env:
+            UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+            UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+            UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          with:             
             packageMode: true
-            testMode: all
+            projectPath: Tmp/
+            testMode: ${{ matrix.testMode }}
+            unityVersion: ${{ matrix.unityVersion }}
             
 
