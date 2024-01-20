@@ -213,7 +213,7 @@ namespace Inworld
             }
         }
         
-        protected void OnCharacterDestroyed(InworldCharacter character)
+        protected virtual void OnCharacterDestroyed(InworldCharacter character)
         {
             if (character == null || !InworldController.Instance)
                 return;
