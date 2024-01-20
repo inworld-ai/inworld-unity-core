@@ -262,6 +262,7 @@ namespace Inworld
         }
         protected IEnumerator _StartSession()
         {
+            Debug.Log("YAN Actual Start Session");
             if (Status == InworldConnectionStatus.Connected)
                 yield break;
             string url = m_ServerConfig.SessionURL(m_Token.sessionId);

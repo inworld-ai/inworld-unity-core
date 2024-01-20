@@ -316,6 +316,7 @@ namespace Inworld
                         LoadScene(m_SceneFullName);
                     break;
                 case InworldConnectionStatus.LoadingSceneCompleted:
+                    Debug.Log("YAN Start Session in Controller");
                     _StartSession();
                     break;
                 case InworldConnectionStatus.LostConnect:

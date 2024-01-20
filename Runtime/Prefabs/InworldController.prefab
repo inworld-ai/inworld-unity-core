@@ -52,7 +52,7 @@ MonoBehaviour:
   m_CharacterHandler: {fileID: 4769464275635075730}
   m_GameData: {fileID: 11400000, guid: 036696d7520eb5145b65e12fc1058448, type: 2}
   m_SceneFullName: workspaces/unitytest/scenes/innequin_gallery
-  m_AutoStart: 1
+  m_AutoStart: 0
 --- !u!114 &4881369806813467986
 MonoBehaviour:
   m_ObjectHideFlags: 0
