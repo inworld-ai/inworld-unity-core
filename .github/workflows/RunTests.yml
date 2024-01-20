@@ -13,11 +13,15 @@ env:
 
 jobs:   
   test:
-    name: Run Tests 
+    name: Run Tests in ${{ matrix.testMode }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-
+      matrix:
+        unityVersion: 2022.3.17f1 
+        testMode:
+          - playmode
+          - editmode
     steps:
         - name: Checkout Repo
           uses: actions/checkout@v4
@@ -41,7 +45,7 @@ jobs:
           with:             
             packageMode: true
             projectPath: Tmp/
-            testMode: playmode
-            unityVersion: 2022.3.17f1
+            testMode: ${{ matrix.testMode }}
+            unityVersion: ${{ matrix.unityVersion }}
             
 

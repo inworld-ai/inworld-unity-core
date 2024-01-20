@@ -262,13 +262,11 @@ namespace Inworld
         }
         protected IEnumerator _StartSession()
         {
-            Debug.Log("YAN Actual Start Session");
             if (Status == InworldConnectionStatus.Connected)
                 yield break;
             string url = m_ServerConfig.SessionURL(m_Token.sessionId);
             if (!IsTokenValid)
                 yield break;
-            // yield return new WaitForEndOfFrame();
             string[] param = {m_Token.type, m_Token.token};
             m_Socket = WebSocketManager.GetWebSocket(url);
             if (m_Socket == null)
@@ -277,7 +275,6 @@ namespace Inworld
             m_Socket.OnMessage += OnMessageReceived;
             m_Socket.OnClose += OnSocketClosed;
             m_Socket.OnError += OnSocketError;
-            Debug.Log("YAN Not it's Connecting");
             Status = InworldConnectionStatus.Connecting;
             m_Socket.ConnectAsync();
         }
