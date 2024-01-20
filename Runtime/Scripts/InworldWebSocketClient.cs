@@ -267,11 +267,8 @@ namespace Inworld
                 yield break;
             string url = m_ServerConfig.SessionURL(m_Token.sessionId);
             if (!IsTokenValid)
-            {
-                Debug.LogError($"YAN Error!!!! Token: {m_Token.token} UTCNow: {DateTime.UtcNow} ExpTime {m_Token.expirationTime}");
                 yield break;
-            }
-            yield return new WaitForEndOfFrame();
+            // yield return new WaitForEndOfFrame();
             string[] param = {m_Token.type, m_Token.token};
             m_Socket = WebSocketManager.GetWebSocket(url);
             if (m_Socket == null)
