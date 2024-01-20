@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 using System;
+using UnityEngine;
 
 namespace Inworld.Entities
 {
@@ -24,6 +25,7 @@ namespace Inworld.Entities
                     return false;
                 if (string.IsNullOrEmpty(type))
                     return false;
+                Debug.Log($"YAN UTC Now: {DateTime.UtcNow} TokenTime: {InworldDateTime.ToDateTime(expirationTime)}");
                 return DateTime.UtcNow < InworldDateTime.ToDateTime(expirationTime);
             }
         }
