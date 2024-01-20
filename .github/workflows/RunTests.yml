@@ -41,7 +41,7 @@ jobs:
           with:             
             packageMode: true
             projectPath: Tmp/
-            testMode: editmode
+            testMode: playmode
             unityVersion: 2022.3.17f1
             
 
