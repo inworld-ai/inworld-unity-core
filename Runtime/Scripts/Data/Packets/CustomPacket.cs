@@ -4,6 +4,7 @@
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
+using Inworld.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,7 +47,6 @@ namespace Inworld.Packet
     [Serializable]
     public class CustomPacket : InworldPacket
     {
-        const string k_Pattern = @"^inworld\.goal\.complete\.(.+)$";
         public CustomEvent custom;
 
         public CustomPacket()
@@ -63,10 +63,17 @@ namespace Inworld.Packet
         {
             get
             {
-                Match match = new Regex(k_Pattern).Match(custom.name);
-                return match.Success && match.Groups.Count > 1 ? match.Groups[1].Value : custom.name;
+                switch (Message)
+                {
+                    case InworldMessage.GoalComplete:
+                        return custom.name.Substring(InworldMessenger.GoalCompleteHead);
+                    case InworldMessage.None:
+                        return custom.name;
+                }
+                return "";
             }
         }
+
         public string Trigger
         {
             get
@@ -76,10 +83,11 @@ namespace Inworld.Packet
                     return result;
                 foreach (TriggerParameter param in custom.parameters)
                 {
-                    result += $"{param.name}: {param.value} ";
+                    result += $" {param.name}: {param.value} ";
                 }
                 return result;
             }
         }
+        public InworldMessage Message => InworldMessenger.ProcessPacket(this);
     }
 }
