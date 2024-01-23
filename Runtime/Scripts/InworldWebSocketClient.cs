@@ -327,5 +327,11 @@ namespace Inworld
             if (e.Message != k_DisconnectMsg)
                 Error = e.Message;
         }
+        
+        void OnDestroy()
+        {
+            if(WebSocketManager.Instance)
+                Destroy(WebSocketManager.Instance.gameObject);
+        }
     }
 }

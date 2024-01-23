@@ -25,6 +25,7 @@ namespace Inworld
         [SerializeField] bool m_ManualAudioHandling;
         InworldCharacter m_CurrentCharacter;
         InworldCharacter m_LastCharacter;
+        protected readonly List<InworldCharacter> m_CharacterList = new List<InworldCharacter>();
         public event Action<InworldCharacterData> OnCharacterRegistered;
         public event Action<InworldCharacter, InworldCharacter> OnCharacterChanged;
 
@@ -33,7 +34,7 @@ namespace Inworld
         protected readonly Dictionary<string, string> m_LiveSession = new Dictionary<string, string>();
         // YAN: Although InworldCharacterData also has agentID, it won't be always updated. Please check m_LiveSession
         //      And Call RegisterLiveSession if outdated.
-        protected readonly Dictionary<string, InworldCharacterData> m_Characters = new Dictionary<string, InworldCharacterData>();
+        protected readonly Dictionary<string, InworldCharacterData> m_CharacterData = new Dictionary<string, InworldCharacterData>();
 
         /// <summary>
         ///     Return if any character is speaking.
@@ -102,8 +103,13 @@ namespace Inworld
             if (!character || string.IsNullOrEmpty(character.BrainName))
                 return null;
             // ReSharper disable once CanSimplifyDictionaryLookupWithTryAdd
-            if (!m_Characters.ContainsKey(character.BrainName))
-                m_Characters[character.BrainName] = character.Data;
+            if (!m_CharacterData.ContainsKey(character.BrainName))
+                m_CharacterData[character.BrainName] = character.Data;
+            if (!m_CharacterList.Contains(character))
+            {
+                m_CharacterList.Add(character);
+                character.onCharacterDestroyed.AddListener(() => OnCharacterDestroyed(character));
+            }
             return m_LiveSession[character.BrainName];
         }
         /// <summary>
@@ -118,7 +124,7 @@ namespace Inworld
                 return null;
             }
             string key = m_LiveSession.First(kvp => kvp.Value == agentID).Key;
-            if (m_Characters.TryGetValue(key, out InworldCharacterData character))
+            if (m_CharacterData.TryGetValue(key, out InworldCharacterData character))
                 return character;
             InworldAI.LogError($"{key} Not Registered!");
             return null;
@@ -201,9 +207,23 @@ namespace Inworld
             foreach (InworldCharacterData agent in response.agents.Where(agent => !string.IsNullOrEmpty(agent.agentId) && !string.IsNullOrEmpty(agent.brainName)))
             {
                 m_LiveSession[agent.brainName] = agent.agentId;
-                m_Characters[agent.brainName] = agent;
+                m_CharacterData[agent.brainName] = agent;
                 StartCoroutine(UpdateThumbnail(agent));
                 OnCharacterRegistered?.Invoke(agent);
+            }
+        }
+        
+        protected virtual void OnCharacterDestroyed(InworldCharacter character)
+        {
+            if (character == null || !InworldController.Instance)
+                return;
+            m_CharacterList.Remove(character);
+            if (character == CurrentCharacter)
+            {
+                _StopAudio();
+                m_LastCharacter = null;
+                m_CurrentCharacter = null;
+                OnCharacterChanged?.Invoke(m_LastCharacter, m_CurrentCharacter);
             }
         }
     }

@@ -26,6 +26,7 @@ namespace Inworld
         public UnityEvent<string, string> onEmotionChanged;
         public UnityEvent<string> onGoalCompleted;
         public UnityEvent onRelationUpdated;
+        public UnityEvent onCharacterDestroyed;
         
         RelationState m_CurrentRelation = new RelationState();
         protected InworldInteraction m_Interaction;
@@ -167,6 +168,10 @@ namespace Inworld
                 return;
             InworldController.CharacterHandler.OnCharacterRegistered -= OnCharRegistered;
             InworldController.Client.OnStatusChanged -= OnStatusChanged;
+        }
+        protected virtual void OnDestroy()
+        {
+            onCharacterDestroyed?.Invoke();
         }
         protected virtual void OnStartStopInteraction(bool isStarting)
         {
