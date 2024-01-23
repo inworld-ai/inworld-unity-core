@@ -28,6 +28,27 @@ namespace Inworld.Packet
                 return $"{name}: {nDiff}";
             return "";
         }
+        public void UpdateByTrigger(TriggerParameter input)
+        {
+            switch (input.name)
+            {
+                case "trust":
+                    int.TryParse(input.value, out trust);
+                    break;
+                case "respect": 
+                    int.TryParse(input.value, out respect);
+                    break;
+                case "familiar":
+                    int.TryParse(input.value, out familiar);
+                    break;
+                case "flirtatious":
+                    int.TryParse(input.value, out flirtatious);
+                    break;
+                case "attraction":
+                    int.TryParse(input.value, out attraction);
+                    break;
+            }
+        }
     }
     [Serializable]
     public class RelationData

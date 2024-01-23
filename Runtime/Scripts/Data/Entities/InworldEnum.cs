@@ -22,6 +22,16 @@ namespace Inworld
         Error // Some error occured.
     }
 
+    public enum InworldMessage
+    {
+        None,
+        GoalEnable,
+        GoalDisable,
+        GoalComplete,
+        RelationUpdate,
+        ConversationNextTurn,
+    }
+
     public enum PacketType
     {
         UNKNOWN,

@@ -267,7 +267,6 @@ namespace Inworld
             string url = m_ServerConfig.SessionURL(m_Token.sessionId);
             if (!IsTokenValid)
                 yield break;
-            yield return new WaitForEndOfFrame();
             string[] param = {m_Token.type, m_Token.token};
             m_Socket = WebSocketManager.GetWebSocket(url);
             if (m_Socket == null)

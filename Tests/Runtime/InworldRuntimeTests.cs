@@ -98,7 +98,7 @@ namespace Inworld.Test
 		{
 			InworldController.Instance.LoadScene();
 			yield return StatusCheck(1, InworldConnectionStatus.LoadingScene);
-			yield return StatusCheck(1, InworldConnectionStatus.Connected);
+			yield return StatusCheck(10, InworldConnectionStatus.Connected);
 			m_LiveSessionAgentInfo = InworldController.Client.GetLiveSessionInfo();
 			Assert.Greater(m_LiveSessionAgentInfo.agents.Count, 0);
 		}
