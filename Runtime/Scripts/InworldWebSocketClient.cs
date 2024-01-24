@@ -331,9 +331,9 @@ namespace Inworld
         void OnDestroy()
         {
 #if !UNITY_WEBGL || UNITY_EDITOR
-            GameObject webSocketManagerGO = GameObject.Find("/[UnityWebSocket]");
-            if(webSocketManagerGO)
-                Destroy(webSocketManagerGO);
+            var webSocketManager = FindObjectOfType<WebSocketManager>();
+            if(webSocketManager)
+                Destroy(webSocketManager.gameObject);
 #endif
         }
     }
