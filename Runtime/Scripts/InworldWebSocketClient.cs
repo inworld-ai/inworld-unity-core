@@ -330,8 +330,11 @@ namespace Inworld
         
         void OnDestroy()
         {
-            if(WebSocketManager.Instance)
-                Destroy(WebSocketManager.Instance.gameObject);
+#if !UNITY_WEBGL || UNITY_EDITOR
+            var webSocketManager = FindObjectOfType<WebSocketManager>();
+            if(webSocketManager)
+                Destroy(webSocketManager.gameObject);
+#endif
         }
     }
 }
