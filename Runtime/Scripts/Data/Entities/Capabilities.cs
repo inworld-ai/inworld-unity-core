@@ -19,7 +19,6 @@ namespace Inworld.Entities
         public bool triggers;
         public bool phonemeInfo;
         public bool relations;
-        public bool debugInfo;
 
         public Capabilities() {}
         public Capabilities(Capabilities rhs)
@@ -32,7 +31,6 @@ namespace Inworld.Entities
             triggers = rhs.triggers;
             phonemeInfo = rhs.phonemeInfo;
             relations = rhs.relations;
-            debugInfo = rhs.debugInfo;
         }
         public void CopyFrom(Capabilities rhs)
         {
@@ -44,7 +42,6 @@ namespace Inworld.Entities
             triggers = rhs.triggers;
             phonemeInfo = rhs.phonemeInfo;
             relations = rhs.relations;
-            debugInfo = rhs.debugInfo;
         }
     }
 }

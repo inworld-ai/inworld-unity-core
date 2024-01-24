@@ -25,7 +25,7 @@ namespace Inworld
     /// </summary>
     public class AudioCapture : MonoBehaviour
     {
-        [SerializeField] protected MicSampleMode m_SamplingMode;
+        [SerializeField] protected MicSampleMode m_SamplingMode = MicSampleMode.NO_FILTER;
         [Range(1, 2)][SerializeField] protected float m_PlayerVolumeThreshold = 2f;
         [SerializeField] protected int m_BufferSeconds = 1;
         [SerializeField] protected string m_DeviceName;
@@ -88,6 +88,15 @@ namespace Inworld
             }
         }
         /// <summary>
+        /// The sample mode used by the Microphone. Determines how audio input is handled and processed for interactions.
+        /// </summary>
+        public MicSampleMode SampleMode
+        {
+            get => m_SamplingMode;
+            set => m_SamplingMode = value;
+        }
+        
+        /// <summary>
         /// A flag to check if player is allowed to speak and without filtering
         /// </summary>
         public bool IsPlayerTurn => 
@@ -113,9 +122,9 @@ namespace Inworld
                     return;
                 m_IsPlayerSpeaking = value;
                 if (m_IsPlayerSpeaking)
-                    OnPlayerStartSpeaking.Invoke();
+                    OnPlayerStartSpeaking?.Invoke();
                 else
-                    OnPlayerStopSpeaking.Invoke();
+                    OnPlayerStopSpeaking?.Invoke();
             }
         }
         /// <summary>
@@ -204,7 +213,7 @@ namespace Inworld
             m_LastPosition = Microphone.GetPosition(m_DeviceName);
 #endif
             m_IsCapturing = true;
-            OnRecordingStart.Invoke();
+            OnRecordingStart?.Invoke();
         }
         /// <summary>
         /// Unity's official microphone module stops recording, will trigger OnRecordingEnd event.
@@ -215,7 +224,7 @@ namespace Inworld
                 return;
             m_AudioToPush.Clear();
             m_IsCapturing = false;
-            OnRecordingEnd.Invoke();
+            OnRecordingEnd?.Invoke();
         }
         /// <summary>
         /// Manually push the audio wave data to server.
@@ -245,7 +254,7 @@ namespace Inworld
             while (m_BackgroundNoise == 0)
             {
                 int nSize = GetAudioData();
-                yield return new WaitForSeconds(0.1f);
+                yield return new WaitForSecondsRealtime(0.1f);
                 m_BackgroundNoise = CalculateAmplitude();
             }
         }
@@ -286,8 +295,6 @@ namespace Inworld
             StopRecording();
             StopMicrophone(m_DeviceName);
         }
-        
-
 
         protected virtual void OnDestroy()
         {
@@ -332,7 +339,7 @@ namespace Inworld
                 InworldController.Instance.SendAudio(audioData);
             else
                 m_AudioToPush.Add(audioData);
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSecondsRealtime(0.1f);
         }
         protected int GetAudioData()
         {

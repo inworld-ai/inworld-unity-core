@@ -21,7 +21,7 @@ namespace Inworld
             {
                 if (__inst)
                     return __inst;
-                __inst = FindObjectOfType<T>();
+                __inst = FindObjectOfType<T>(true);
                 return __inst;
             }
         }

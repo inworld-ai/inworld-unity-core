@@ -49,7 +49,7 @@ namespace Inworld.Sample
             }
             catch (InworldException e)
             {
-                InworldAI.LogWarning($"Failed to send text: {e}");
+                InworldAI.LogWarning($"Failed to send texts: {e}");
             }
         }
 
@@ -112,7 +112,10 @@ namespace Inworld.Sample
             if(m_SendButton)
                 m_SendButton.interactable = InworldController.Status == InworldConnectionStatus.Connected && InworldController.CurrentCharacter;
             if (newChar == null)
+            {
+                InworldAI.Log($"No longer talking to anyone.");
                 return;
+            }
             InworldAI.Log($"Now Talking to: {newChar.Name}");
 
             if (m_PushToTalk && m_PTTKeyPressed && !m_BlockAudioHandling)

@@ -26,6 +26,7 @@ namespace Inworld
         public UnityEvent<string, string> onEmotionChanged;
         public UnityEvent<string> onGoalCompleted;
         public UnityEvent onRelationUpdated;
+        public UnityEvent onCharacterDestroyed;
         
         RelationState m_CurrentRelation = new RelationState();
         protected InworldInteraction m_Interaction;
@@ -143,12 +144,12 @@ namespace Inworld
         /// By default, all the goals are already enabled.
         /// </summary>
         /// <param name="goalName">the name of the goal to enable.</param>
-        public virtual void EnableGoal(string goalName) => InworldController.Instance.SendTrigger($"inworld.goal.enable.{goalName}", ID);
+        public virtual void EnableGoal(string goalName) => InworldMessenger.EnableGoal(goalName, ID);
         /// <summary>
         /// Disable target goal of this character.
         /// </summary>
         /// <param name="goalName">the name of the goal to disable.</param>
-        public virtual void DisableGoal(string goalName) => InworldController.Instance.SendTrigger($"inworld.goal.disable.{goalName}", ID);
+        public virtual void DisableGoal(string goalName) => InworldMessenger.DisableGoal(goalName, ID);
         /// <summary>
         /// Interrupt the current character's speaking.
         /// Ignore all the current incoming messages from the character.
@@ -177,6 +178,10 @@ namespace Inworld
                 return;
             InworldController.CharacterHandler.OnCharacterRegistered -= OnCharRegistered;
             InworldController.Client.OnStatusChanged -= OnStatusChanged;
+        }
+        protected virtual void OnDestroy()
+        {
+            onCharacterDestroyed?.Invoke();
         }
         protected virtual void OnStartStopInteraction(bool isStarting)
         {
@@ -233,15 +238,18 @@ namespace Inworld
                 case CustomPacket customPacket:
                     HandleTrigger(customPacket);
                     break;
-                case RelationPacket relationPacket:
-                    HandleRelation(relationPacket);
-                    break;
                 default:
                     Debug.LogError($"Received Unknown {incomingPacket}");
                     break;
             }
         }
-        protected virtual void HandleRelation(RelationPacket relationPacket) => CurrRelation = relationPacket.debugInfo.relation.relationUpdate;
+        protected virtual void HandleRelation(CustomPacket relationPacket)
+        {
+            foreach (TriggerParameter param in relationPacket.custom.parameters)
+            {
+                CurrRelation.UpdateByTrigger(param);
+            }
+        }
 
         protected virtual void HandleText(TextPacket packet)
         {
@@ -271,6 +279,11 @@ namespace Inworld
         }
         protected virtual void HandleTrigger(CustomPacket customPacket)
         {
+            if (customPacket.Message == InworldMessage.RelationUpdate)
+            {
+                HandleRelation(customPacket);
+                return;
+            }
             if (m_VerboseLog)
             {
                 InworldAI.Log($"{Name}: Received Trigger {customPacket.custom.name}");
