@@ -25,6 +25,7 @@ namespace Inworld
         [SerializeField] bool m_ManualAudioHandling;
         InworldCharacter m_CurrentCharacter;
         InworldCharacter m_LastCharacter;
+
         protected readonly List<InworldCharacter> m_CharacterList = new List<InworldCharacter>();
         public event Action<InworldCharacterData> OnCharacterRegistered;
         public event Action<InworldCharacter, InworldCharacter> OnCharacterChanged;
