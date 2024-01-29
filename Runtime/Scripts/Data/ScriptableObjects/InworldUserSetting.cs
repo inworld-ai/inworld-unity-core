@@ -93,5 +93,11 @@ namespace Inworld
             InworldWorkspaceData wsData = m_Workspaces.FirstOrDefault(ws => ws.name == workspaceName);
             return wsData?.scenes.FirstOrDefault(scene => scene.name == sceneFullName);
         }
+        public InworldGraphData GetGraphByFullName(string graphFullName)
+        {
+            string workspaceName = graphFullName.Substring(0, graphFullName.IndexOf("/graphs/", StringComparison.Ordinal));
+            InworldWorkspaceData wsData = m_Workspaces.FirstOrDefault(ws => ws.name == workspaceName);
+            return wsData?.graphs.FirstOrDefault(graph => graph.name == graphFullName);
+        }
     }
 }

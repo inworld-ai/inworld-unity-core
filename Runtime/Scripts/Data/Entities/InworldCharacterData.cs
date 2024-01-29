@@ -6,6 +6,7 @@
  *************************************************************************************************/
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Inworld.Entities
@@ -122,5 +123,27 @@ namespace Inworld.Entities
                 return data.Length < 4 ? character : $"{data[3]}_{data[1]}";
             }
         }
+    }
+    [Serializable]
+    public class CharacterNetworkData
+    {
+        public string name; //brain name
+        public CharacterAssets defaultCharacterAssets;
+        public InworldCharacterData defaultCharacterDescription;
+    }
+    [Serializable]
+    public class ListCharacterResponse
+    {
+        public List<CharacterNetworkData> characters;
+        public string nextPageToken;
+
+        public List<InworldCharacterData> ToCharacterData() => characters.Select(character => new InworldCharacterData
+        {
+            brainName = character.name,
+            givenName = character.defaultCharacterDescription.givenName,
+            characterAssets = character.defaultCharacterAssets
+        })
+        .ToList();
+
     }
 }

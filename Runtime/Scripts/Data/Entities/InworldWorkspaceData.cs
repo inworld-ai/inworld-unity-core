@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Inworld.Entities
@@ -21,9 +22,12 @@ namespace Inworld.Entities
         [HideInInspector] public string meta;
         [HideInInspector] public string runtimeAccess;
         // YAN: Now charRef in scenes would be updated. No need to list characters.
+        public List<InworldGraphData> graphs;
         public List<InworldSceneData> scenes;
+        public List<InworldCharacterData> characters;
         public List<InworldKeySecret> keySecrets;
         public InworldKeySecret DefaultKey => keySecrets.Count > 0 ? keySecrets[0] : null;
+        public float Progress => scenes.Count == 0 ? 0 : scenes.Average(s => s.Progress);
     }
     [Serializable]
     public class ListWorkspaceResponse
