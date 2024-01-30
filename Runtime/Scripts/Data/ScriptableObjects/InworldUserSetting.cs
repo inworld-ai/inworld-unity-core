@@ -89,6 +89,8 @@ namespace Inworld
         /// <param name="sceneFullName">the display name of target scene</param>
         public InworldSceneData GetSceneByFullName(string sceneFullName)
         {
+            if (string.IsNullOrEmpty(sceneFullName))
+                return null;
             string workspaceName = sceneFullName.Substring(0, sceneFullName.IndexOf("/scenes/", StringComparison.Ordinal));
             InworldWorkspaceData wsData = m_Workspaces.FirstOrDefault(ws => ws.name == workspaceName);
             return wsData?.scenes.FirstOrDefault(scene => scene.name == sceneFullName);
@@ -99,6 +101,8 @@ namespace Inworld
         /// <param name="characterFullName">the display name of target graph</param>
         public InworldCharacterData GetCharacterByFullName(string characterFullName)
         {
+            if (string.IsNullOrEmpty(characterFullName))
+                return null;
             string workspaceName = characterFullName.Substring(0, characterFullName.IndexOf("/chracters/", StringComparison.Ordinal));
             InworldWorkspaceData wsData = m_Workspaces.FirstOrDefault(ws => ws.name == workspaceName);
             return wsData?.characters.FirstOrDefault(character => character.brainName == characterFullName);
@@ -109,9 +113,16 @@ namespace Inworld
         /// <param name="graphFullName">the display name of target graph</param>
         public InworldGraphData GetGraphByFullName(string graphFullName)
         {
+            if (string.IsNullOrEmpty(graphFullName))
+                return null;
             string workspaceName = graphFullName.Substring(0, graphFullName.IndexOf("/graphs/", StringComparison.Ordinal));
             InworldWorkspaceData wsData = m_Workspaces.FirstOrDefault(ws => ws.name == workspaceName);
             return wsData?.graphs.FirstOrDefault(graph => graph.name == graphFullName);
+        }
+        public List<InworldCharacterData> ListCharacters(string wsFullName)
+        {
+            InworldWorkspaceData wsData = m_Workspaces.FirstOrDefault(ws => ws.name == wsFullName);
+            return wsData?.characters;
         }
     }
 }

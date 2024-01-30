@@ -15,6 +15,7 @@ namespace Inworld
 {
     public class InworldGameData : ScriptableObject
     {
+        public string workspaceFullName;
         public string sceneFullName;
         public string apiKey;
         public string apiSecret;
@@ -24,23 +25,31 @@ namespace Inworld
         /// <summary>
         /// Get the generated name for the scriptable object.
         /// </summary>
-        public string SceneFileName
+        public string GameDataFileName
         {
             get
             {
-                string[] data = sceneFullName.Split('/');
-                return data.Length < 4 ? sceneFullName : $"{data[3]}_{data[1]}";
+                if (string.IsNullOrEmpty(sceneFullName))
+                    return workspaceFullName.Split('/')[^1];
+                string[] splits = sceneFullName.Split('/');
+                return splits.Length >= 4 ? $"{splits[3]}_{splits[1]}" : workspaceFullName.Split('/')[^1];
             }
         }
+
         public float Progress => characters?.Count > 0 ? characters.Sum(character => character.characterAssets.Progress) / characters.Count : 1;
     
         /// <summary>
         /// Set the data for the scriptable object instantiated.
         /// </summary>
+        /// <param name="wsFullName">The InworldWorkspace to load</param>
         /// <param name="sceneData">The InworldSceneData to load</param>
         /// <param name="keySecret">The API key secret to use</param>
-        public void SetData(InworldSceneData sceneData, InworldKeySecret keySecret)
+        public void SetData(string wsFullName, InworldSceneData sceneData, InworldKeySecret keySecret)
         {
+            if (!string.IsNullOrEmpty(wsFullName))
+            {
+                workspaceFullName = wsFullName;
+            }
             if (sceneData != null)
             {
                 sceneFullName = sceneData.name;
@@ -51,6 +60,13 @@ namespace Inworld
                 {
                     characters.Add(new InworldCharacterData(charRef));
                 }
+            }
+            else
+            {
+                if (characters == null)
+                    characters = new List<InworldCharacterData>();
+                characters.Clear();
+                characters.AddRange(InworldAI.User.ListCharacters(wsFullName));
             }
             if (keySecret != null)
             {

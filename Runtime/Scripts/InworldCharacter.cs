@@ -149,6 +149,8 @@ namespace Inworld
         {
             if (m_Interaction == null)
                 m_Interaction = GetComponent<InworldInteraction>();
+            if (string.IsNullOrEmpty(InworldController.Instance.GameData.sceneFullName))
+                InworldController.Instance.GameData.sceneFullName = m_Data.brainName;
         }
 
         protected virtual void OnEnable()
