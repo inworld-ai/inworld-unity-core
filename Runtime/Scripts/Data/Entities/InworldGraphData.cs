@@ -26,8 +26,8 @@ namespace Inworld.Entities
 		public string name; // Node's full name
 		public string scene; // Scene full name.
 		public List<InworldNodeQuote> quotes;
-		
-		public string NodeName => string.IsNullOrEmpty(scene) ? "" : scene.Split('/')[^1]; // Node's display Name
+
+		public string NodeName => InworldAI.User.GetSceneByFullName(scene)?.displayName; 
 	}
 	
 	[Serializable]

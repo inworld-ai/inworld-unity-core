@@ -103,7 +103,7 @@ namespace Inworld
         {
             if (string.IsNullOrEmpty(characterFullName))
                 return null;
-            string workspaceName = characterFullName.Substring(0, characterFullName.IndexOf("/chracters/", StringComparison.Ordinal));
+            string workspaceName = characterFullName.Substring(0, characterFullName.IndexOf("/characters/", StringComparison.Ordinal));
             InworldWorkspaceData wsData = m_Workspaces.FirstOrDefault(ws => ws.name == workspaceName);
             return wsData?.characters.FirstOrDefault(character => character.brainName == characterFullName);
         }
