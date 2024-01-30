@@ -21,7 +21,13 @@ namespace Inworld
         Exhausted,
         Error // Some error occured.
     }
-
+    public enum SelectingDataType
+    {
+        None,
+        Scenes,
+        Graphs,
+        Characters
+    }
     public enum InworldMessage
     {
         None,

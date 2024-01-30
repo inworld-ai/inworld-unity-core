@@ -44,7 +44,7 @@ namespace Inworld.Entities
         public string rpmImageUriPosture;
         public string avatarImg;
         public string avatarImgOriginal;
-
+        
         public float thumbnailProgress;
         public float avatarProgress;
         float _ThumbnailProgress => string.IsNullOrEmpty(ThumbnailURL) ? 0.2f : thumbnailProgress * 0.2f;

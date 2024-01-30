@@ -4,6 +4,7 @@
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,6 @@ using Inworld.Entities;
 
 namespace Inworld
 {
-
     public class InworldUserSetting : ScriptableObject
     {
         [SerializeField] string m_PlayerName;
@@ -93,6 +93,20 @@ namespace Inworld
             InworldWorkspaceData wsData = m_Workspaces.FirstOrDefault(ws => ws.name == workspaceName);
             return wsData?.scenes.FirstOrDefault(scene => scene.name == sceneFullName);
         }
+        /// <summary>
+        /// Get the InworldCharacterData by its display name
+        /// </summary>
+        /// <param name="characterFullName">the display name of target graph</param>
+        public InworldCharacterData GetCharacterByFullName(string characterFullName)
+        {
+            string workspaceName = characterFullName.Substring(0, characterFullName.IndexOf("/chracters/", StringComparison.Ordinal));
+            InworldWorkspaceData wsData = m_Workspaces.FirstOrDefault(ws => ws.name == workspaceName);
+            return wsData?.characters.FirstOrDefault(character => character.brainName == characterFullName);
+        }
+        /// <summary>
+        /// Get the InworldGraphData by its display name
+        /// </summary>
+        /// <param name="graphFullName">the display name of target graph</param>
         public InworldGraphData GetGraphByFullName(string graphFullName)
         {
             string workspaceName = graphFullName.Substring(0, graphFullName.IndexOf("/graphs/", StringComparison.Ordinal));
