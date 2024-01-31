@@ -182,7 +182,7 @@ namespace Inworld
         {
             if (Client.Status != InworldConnectionStatus.Connected)
                 InworldAI.LogException($"Tried to send text to {charID}, but not connected to server.");
-            m_Client.SendText(charID, text);
+            m_Client.SendText(charID, text, CharacterHandler.SessionCharacters);
         }
         /// <summary>
         /// Send the CancelResponse Event to InworldServer to interrupt the character's speaking.
@@ -193,7 +193,7 @@ namespace Inworld
         {
             if (Client.Status != InworldConnectionStatus.Connected)
                 InworldAI.LogException($"Tried to send cancel event to {charID}, but not connected to server.");
-            m_Client.SendCancelEvent(charID, interactionID);
+            m_Client.SendCancelEvent(charID, interactionID, CharacterHandler.SessionCharacters);
         } 
         /// <summary>
         /// Send the trigger to an InworldCharacter in the current scene.
@@ -207,7 +207,7 @@ namespace Inworld
                 InworldAI.LogException($"Tried to send trigger to {charID}, but not connected to server.");
             if (string.IsNullOrEmpty(charID))
                 throw new ArgumentException("Character ID is empty.");
-            m_Client.SendTrigger(charID, triggerName, parameters);
+            m_Client.SendTrigger(charID, triggerName, parameters, CharacterHandler.SessionCharacters);
         }
         /// <summary>
         /// Send AUDIO_SESSION_START control events to server.
@@ -236,7 +236,7 @@ namespace Inworld
             
             m_CurrentAudioID = charID;
             m_AudioCapture.StartRecording();
-            m_Client.StartAudio(charID);
+            m_Client.StartAudio(charID, CharacterHandler.SessionCharacters);
         }
         /// <summary>
         /// Send AUDIO_SESSION_END control events to the current character.
@@ -263,7 +263,7 @@ namespace Inworld
             
             if (!m_CharacterHandler.IsRegistered(charID) || Client.Status != InworldConnectionStatus.Connected)
                 return;
-            m_Client.StopAudio(charID);
+            m_Client.StopAudio(charID, CharacterHandler.SessionCharacters);
         }
         /// <summary>
         /// Send the wav data to the current character.
@@ -277,7 +277,7 @@ namespace Inworld
         {
             if (string.IsNullOrEmpty(m_CurrentAudioID) || !m_CharacterHandler.IsRegistered(m_CurrentAudioID) || !Audio.IsAudioAvailable)
                 return;
-            m_Client.SendAudio(m_CurrentAudioID, base64);
+            m_Client.SendAudio(m_CurrentAudioID, base64, CharacterHandler.SessionCharacters);
         }
         /// <summary>
         /// Manually push the audio wave data to server.

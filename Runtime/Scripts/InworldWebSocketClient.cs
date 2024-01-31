@@ -27,7 +27,7 @@ namespace Inworld
         public override void StartSession() => StartCoroutine(_StartSession());
         public override void Disconnect() => StartCoroutine(_DisconnectAsync());
         public override LoadSceneResponse GetLiveSessionInfo() => m_CurrentSceneData;
-        public override void SendText(string characterID, string textToSend)
+        public override void SendText(string characterID, string textToSend, List<string> characters)
         {
             if (string.IsNullOrEmpty(characterID) || string.IsNullOrEmpty(textToSend))
                 return;
@@ -36,14 +36,14 @@ namespace Inworld
                 timestamp = InworldDateTime.UtcNow,
                 type = "TEXT",
                 packetId = new PacketId(),
-                routing = new Routing(characterID),
+                routing = new Routing(characterID, characters),
                 text = new TextEvent(textToSend)
             };
             string jsonToSend = JsonUtility.ToJson(packet);
             Dispatch(packet);
             m_Socket.SendAsync(jsonToSend);
         }
-        public override void SendCancelEvent(string characterID, string interactionID)
+        public override void SendCancelEvent(string characterID, string interactionID, List<string> characters)
         {
             if (string.IsNullOrEmpty(characterID))
                 return;
@@ -52,7 +52,7 @@ namespace Inworld
                 timestamp = InworldDateTime.UtcNow,
                 type = "CANCEL_RESPONSE",
                 packetId = new PacketId(),
-                routing = new Routing(characterID)
+                routing = new Routing(characterID, characters)
             };
             cancelPacket.mutation = new MutationEvent
             {
@@ -63,7 +63,7 @@ namespace Inworld
             };
             m_Socket.SendAsync(JsonUtility.ToJson(cancelPacket));
         }
-        public override void SendTrigger(string charID, string triggerName, Dictionary<string, string> parameters)
+        public override void SendTrigger(string charID, string triggerName, Dictionary<string, string> parameters, List<string> characters)
         {
             if (string.IsNullOrEmpty(charID))
                 return;
@@ -72,14 +72,14 @@ namespace Inworld
                 timestamp = InworldDateTime.UtcNow,
                 type = "CUSTOM",
                 packetId = new PacketId(),
-                routing = new Routing(charID),
+                routing = new Routing(charID, characters),
                 custom = new CustomEvent(triggerName, parameters)
             };
             string jsonToSend = JsonUtility.ToJson(packet);
             InworldAI.Log($"Send Trigger {triggerName}");
             m_Socket.SendAsync(jsonToSend);
         }
-        public override void StartAudio(string charID)
+        public override void StartAudio(string charID, List<string> characters)
         {
             if (string.IsNullOrEmpty(charID))
                 return;
@@ -89,7 +89,7 @@ namespace Inworld
                 timestamp = InworldDateTime.UtcNow,
                 type = "TEXT",
                 packetId = new PacketId(),
-                routing = new Routing(charID),
+                routing = new Routing(charID, characters),
                 control = new ControlEvent
                 {
                     action = "AUDIO_SESSION_START"
@@ -98,7 +98,7 @@ namespace Inworld
             string jsonToSend = JsonUtility.ToJson(packet);
             m_Socket.SendAsync(jsonToSend);
         }
-        public override void StopAudio(string charID)
+        public override void StopAudio(string charID, List<string> characters)
         {
             if (string.IsNullOrEmpty(charID))
                 return;
@@ -107,7 +107,7 @@ namespace Inworld
                 timestamp = InworldDateTime.UtcNow,
                 type = "TEXT",
                 packetId = new PacketId(),
-                routing = new Routing(charID),
+                routing = new Routing(charID, characters),
                 control = new ControlEvent
                 {
                     action = "AUDIO_SESSION_END"
@@ -116,7 +116,7 @@ namespace Inworld
             string jsonToSend = JsonUtility.ToJson(packet);
             m_Socket.SendAsync(jsonToSend);
         }
-        public override void SendAudio(string charID, string base64)
+        public override void SendAudio(string charID, string base64, List<string> characters)
         {
             if (string.IsNullOrEmpty(charID))
                 return;
@@ -125,7 +125,7 @@ namespace Inworld
                 timestamp = InworldDateTime.UtcNow,
                 type = "AUDIO",
                 packetId = new PacketId(),
-                routing = new Routing(charID),
+                routing = new Routing(charID, characters),
                 dataChunk = new DataChunk
                 {
                     type = "AUDIO",

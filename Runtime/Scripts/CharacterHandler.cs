@@ -38,6 +38,10 @@ namespace Inworld
         protected readonly Dictionary<string, InworldCharacterData> m_CharacterData = new Dictionary<string, InworldCharacterData>();
 
         /// <summary>
+        /// Gets the list of all the current agent IDs in the scene.
+        /// </summary>
+        public List<string> SessionCharacters => m_LiveSession.Values.ToList();
+        /// <summary>
         ///     Return if any character is speaking.
         /// </summary>
         public virtual bool IsAnyCharacterSpeaking => CurrentCharacter.IsSpeaking;

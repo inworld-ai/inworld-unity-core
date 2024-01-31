@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 using System;
+using System.Collections.Generic;
 namespace Inworld.Packet
 {
     [Serializable]
@@ -12,36 +13,51 @@ namespace Inworld.Packet
     {
         public string type;
         public string name;
-        public bool isPlayer;
-        public bool isCharacter;
     }
     [Serializable]
     public class Routing
     {
         public Source source;
         public Source target;
-
+        public List<Source> targets;
         public Routing()
         {
             source = new Source();
             target = new Source();
+            targets = new List<Source>();
         }
-        public Routing(string id = "")
+        public Routing(string id = "", List<string> characters = null)
         {
             source = new Source
             {
                 name = "player",
                 type = "PLAYER",
-                isPlayer = true,
-                isCharacter = false
             };
             target = new Source
             {
                 name = id,
                 type = "AGENT",
-                isCharacter = true,
-                isPlayer = false
             };
+            targets = new List<Source>();
+            if (characters != null)
+            {
+                foreach (string characterID in characters)
+                {
+                    targets.Add(new Source
+                    {
+                        name = characterID,
+                        type = "AGENT"
+                    });
+                }
+            }
+            else if (!string.IsNullOrEmpty(id))
+            {
+                targets.Add(new Source
+                {
+                    name = id,
+                    type = "AGENT"
+                });
+            }
         }
     }
 
