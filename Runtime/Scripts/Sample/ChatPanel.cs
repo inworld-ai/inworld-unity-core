@@ -9,6 +9,7 @@ using Inworld.Entities;
 using Inworld.Packet;
 using Inworld.UI;
 using System;
+using System.Linq;
 using UnityEngine;
 
 
@@ -89,11 +90,7 @@ namespace Inworld.Sample
             string key = m_ChatOptions.longBubbleMode ? relationPacket.packetId.interactionId : relationPacket.packetId.utteranceId;
             string charName = charData.givenName ?? "Character";
             Texture2D thumbnail = charData.thumbnail ? charData.thumbnail : InworldAI.DefaultThumbnail;
-            string content = " ";
-            foreach (var param in relationPacket.custom.parameters)
-            {
-                content += $"{param.name}: {param.value} ";
-            }
+            string content = relationPacket.custom.parameters.Aggregate(" ", (current, param) => current + $"{param.name}: {param.value} ");
             InsertBubble(key, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
         }
         protected virtual void HandleTrigger(CustomPacket customPacket)
@@ -122,9 +119,10 @@ namespace Inworld.Sample
             if (!m_ChatOptions.text || textPacket.text == null || string.IsNullOrWhiteSpace(textPacket.text.text) || !IsUIReady)
                 return;
             string key = "";
-            switch (textPacket.routing.source.type.ToUpper())
+            switch (textPacket.Source)
             {
-                case "AGENT":
+                case SourceType.AGENT:
+                {
                     InworldCharacterData charData = InworldController.CharacterHandler.GetCharacterDataByID(textPacket.routing.source.name);
                     if (charData != null)
                     {
@@ -135,7 +133,8 @@ namespace Inworld.Sample
                         InsertBubble(key, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
                     }
                     break;
-                case "PLAYER":
+                }
+                case SourceType.PLAYER:
                     // YAN: Player Input does not apply longBubbleMode.
                     //      And Key is always utteranceID.
                     key = textPacket.packetId.utteranceId;

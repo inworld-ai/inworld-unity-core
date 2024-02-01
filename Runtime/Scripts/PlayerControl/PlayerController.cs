@@ -7,6 +7,7 @@
 
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace Inworld.Sample
@@ -26,6 +27,8 @@ namespace Inworld.Sample
         [SerializeField] protected Button m_SendButton;
         [SerializeField] protected Button m_RecordButton;
         [Space(10)][SerializeField] protected bool m_DisplaySplash;
+        
+        public UnityEvent<string> onPlayerSpeaks;
         
         protected string m_CurrentEmotion;
         protected bool m_PTTKeyPressed;

@@ -6,6 +6,7 @@
  *************************************************************************************************/
 using System;
 using System.Collections.Generic;
+using System.Linq;
 namespace Inworld.Packet
 {
     [Serializable]
@@ -95,5 +96,22 @@ namespace Inworld.Packet
             routing = rhs.routing;
             type = rhs.type;
         }
+        public SourceType Source => Enum.TryParse(routing?.source?.type, true, out SourceType result) ? result : SourceType.NONE;
+        
+        public SourceType Target => Enum.TryParse(routing?.target?.type, true, out SourceType result) ? result : SourceType.NONE;
+
+        public bool IsBroadCast => string.IsNullOrEmpty(routing?.target?.name);
+
+        public string SourceName => routing?.source?.name;
+        
+        public string TargetName => routing?.target?.name;
+        
+        public bool IsSource(string agentID) => !string.IsNullOrEmpty(agentID) && SourceName == agentID;
+        
+        public bool IsTarget(string agentID) => !string.IsNullOrEmpty(agentID) && TargetName == agentID;
+
+        public bool Contains(string agentID) => !string.IsNullOrEmpty(agentID) && (routing?.targets?.Any(agent => agent.name == agentID) ?? false);
+
+        public bool IsRelated(string agentID) => IsSource(agentID) || IsTarget(agentID) || Contains(agentID);
     }
 }

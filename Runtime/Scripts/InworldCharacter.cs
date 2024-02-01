@@ -7,7 +7,9 @@
 using Inworld.Interactions;
 using Inworld.Packet;
 using Inworld.Entities;
+using Inworld.Sample;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -206,6 +208,8 @@ namespace Inworld
 
         protected virtual void ProcessPacket(InworldPacket incomingPacket)
         {
+            if (!incomingPacket.IsRelated(Data.agentId))
+                return;
             onPacketReceived.Invoke(incomingPacket);
             InworldController.Instance.CharacterInteract(incomingPacket);
             
@@ -243,32 +247,40 @@ namespace Inworld
 
         protected virtual void HandleText(TextPacket packet)
         {
-            if (packet.text == null || string.IsNullOrEmpty(packet.text.text) || string.IsNullOrWhiteSpace(packet.text.text))
+            if (packet.text == null || string.IsNullOrWhiteSpace(packet.text.text))
                 return;
-            switch (packet.routing.source.type.ToUpper())
+            
+            if (packet.Source == SourceType.PLAYER)
             {
-                case "AGENT":
-                    IsSpeaking = true;
-                    if (m_VerboseLog)
-                        InworldAI.Log($"{Name}: {packet.text.text}");
-                    onCharacterSpeaks.Invoke(packet.routing.source.name, packet.text.text);
-                    break;
-                case "PLAYER":
-                    if (m_VerboseLog)
-                        InworldAI.Log($"{InworldAI.User.Name}: {packet.text.text}");
-                    onCharacterSpeaks.Invoke(InworldAI.User.Name, packet.text.text);
-                    CancelResponse();
-                    break;
+                if (m_VerboseLog)
+                    InworldAI.Log($"{InworldAI.User.Name}: {packet.text.text}");
+                if (PlayerController.Instance)
+                    PlayerController.Instance.onPlayerSpeaks.Invoke(packet.text.text);
+            }
+            if (packet.Source == SourceType.AGENT && packet.IsSource(Data.agentId))
+            {
+                IsSpeaking = true;
+                if (m_VerboseLog)
+                    InworldAI.Log($"{Name}: {packet.text.text}");
+                onCharacterSpeaks.Invoke(packet.routing.source.name, packet.text.text);
+            }
+            else
+            {
+                IsSpeaking = false;
             }
         }
         protected virtual void HandleEmotion(EmotionPacket packet)
         {
+            if (!packet.IsSource(Data.agentId) && !packet.IsTarget(Data.agentId))
+                return;
             if (m_VerboseLog)
                 InworldAI.Log($"{Name}: {packet.emotion.behavior} {packet.emotion.strength}");
             onEmotionChanged.Invoke(packet.emotion.strength, packet.emotion.behavior);
         }
         protected virtual void HandleTrigger(CustomPacket customPacket)
         {
+            if (!customPacket.IsSource(Data.agentId) && !customPacket.IsTarget(Data.agentId))
+                return;
             if (customPacket.Message == InworldMessage.RelationUpdate)
             {
                 HandleRelation(customPacket);
@@ -276,17 +288,15 @@ namespace Inworld
             }
             if (m_VerboseLog)
             {
-                InworldAI.Log($"{Name}: Received Trigger {customPacket.custom.name}");
-                foreach (TriggerParameter param in customPacket.custom.parameters)
-                {
-                    InworldAI.Log($"With {param.name}: {param.value}");
-                }
+                string output = $"{Name}: Received Trigger {customPacket.custom.name}";
+                output = customPacket.custom.parameters.Aggregate(output, (current, param) => current + $" With {param.name}: {param.value}");
+                InworldAI.Log(output);
             }
             onGoalCompleted.Invoke(customPacket.TriggerName);
         }
         protected virtual void HandleAction(ActionPacket actionPacket)
         {
-            if (m_VerboseLog)
+            if (m_VerboseLog && (actionPacket.IsSource(Data.agentId) || actionPacket.IsTarget(Data.agentId)))
                 InworldAI.Log($"{Name} {actionPacket.action.narratedAction.content}");
         }
         protected virtual void HandleLipSync(AudioPacket audioPacket)

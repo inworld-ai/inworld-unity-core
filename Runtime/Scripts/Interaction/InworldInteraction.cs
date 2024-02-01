@@ -69,14 +69,13 @@ namespace Inworld.Interactions
         /// Gets/Sets the live session ID of the character.
         /// </summary>
         public string LiveSessionID { get; set; }
-        
+
         /// <summary>
         /// If the target packet is sent or received by this character.
         /// </summary>
         /// <param name="packet">the target packet.</param>
-        public bool IsRelated(InworldPacket packet) => 
-            !string.IsNullOrEmpty(LiveSessionID) && 
-            (packet.routing.source.name == LiveSessionID || packet.routing.target.name == LiveSessionID);
+        public bool IsRelated(InworldPacket packet) => packet.IsRelated(LiveSessionID);
+
         /// <summary>
         /// Interrupt this character by cancelling its incoming sentences.
         /// Hard cancelling means even cancel and interrupt the current interaction.
@@ -180,18 +179,19 @@ namespace Inworld.Interactions
         {
             if (!IsRelated(incomingPacket))
                 return;
-            switch (incomingPacket.routing?.source?.type.ToUpper())
+            
+            if (incomingPacket.Source == SourceType.PLAYER && (incomingPacket.IsBroadCast || incomingPacket.IsTarget(LiveSessionID)))
             {
-                case "AGENT":
-                    m_LastFromPlayer = false;
-                    HandleAgentPackets(incomingPacket);
-                    break;
-                case "PLAYER":
-                    // Send Directly.
-                    if (!(incomingPacket is AudioPacket))
-                        m_LastFromPlayer = true;
-                    Dispatch(incomingPacket);
-                    break;
+                if (!(incomingPacket is AudioPacket))
+                    m_LastFromPlayer = true;
+                Dispatch(incomingPacket);
+            }
+            if (incomingPacket.Source == SourceType.AGENT && (incomingPacket.IsSource(LiveSessionID) || incomingPacket.IsTarget(LiveSessionID)))
+            {
+                if (incomingPacket is AudioPacket && !incomingPacket.IsSource(LiveSessionID)) //Audio chunk only dispatch once. to the source.
+                    return;
+                m_LastFromPlayer = false;
+                HandleAgentPackets(incomingPacket);
             }
         }
         protected void Dispatch(List<InworldPacket> packets) => OnInteractionChanged?.Invoke(packets);

@@ -45,6 +45,14 @@ namespace Inworld
         ACTION,
         RELATION
     }
+    public enum SourceType
+    {
+        NONE,
+        AGENT,
+        PLAYER,
+        WORLD
+    }
+
     public enum PacketStatus
     {
         RECEIVED,
