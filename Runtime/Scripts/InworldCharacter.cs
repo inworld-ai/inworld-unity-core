@@ -208,7 +208,7 @@ namespace Inworld
 
         protected virtual void ProcessPacket(InworldPacket incomingPacket)
         {
-            if (!incomingPacket.IsRelated(Data.agentId))
+            if (!incomingPacket.IsRelated(ID))
                 return;
             onPacketReceived.Invoke(incomingPacket);
             InworldController.Instance.CharacterInteract(incomingPacket);
@@ -257,7 +257,7 @@ namespace Inworld
                 if (PlayerController.Instance)
                     PlayerController.Instance.onPlayerSpeaks.Invoke(packet.text.text);
             }
-            if (packet.Source == SourceType.AGENT && packet.IsSource(Data.agentId))
+            if (packet.Source == SourceType.AGENT && packet.IsSource(ID))
             {
                 IsSpeaking = true;
                 if (m_VerboseLog)
@@ -271,7 +271,7 @@ namespace Inworld
         }
         protected virtual void HandleEmotion(EmotionPacket packet)
         {
-            if (!packet.IsSource(Data.agentId) && !packet.IsTarget(Data.agentId))
+            if (!packet.IsSource(ID) && !packet.IsTarget(ID))
                 return;
             if (m_VerboseLog)
                 InworldAI.Log($"{Name}: {packet.emotion.behavior} {packet.emotion.strength}");
@@ -279,7 +279,7 @@ namespace Inworld
         }
         protected virtual void HandleTrigger(CustomPacket customPacket)
         {
-            if (!customPacket.IsSource(Data.agentId) && !customPacket.IsTarget(Data.agentId))
+            if (!customPacket.IsSource(ID) && !customPacket.IsTarget(ID))
                 return;
             if (customPacket.Message == InworldMessage.RelationUpdate)
             {
@@ -296,7 +296,7 @@ namespace Inworld
         }
         protected virtual void HandleAction(ActionPacket actionPacket)
         {
-            if (m_VerboseLog && (actionPacket.IsSource(Data.agentId) || actionPacket.IsTarget(Data.agentId)))
+            if (m_VerboseLog && (actionPacket.IsSource(ID) || actionPacket.IsTarget(ID)))
                 InworldAI.Log($"{Name} {actionPacket.action.narratedAction.content}");
         }
         protected virtual void HandleLipSync(AudioPacket audioPacket)
