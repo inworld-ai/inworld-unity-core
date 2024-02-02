@@ -94,8 +94,6 @@ namespace Inworld
         public virtual void RegisterLiveSession()
         {
             m_Interaction.LiveSessionID = Data.agentId = InworldController.CharacterHandler.GetLiveSessionID(this);
-            if (!InworldController.CurrentCharacter && !string.IsNullOrEmpty(m_Interaction.LiveSessionID))
-                InworldController.CharacterHandler.CurrentCharacter = this;
         }
         /// <summary>
         /// Send the message to this character.

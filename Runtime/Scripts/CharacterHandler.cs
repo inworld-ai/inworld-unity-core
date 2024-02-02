@@ -18,7 +18,8 @@ namespace Inworld
     {
         Manual,
         KeyCode,
-        SightAngle
+        SightAngle,
+        AutoChat
     }
     public class CharacterHandler : MonoBehaviour
     {
