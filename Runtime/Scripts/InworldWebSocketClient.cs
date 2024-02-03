@@ -28,48 +28,32 @@ namespace Inworld
         public override void StartSession() => StartCoroutine(_StartSession());
         public override void Disconnect() => StartCoroutine(_DisconnectAsync());
         public override LoadSceneResponse GetLiveSessionInfo() => m_CurrentSceneData;
-        public override void SendText(string characterID, string textToSend)
+        public override void SendText(string characterID, string textToSend, List<string> characters = null)
         {
-            if (string.IsNullOrEmpty(characterID) || string.IsNullOrEmpty(textToSend))
+            if (string.IsNullOrEmpty(textToSend) || string.IsNullOrEmpty(characterID) && characters == null)
                 return;
             InworldPacket packet = new TextPacket
             {
                 timestamp = InworldDateTime.UtcNow,
                 type = "TEXT",
                 packetId = new PacketId(),
-                routing = new Routing(characterID),
+                routing = characters == null ? new Routing(characterID) : new Routing("", characters),
                 text = new TextEvent(textToSend)
             };
             string jsonToSend = JsonUtility.ToJson(packet);
             Dispatch(packet);
             m_Socket.SendAsync(jsonToSend);
         }
-        public override void SendText(List<string> characters, string textToSend)
+        public override void SendCancelEvent(string characterID, string interactionID, List<string> characters = null)
         {
-            if (characters.Count == 0 || string.IsNullOrEmpty(textToSend))
-                return;
-            InworldPacket packet = new TextPacket
-            {
-                timestamp = InworldDateTime.UtcNow,
-                type = "TEXT",
-                packetId = new PacketId(),
-                routing = new Routing("", characters),
-                text = new TextEvent(textToSend)
-            };
-            string jsonToSend = JsonUtility.ToJson(packet);
-            Dispatch(packet);
-            m_Socket.SendAsync(jsonToSend);
-        }
-        public override void SendCancelEvent(string characterID, string interactionID)
-        {
-            if (string.IsNullOrEmpty(characterID))
+            if (string.IsNullOrEmpty(characterID) && characters == null)
                 return;
             MutationPacket cancelPacket = new MutationPacket
             {
                 timestamp = InworldDateTime.UtcNow,
                 type = "CANCEL_RESPONSE",
                 packetId = new PacketId(),
-                routing = new Routing(characterID),
+                routing = characters == null ? new Routing(characterID) : new Routing("", characters),
                 mutation = new MutationEvent
                 {
                     cancelResponses = new CancelResponse
@@ -80,45 +64,25 @@ namespace Inworld
             };
             m_Socket.SendAsync(JsonUtility.ToJson(cancelPacket));
         }
-        public override void SendCancelEvent(List<string> characters, string interactionID)
+        public override void SendTrigger(string charID, string triggerName, Dictionary<string, string> parameters, List<string> characters = null)
         {
-            if (characters.Count == 0)
-                return;
-            MutationPacket cancelPacket = new MutationPacket
-            {
-                timestamp = InworldDateTime.UtcNow,
-                type = "CANCEL_RESPONSE",
-                packetId = new PacketId(),
-                routing = new Routing("", characters),
-                mutation = new MutationEvent
-                {
-                    cancelResponses = new CancelResponse
-                    {
-                        interactionId = interactionID
-                    }
-                }
-            };
-            m_Socket.SendAsync(JsonUtility.ToJson(cancelPacket));
-        }
-        public override void SendTrigger(string charID, string triggerName, Dictionary<string, string> parameters)
-        {
-            if (string.IsNullOrEmpty(charID))
+            if (string.IsNullOrEmpty(charID) && characters == null)
                 return;
             InworldPacket packet = new CustomPacket
             {
                 timestamp = InworldDateTime.UtcNow,
                 type = "CUSTOM",
                 packetId = new PacketId(),
-                routing = new Routing(charID),
+                routing = characters == null ? new Routing(charID) : new Routing("", characters),
                 custom = new CustomEvent(triggerName, parameters)
             };
             string jsonToSend = JsonUtility.ToJson(packet);
             InworldAI.Log($"Send Trigger {triggerName}");
             m_Socket.SendAsync(jsonToSend);
         }
-        public override void StartAudio(string charID)
+        public override void StartAudio(string charID, List<string> characters = null)
         {
-            if (string.IsNullOrEmpty(charID))
+            if (string.IsNullOrEmpty(charID) && characters == null)
                 return;
 
             InworldPacket packet = new ControlPacket
@@ -126,7 +90,7 @@ namespace Inworld
                 timestamp = InworldDateTime.UtcNow,
                 type = "TEXT",
                 packetId = new PacketId(),
-                routing = new Routing(charID),
+                routing = characters == null ? new Routing(charID) : new Routing("", characters),
                 control = new ControlEvent
                 {
                     action = "AUDIO_SESSION_START"
@@ -135,35 +99,16 @@ namespace Inworld
             string jsonToSend = JsonUtility.ToJson(packet);
             m_Socket.SendAsync(jsonToSend);
         }
-        public override void StartAudio(List<string> characters)
+        public override void StopAudio(string charID, List<string> characters = null)
         {
-            if (characters.Count == 0)
-                return;
-
-            InworldPacket packet = new ControlPacket
-            {
-                timestamp = InworldDateTime.UtcNow,
-                type = "TEXT",
-                packetId = new PacketId(),
-                routing = new Routing("", characters),
-                control = new ControlEvent
-                {
-                    action = "AUDIO_SESSION_START"
-                }
-            };
-            string jsonToSend = JsonUtility.ToJson(packet);
-            m_Socket.SendAsync(jsonToSend);
-        }
-        public override void StopAudio(string charID)
-        {
-            if (string.IsNullOrEmpty(charID))
+            if (string.IsNullOrEmpty(charID) && characters == null)
                 return;
             InworldPacket packet = new ControlPacket
             {
                 timestamp = InworldDateTime.UtcNow,
                 type = "TEXT",
                 packetId = new PacketId(),
-                routing = new Routing(charID),
+                routing = characters == null ? new Routing(charID) : new Routing("", characters),
                 control = new ControlEvent
                 {
                     action = "AUDIO_SESSION_END"
@@ -172,54 +117,16 @@ namespace Inworld
             string jsonToSend = JsonUtility.ToJson(packet);
             m_Socket.SendAsync(jsonToSend);
         }
-        public override void StopAudio(List<string> characters)
+        public override void SendAudio(string charID, string base64, List<string> characters = null)
         {
-            if (characters.Count == 0)
-                return;
-            InworldPacket packet = new ControlPacket
-            {
-                timestamp = InworldDateTime.UtcNow,
-                type = "TEXT",
-                packetId = new PacketId(),
-                routing = new Routing("", characters),
-                control = new ControlEvent
-                {
-                    action = "AUDIO_SESSION_END"
-                }
-            };
-            string jsonToSend = JsonUtility.ToJson(packet);
-            m_Socket.SendAsync(jsonToSend);
-        }
-        public override void SendAudio(List<string> characters, string base64)
-        {
-            if (characters.Count == 0)
+            if (string.IsNullOrEmpty(charID) && characters == null)
                 return;
             InworldPacket packet = new AudioPacket
             {
                 timestamp = InworldDateTime.UtcNow,
                 type = "AUDIO",
                 packetId = new PacketId(),
-                routing = new Routing("", characters),
-                dataChunk = new DataChunk
-                {
-                    type = "AUDIO",
-                    chunk = base64
-                }
-            };
-            string jsonToSend = JsonUtility.ToJson(packet);
-            Dispatch(packet);
-            m_Socket.SendAsync(jsonToSend);
-        }
-        public override void SendAudio(string charID, string base64)
-        {
-            if (string.IsNullOrEmpty(charID))
-                return;
-            InworldPacket packet = new AudioPacket
-            {
-                timestamp = InworldDateTime.UtcNow,
-                type = "AUDIO",
-                packetId = new PacketId(),
-                routing = new Routing(charID),
+                routing = characters == null ? new Routing(charID) : new Routing("", characters),
                 dataChunk = new DataChunk
                 {
                     type = "AUDIO",
@@ -323,7 +230,6 @@ namespace Inworld
             }
             string responseJson = uwr.downloadHandler.text;
             uwr.uploadHandler.Dispose();
-            //TODO(Yan): Solve PreviousSessionResponse.
             m_CurrentSceneData = JsonUtility.FromJson<LoadSceneResponse>(responseJson); 
             Status = InworldConnectionStatus.LoadingSceneCompleted;
         }

@@ -39,25 +39,18 @@ namespace Inworld.Packet
                 name = id,
                 type = "AGENT",
             };
-            targets = new List<Source>();
-            if (characters != null)
+            if (characters == null)
+                return;
+            foreach (string characterID in characters)
             {
-                foreach (string characterID in characters)
+                targets = new List<Source>
                 {
-                    targets.Add(new Source
+                    new Source
                     {
                         name = characterID,
                         type = "AGENT"
-                    });
-                }
-            }
-            else if (!string.IsNullOrEmpty(id))
-            {
-                targets.Add(new Source
-                {
-                    name = id,
-                    type = "AGENT"
-                });
+                    }
+                };
             }
         }
     }

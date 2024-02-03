@@ -43,6 +43,5 @@ namespace Inworld.Entities
     {
         public List<InworldCharacterData> agents = new List<InworldCharacterData>();
         public string key;
-        public object previousState; // TODO(Yan): Solve packets from saved data.
     }
 }

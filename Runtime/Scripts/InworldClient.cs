@@ -147,58 +147,39 @@ namespace Inworld
         /// <summary>
         /// Send messages to an InworldCharacter in this current scene.
         /// </summary>
-        /// <param name="characterID">the live session ID of the character to send</param>
+        /// <param name="characterID">the live session ID of the single character to send</param>
         /// <param name="textToSend">the message to send.</param>
-        public virtual void SendText(string characterID, string textToSend) => Error = k_NotImplented;
-        /// <summary>
-        /// Send messages to a random InworldCharacter in this current scene.
-        /// </summary>
-        /// <param name="characters">the live session ID of the character to send</param>
-        /// <param name="textToSend">the message to send.</param>
-        public virtual void SendText(List<string> characters, string textToSend) => Error = k_NotImplented;
+        /// <param name="characters">the live session ID of the characters to send</param>
+        public virtual void SendText(string characterID, string textToSend, List<string> characters = null) => Error = k_NotImplented;
         /// <summary>
         /// Send the CancelResponse Event to InworldServer to interrupt the character's speaking.
         /// </summary>
         /// <param name="characterID">the live session ID of the character to send</param>
         /// <param name="interactionID">the handle of the dialog context that needs to be cancelled.</param>
-        public virtual void SendCancelEvent(string characterID, string interactionID) => Error = k_NotImplented;
-        /// <summary>
-        /// Send the CancelResponse Event to all the characters in the scene.
-        /// </summary>
         /// <param name="characters">the live session ID of the characters in the scene.</param>
-        /// <param name="interactionID">the handle of the dialog context that needs to be cancelled.</param>
-        public virtual void SendCancelEvent(List<string> characters, string interactionID) => Error = k_NotImplented;
+        public virtual void SendCancelEvent(string characterID, string interactionID, List<string> characters = null) => Error = k_NotImplented;
         /// <summary>
         /// Send the trigger to an InworldCharacter in the current scene.
         /// </summary>
         /// <param name="charID">the live session ID of the character to send.</param>
         /// <param name="triggerName">the name of the trigger to send.</param>
         /// <param name="parameters">the parameters and their values for the triggers.</param>
-        public virtual void SendTrigger(string charID, string triggerName, Dictionary<string, string> parameters) => Error = k_NotImplented;
+        /// <param name="characters">the live session ID of the characters in the scene.</param>
+        public virtual void SendTrigger(string charID, string triggerName, Dictionary<string, string> parameters, List<string> characters = null) => Error = k_NotImplented;
         /// <summary>
         /// Send AUDIO_SESSION_START control events to server.
         /// Without sending this message, all the audio data would be discarded by server.
         /// However, if you send this event twice in a row, without sending `StopAudio()`, Inworld server will also through exceptions and terminate the session.
         /// </summary>
         /// <param name="charID">the live session ID of the character to send.</param>
-        public virtual void StartAudio(string charID) => Error = k_NotImplented;
-        /// <summary>
-        /// Send AUDIO_SESSION_START control events to server to any character in the scene.
-        /// Without sending this message, all the audio data would be discarded by server.
-        /// However, if you send this event twice in a row, without sending `StopAudio()`, Inworld server will also through exceptions and terminate the session.
-        /// </summary>
         /// <param name="characters">the live session ID of the characters to send.</param>
-        public virtual void StartAudio(List<string> characters) => Error = k_NotImplented;
+        public virtual void StartAudio(string charID, List<string> characters = null) => Error = k_NotImplented;
         /// <summary>
         /// Send AUDIO_SESSION_END control events to server to.
         /// </summary>
         /// <param name="charID">the live session ID of the character to send.</param>
-        public virtual void StopAudio(string charID) => Error = k_NotImplented;
-        /// <summary>
-        /// Send AUDIO_SESSION_END control events to server.
-        /// </summary>
         /// <param name="characters">the live session ID of the character to send.</param>
-        public virtual void StopAudio(List<string> characters) => Error = k_NotImplented;
+        public virtual void StopAudio(string charID, List<string> characters = null) => Error = k_NotImplented;
         /// <summary>
         /// Send the wav data to server to a specific character.
         /// Need to make sure that AUDIO_SESSION_START control event has been sent to server.
@@ -208,17 +189,8 @@ namespace Inworld
         /// </summary>
         /// <param name="charID">the live session ID of the character to send.</param>
         /// <param name="base64">the base64 string of the wave data to send.</param>
-        public virtual void SendAudio(string charID, string base64) => Error = k_NotImplented;
-        /// <summary>
-        /// Send the wav data to server to any of the characters in the scene.
-        /// Need to make sure that AUDIO_SESSION_START control event has been sent to server.
-        ///
-        /// Only the base64 string of the wave data is supported by Inworld server.
-        /// Additionally, the sample rate of the wave data has to be 16000, mono channel.
-        /// </summary>
         /// <param name="characters">the live session ID of the character to send.</param>
-        /// <param name="base64">the base64 string of the wave data to send.</param>
-        public virtual void SendAudio(List<string> characters, string base64) => Error = k_NotImplented;
+        public virtual void SendAudio(string charID, string base64, List<string> characters = null) => Error = k_NotImplented;
         /// <summary>
         /// Change the current status of the Inworld client.
         /// </summary>

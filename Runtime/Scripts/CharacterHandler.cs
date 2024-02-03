@@ -148,11 +148,12 @@ namespace Inworld
 
         protected void _StartAudio()
         {
-            if (!m_CurrentCharacter || InworldController.Client.Status != InworldConnectionStatus.Connected)
+            if (InworldController.Client.Status != InworldConnectionStatus.Connected)
                 return;
             try
             {
-                InworldController.Instance.StartAudio(m_CurrentCharacter.ID);
+                string charID = CurrentCharacter ? CurrentCharacter.ID : "";
+                InworldController.Instance.StartAudio(charID);
             }
             catch (InworldException e)
             {
@@ -162,11 +163,10 @@ namespace Inworld
         
         protected void _StopAudio()
         {
-            if (!m_CurrentCharacter)
-                return;
             try
             {
-                InworldController.Instance.StopAudio(m_CurrentCharacter.ID);
+                string charID = CurrentCharacter ? CurrentCharacter.ID : "";
+                InworldController.Instance.StopAudio(charID);
             }
             catch (InworldException e)
             {
@@ -210,6 +210,7 @@ namespace Inworld
             if (response == null)
                 return;
             m_LiveSession.Clear();
+            // YAN: Fetch all the characterData in the current session.
             foreach (InworldCharacterData agent in response.agents.Where(agent => !string.IsNullOrEmpty(agent.agentId) && !string.IsNullOrEmpty(agent.brainName)))
             {
                 m_LiveSession[agent.brainName] = agent.agentId;
@@ -224,13 +225,12 @@ namespace Inworld
             if (character == null || !InworldController.Instance)
                 return;
             m_CharacterList.Remove(character);
-            if (character == CurrentCharacter)
-            {
-                _StopAudio();
-                m_LastCharacter = null;
-                m_CurrentCharacter = null;
-                OnCharacterChanged?.Invoke(m_LastCharacter, m_CurrentCharacter);
-            }
+            if (character != CurrentCharacter)
+                return;
+            _StopAudio();
+            m_LastCharacter = null;
+            m_CurrentCharacter = null;
+            OnCharacterChanged?.Invoke(m_LastCharacter, m_CurrentCharacter);
         }
     }
 }
