@@ -6,7 +6,6 @@
  *************************************************************************************************/
 
 #if UNITY_EDITOR
-using System.IO;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -19,7 +18,7 @@ namespace Inworld
     {
         static InworldBuildProcessor()
         {
-            AssetDatabase.importPackageCompleted += async packageName =>
+            AssetDatabase.importPackageCompleted += _ =>
             {
                 if (InworldAI.Initialized)
                     return;
@@ -58,27 +57,27 @@ namespace Inworld
         }
 
 #if UNITY_WEBGL
-        [PostProcessBuild(1)]
+        [UnityEditor.Callbacks.PostProcessBuild(1)]
         public static void OnPostprocessBuild(BuildTarget target, string pathToBuiltProject)
         {
             string indexPath = $"{pathToBuiltProject}/index.html";
 
-            if (!File.Exists(indexPath))
+            if (!System.IO.File.Exists(indexPath))
             {
                 Debug.LogError("Cannot load index file.");
                 return;
             }
-            string indexData = File.ReadAllText(indexPath);
+            string indexData = System.IO.File.ReadAllText(indexPath);
 
             string dependencies = "<script src='./InworldMicrophone.js'></script>";
 
             if (!indexData.Contains(dependencies))
             {
-                indexData = indexData.Insert(indexData.IndexOf("</head>", StringComparison.Ordinal), $"\n{dependencies}\n");
-                File.WriteAllText(indexPath, indexData);
+                indexData = indexData.Insert(indexData.IndexOf("</head>", System.StringComparison.Ordinal), $"\n{dependencies}\n");
+                System.IO.File.WriteAllText(indexPath, indexData);
             }
-            File.WriteAllText($"{pathToBuiltProject}/InworldMicrophone.js", InworldAI.WebGLMicModule.text);
-            File.WriteAllText($"{pathToBuiltProject}/AudioResampler.js", InworldAI.WebGLMicResampler.text);
+            System.IO.File.WriteAllText($"{pathToBuiltProject}/InworldMicrophone.js", InworldAI.WebGLMicModule.text);
+            System.IO.File.WriteAllText($"{pathToBuiltProject}/AudioResampler.js", InworldAI.WebGLMicResampler.text);
         }
 #endif
         static void _SetDefaultUserName()
