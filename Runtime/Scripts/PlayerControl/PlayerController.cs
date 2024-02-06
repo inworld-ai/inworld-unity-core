@@ -43,7 +43,8 @@ namespace Inworld.Sample
                 return;
             try
             {
-                InworldController.Instance.SendText(m_InputField.text);
+                string characterID = InworldController.CurrentCharacter ? InworldController.CurrentCharacter.ID : "";
+                InworldController.Instance.SendText(characterID, m_InputField.text);
                 m_InputField.text = "";
             }
             catch (InworldException e)

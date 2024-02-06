@@ -179,7 +179,7 @@ namespace Inworld
         /// </summary>
         /// <param name="charID">the live session ID of the character to send</param>
         /// <param name="text">the message to send.</param>
-        public void SendText(string text, string charID = "")
+        public void SendText(string charID, string text)
         {
             if (Client.Status != InworldConnectionStatus.Connected)
                 InworldAI.LogException($"Tried to send text to {charID}, but not connected to server.");
