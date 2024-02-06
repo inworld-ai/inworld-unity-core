@@ -6,12 +6,10 @@
  *************************************************************************************************/
 
 #if UNITY_EDITOR
-using System;
 using System.IO;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
-using UnityEditor.Callbacks;
 using UnityEngine;
 
 namespace Inworld
@@ -30,8 +28,6 @@ namespace Inworld
                 if (VersionChecker.IsLegacyPackage)
                     VersionChecker.NoticeLegacyPackage();
                 InworldAI.Initialized = true;
-                if (!Directory.Exists("Assets/Inworld/Inworld.Assets") && File.Exists("Assets/Inworld/InworldExtraAssets.unitypackage"))
-                    AssetDatabase.ImportPackage("Assets/Inworld/InworldExtraAssets.unitypackage", false);
                 _SetDefaultUserName();
             };
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
