@@ -228,6 +228,9 @@ namespace Inworld
                 case CustomPacket customPacket:
                     HandleTrigger(customPacket);
                     break;
+                case RelationPacket relationPacket:
+                    // Compatible with legacy NDK packets.
+                    break;
                 default:
                     Debug.LogError($"Received Unknown {incomingPacket}");
                     break;
