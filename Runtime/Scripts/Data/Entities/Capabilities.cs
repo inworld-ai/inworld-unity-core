@@ -4,6 +4,7 @@
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
+using Inworld.Packet;
 using System;
 
 namespace Inworld.Entities
@@ -43,5 +44,26 @@ namespace Inworld.Entities
             phonemeInfo = rhs.phonemeInfo;
             relations = rhs.relations;
         }
+        public CapabilityPacket ToPacket => new CapabilityPacket
+        {
+            timestamp = InworldDateTime.UtcNow,
+            type = "SESSION_CONTROL",
+            packetId = new PacketId(),
+            routing = new Routing("WORLD"),
+            sessionControl = new CapabilityEvent
+            {
+                capabilitiesConfiguration = this
+            }
+        };
+    }
+    [Serializable]
+    public class CapabilityEvent
+    {
+        public Capabilities capabilitiesConfiguration;
+    }
+    [Serializable]
+    public class CapabilityPacket : InworldPacket
+    {
+        public CapabilityEvent sessionControl;
     }
 }

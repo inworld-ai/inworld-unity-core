@@ -12,8 +12,6 @@ namespace Inworld.Packet
     {
         public string type;
         public string name;
-        public bool isPlayer;
-        public bool isCharacter;
     }
     [Serializable]
     public class Routing
@@ -32,15 +30,11 @@ namespace Inworld.Packet
             {
                 name = "player",
                 type = "PLAYER",
-                isPlayer = true,
-                isCharacter = false
             };
             target = new Source
             {
                 name = id,
-                type = "AGENT",
-                isCharacter = true,
-                isPlayer = false
+                type = id == "WORLD" ? id : "AGENT",
             };
         }
     }

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Inworld.Packet;
+using System.Collections;
 using UnityEditor;
 
 namespace Inworld
@@ -161,6 +162,7 @@ namespace Inworld
             string historyToLoad = string.IsNullOrEmpty(history) ? Client.SessionHistory : history;
             m_Client.LoadScene(sceneToLoad, historyToLoad);
         }
+        public void PrepareSession() => StartCoroutine(_PrepareSession());
         /// <summary>
         /// Disconnect Inworld Server.
         /// </summary>
@@ -334,11 +336,12 @@ namespace Inworld
             switch (incomingStatus)
             {
                 case InworldConnectionStatus.Initialized:
-                    if (m_AutoStart)
-                        LoadScene(m_SceneFullName);
+                    // if (m_AutoStart)
+                    //     LoadScene(m_SceneFullName);
+                    _StartSession();
                     break;
                 case InworldConnectionStatus.LoadingSceneCompleted:
-                    _StartSession();
+                    // _StartSession();
                     break;
                 case InworldConnectionStatus.LostConnect:
                     ResetAudio();
@@ -353,5 +356,16 @@ namespace Inworld
         }
 
         protected void _StartSession() => m_Client.StartSession();
+
+        protected IEnumerator _PrepareSession()
+        {
+            Client.SendCapabilities();
+            yield return null;
+            Client.SendSessionConfig();
+            yield return null;
+            Client.SendClientConfig();
+            yield return null;
+            Client.SendUserConfig();
+        }
     }
 }

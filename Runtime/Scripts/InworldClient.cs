@@ -144,6 +144,26 @@ namespace Inworld
         /// <param name="history">the full string of the encrypted history content to send.</param>
         public virtual void LoadScene(string sceneFullName, string history = "") => Error = k_NotImplented;
         /// <summary>
+        /// Send Capabilities to Inworld Server.
+        /// It should be sent immediately after session started to enable all the conversations. 
+        /// </summary>
+        public virtual void SendCapabilities() => Error = k_NotImplented;
+        /// <summary>
+        /// Send Session Config to Inworld Server.
+        /// It should be sent right after sending Capabilities. 
+        /// </summary>
+        public virtual void SendSessionConfig() => Error = k_NotImplented;
+        /// <summary>
+        /// Send Client Config to Inworld Server.
+        /// It should be sent right after sending Session Config. 
+        /// </summary>
+        public virtual void SendClientConfig() => Error = k_NotImplented;
+        /// <summary>
+        /// Send User Config to Inworld Server.
+        /// It should be sent right after sending Client Config. 
+        /// </summary>
+        public virtual void SendUserConfig() => Error = k_NotImplented;
+        /// <summary>
         /// Send messages to an InworldCharacter in this current scene.
         /// </summary>
         /// <param name="characterID">the live session ID of the character to send</param>

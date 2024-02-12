@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
+using Inworld.Packet;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -17,6 +18,19 @@ namespace Inworld.Entities
     {
         public string name;
         public string id;
+        public UserSetting userSettings;
+
+        public UserConfigPacket ToPacket => new UserConfigPacket()
+        {
+            timestamp = InworldDateTime.UtcNow,
+            type = "SESSION_CONTROL",
+            packetId = new PacketId(),
+            routing = new Routing("WORLD"),
+            sessionControl = new UserConfigEvent
+            {
+                userConfiguration = this
+            }
+        };
     }
 
     [Serializable]
@@ -44,5 +58,16 @@ namespace Inworld.Entities
     {
         public string fieldId;
         public string fieldValue;
+    }
+    [Serializable]
+    public class UserConfigEvent
+    {
+        public UserRequest userConfiguration;
+    }
+    
+    [Serializable]
+    public class UserConfigPacket : InworldPacket
+    {
+        public UserConfigEvent sessionControl;
     }
 }

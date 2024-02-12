@@ -35,7 +35,8 @@ namespace Inworld
         public UserRequest Request => new UserRequest
         {
             name = Name,
-            id = ID
+            id = ID,
+            userSettings = Setting
         };
         /// <summary>
         /// Get the User setting (Player profile in Inworld Studio)

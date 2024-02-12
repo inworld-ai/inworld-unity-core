@@ -27,6 +27,31 @@ namespace Inworld
         public override void StartSession() => StartCoroutine(_StartSession());
         public override void Disconnect() => StartCoroutine(_DisconnectAsync());
         public override LoadSceneResponse GetLiveSessionInfo() => m_CurrentSceneData;
+
+        public override void SendCapabilities()
+        {
+            string jsonToSend = JsonUtility.ToJson(InworldAI.Capabilities.ToPacket);
+            Debug.Log($"YAN SESSIONCTRL: {jsonToSend}");
+            m_Socket.SendAsync(jsonToSend);
+        }
+        public override void SendSessionConfig()
+        {
+            string jsonToSend = JsonUtility.ToJson(m_Token.ToPacket);
+            Debug.Log($"YAN SESSIONCTRL: {jsonToSend}");
+            m_Socket.SendAsync(jsonToSend);
+        }
+        public override void SendClientConfig()
+        {
+            string jsonToSend = JsonUtility.ToJson(InworldAI.UnitySDK.ToPacket);
+            Debug.Log($"YAN SESSIONCTRL: {jsonToSend}");
+            m_Socket.SendAsync(jsonToSend);
+        }
+        public override void SendUserConfig()
+        {
+            string jsonToSend = JsonUtility.ToJson(InworldAI.User.Request.ToPacket);
+            Debug.Log($"YAN SESSIONCTRL: {jsonToSend}");
+            m_Socket.SendAsync(jsonToSend);
+        }
         public override void SendText(string characterID, string textToSend)
         {
             if (string.IsNullOrEmpty(characterID) || string.IsNullOrEmpty(textToSend))
@@ -292,6 +317,7 @@ namespace Inworld
         
         void OnMessageReceived(object sender, MessageEventArgs e)
         {
+            Debug.Log($"YAN receive wssdata: {e.Data}");
             NetworkPacketResponse response = JsonUtility.FromJson<NetworkPacketResponse>(e.Data);
             if (response == null || response.result == null)
             {
