@@ -33,8 +33,10 @@ namespace Inworld.Test
 			Object.Instantiate(InworldAI.ControllerPrefab);
 			Assert.NotNull(InworldController.Instance);
 			m_Conversation = new List<InworldPacket>();
+			m_LiveSessionAgentInfo = new LoadSceneResponse();
 			InworldController.Client.OnStatusChanged += OnClientStatusChanged;
 			InworldController.Client.OnPacketReceived += OnPacketReceived;
+			InworldController.CharacterHandler.OnCharacterRegistered += OnCharacterRegistered;
 		}
 		[OneTimeTearDown]
 		public void CleanupEnv()
@@ -44,6 +46,7 @@ namespace Inworld.Test
 			{
 				InworldController.Client.OnStatusChanged -= OnClientStatusChanged;
 				InworldController.Client.OnPacketReceived -= OnPacketReceived;
+				InworldController.CharacterHandler.OnCharacterRegistered -= OnCharacterRegistered;
 				Object.DestroyImmediate(InworldController.Instance);
 			}
 			Assert.IsNull(InworldController.Instance);
@@ -61,6 +64,19 @@ namespace Inworld.Test
 				yield return new WaitForFixedUpdate();
 			}
 			Assert.AreEqual(condition, m_CurrentStatus);
+		}
+		IEnumerator LiveSessionCheck(float timeout)
+		{
+			while (timeout > 0)
+			{
+				if (m_LiveSessionAgentInfo.agents.Count > 0)
+				{
+					yield break;
+				}
+				timeout -= Time.fixedDeltaTime;
+				yield return new WaitForFixedUpdate();
+			}
+			Assert.Greater(m_LiveSessionAgentInfo.agents.Count, 0);
 		}
 		IEnumerator ConversationCheck(float timeout)
 		{
@@ -84,7 +100,10 @@ namespace Inworld.Test
 			if (packet.routing.source.type.ToUpper() == "AGENT")
 				m_Conversation.Add(packet);
 		}
-		
+		void OnCharacterRegistered(InworldCharacterData charData)
+		{
+			m_LiveSessionAgentInfo.agents.Add(charData);
+		}
 		[UnityTest]
 		public IEnumerator InworldRuntimeTest_Init()
 		{
@@ -94,13 +113,9 @@ namespace Inworld.Test
 			Assert.IsTrue(InworldController.Client.Token.IsValid);
 		}
 		[UnityTest]
-		public IEnumerator InworldRuntimeTest_LoadScene()
+		public IEnumerator InworldRuntimeTest_LoadCharacter()
 		{
-			InworldController.Instance.LoadScene();
-			yield return StatusCheck(1, InworldConnectionStatus.LoadingScene);
-			yield return StatusCheck(10, InworldConnectionStatus.Connected);
-			m_LiveSessionAgentInfo = InworldController.Client.GetLiveSessionInfo();
-			Assert.Greater(m_LiveSessionAgentInfo.agents.Count, 0);
+			yield return LiveSessionCheck(10);
 		}
 		[UnityTest]
 		public IEnumerator InworldRuntimeTest_SendText()
