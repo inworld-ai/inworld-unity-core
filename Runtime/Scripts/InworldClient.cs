@@ -7,7 +7,6 @@
 using Inworld.Packet;
 using Inworld.Entities;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -20,6 +19,7 @@ namespace Inworld
         [SerializeField] protected string m_APISecret;
         [SerializeField] protected string m_CustomToken;
         [SerializeField] protected string m_PublicWorkspace;
+        [Tooltip("This is for the new previous data")] [SerializeField] protected Continuation m_Continuation;
         public event Action<InworldConnectionStatus> OnStatusChanged;
         #if UNITY_INCLUDE_TESTS
         public event Action<InworldPacket> OnPacketReceived;
@@ -137,12 +137,17 @@ namespace Inworld
         /// Disconnect Inworld Server.
         /// </summary>
         public virtual void Disconnect() => Error = k_NotImplented;
+        // /// <summary>
+        // /// Send LoadScene request to Inworld Server.
+        // /// </summary>
+        // /// <param name="sceneFullName">the full string of the scene to load.</param>
+        // /// <param name="history">the full string of the encrypted history content to send.</param>
+        // public virtual void LoadScene(string sceneFullName, string history = "") => Error = k_NotImplented;
         /// <summary>
         /// Send LoadScene request to Inworld Server.
         /// </summary>
         /// <param name="sceneFullName">the full string of the scene to load.</param>
-        /// <param name="history">the full string of the encrypted history content to send.</param>
-        public virtual void LoadScene(string sceneFullName, string history = "") => Error = k_NotImplented;
+        public virtual void LoadScene(string sceneFullName) => Error = k_NotImplented;
         /// <summary>
         /// Send Capabilities to Inworld Server.
         /// It should be sent immediately after session started to enable all the conversations. 
@@ -163,6 +168,12 @@ namespace Inworld
         /// It should be sent right after sending Client Config. 
         /// </summary>
         public virtual void SendUserConfig() => Error = k_NotImplented;
+        /// <summary>
+        /// Send the previous dialog (New version) to specific scene.
+        /// Can be supported by either previous state (base64) or previous dialog (actor: text)
+        /// </summary>
+        /// <param name="sceneFullName">target scene to send</param>
+        public virtual void SendHistory() => Error = k_NotImplented;
         /// <summary>
         /// Send messages to an InworldCharacter in this current scene.
         /// </summary>

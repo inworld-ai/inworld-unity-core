@@ -155,12 +155,11 @@ namespace Inworld
         /// Send LoadScene request to Inworld Server.
         /// </summary>
         /// <param name="sceneFullName">the full string of the scene to load.</param>
-        public void LoadScene(string sceneFullName = "", string history = "")
+        public void LoadScene(string sceneFullName = "")
         {
             InworldAI.LogEvent("Login_Runtime");
             string sceneToLoad = string.IsNullOrEmpty(sceneFullName) ? m_SceneFullName : sceneFullName;
-            string historyToLoad = string.IsNullOrEmpty(history) ? Client.SessionHistory : history;
-            m_Client.LoadScene(sceneToLoad, historyToLoad);
+            m_Client.LoadScene(sceneToLoad);
         }
         public void PrepareSession() => StartCoroutine(_PrepareSession());
         /// <summary>
@@ -366,6 +365,10 @@ namespace Inworld
             Client.SendClientConfig();
             yield return null;
             Client.SendUserConfig();
+            yield return null;
+            Client.SendHistory();
+            yield return null;
+            Client.LoadScene(CurrentScene);
         }
     }
 }

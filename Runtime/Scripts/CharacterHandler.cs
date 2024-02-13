@@ -184,10 +184,6 @@ namespace Inworld
         }
         protected virtual void OnStatusChanged(InworldConnectionStatus newStatus)
         {
-            if (newStatus == InworldConnectionStatus.LoadingSceneCompleted)
-            {
-                _RegisterLiveSession();
-            }
             if (newStatus == InworldConnectionStatus.Connected)
             {
                 if (!ManualAudioHandling)
@@ -198,7 +194,7 @@ namespace Inworld
                 _StopAudio();
             }
         }
-        protected void _RegisterLiveSession()
+        public void RegisterLiveSession()
         {
             LoadSceneResponse response = InworldController.Client.GetLiveSessionInfo();
             if (response == null)
@@ -206,6 +202,7 @@ namespace Inworld
             m_LiveSession.Clear();
             foreach (InworldCharacterData agent in response.agents.Where(agent => !string.IsNullOrEmpty(agent.agentId) && !string.IsNullOrEmpty(agent.brainName)))
             {
+                agent.NormalizeBrainName();
                 m_LiveSession[agent.brainName] = agent.agentId;
                 m_CharacterData[agent.brainName] = agent;
                 StartCoroutine(UpdateThumbnail(agent));

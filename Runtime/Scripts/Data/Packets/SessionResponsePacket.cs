@@ -6,16 +6,33 @@
  *************************************************************************************************/
 using Inworld.Entities;
 using System;
+using UnityEngine.Serialization;
 
 namespace Inworld.Packet
 {
 	[Serializable]
-	public class SessionControlResponseEvent
+	public class SessionResponseEvent
 	{
-		public LoadSceneResponse loadScene;
+		public LoadSceneResponse loadedScene;
 		public LoadSceneResponse loadedCharacters;
 	}
 
+	[Serializable]
+	public class SessionResponsePacket : InworldPacket
+	{
+		public SessionResponseEvent sessionControlResponse;
+		
+		public SessionResponsePacket()
+		{
+			type = "SESSION_RESPONSE";
+			sessionControlResponse = new SessionResponseEvent();
+		}
+		public SessionResponsePacket(InworldPacket rhs, SessionResponseEvent evt) : base(rhs)
+		{
+			type = "SESSION_RESPONSE";
+			sessionControlResponse = evt;
+		}
+	}
 }
 
 

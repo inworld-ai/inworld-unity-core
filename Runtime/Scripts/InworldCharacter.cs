@@ -91,6 +91,7 @@ namespace Inworld
         /// </summary>
         public virtual void RegisterLiveSession()
         {
+            InworldAI.Log($"{Data.givenName} Registered: {Data.agentId}");
             m_Interaction.LiveSessionID = Data.agentId = InworldController.CharacterHandler.GetLiveSessionID(this);
             if (!InworldController.CurrentCharacter && !string.IsNullOrEmpty(m_Interaction.LiveSessionID))
                 InworldController.CharacterHandler.CurrentCharacter = this;

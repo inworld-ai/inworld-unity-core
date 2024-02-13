@@ -6,7 +6,6 @@
  *************************************************************************************************/
 using Inworld.Packet;
 using Inworld.Entities;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -18,12 +17,11 @@ namespace Inworld
 {
     public class InworldWebSocketClient : InworldClient
     {
-        [SerializeField] protected PreviousDialog m_PreviousDialog;
+        [Tooltip("This is for the legacy previous data")] [SerializeField] protected PreviousDialog m_PreviousDialog;
         protected WebSocket m_Socket;
         protected LoadSceneResponse m_CurrentSceneData;
         protected const string k_DisconnectMsg = "The remote party closed the WebSocket connection without completing the close handshake.";
         public override void GetAccessToken() => StartCoroutine(_GetAccessToken(m_PublicWorkspace));
-        public override void LoadScene(string sceneFullName, string history = "") => StartCoroutine(_LoadScene(sceneFullName, history));
         public override void StartSession() => StartCoroutine(_StartSession());
         public override void Disconnect() => StartCoroutine(_DisconnectAsync());
         public override LoadSceneResponse GetLiveSessionInfo() => m_CurrentSceneData;
@@ -50,6 +48,20 @@ namespace Inworld
         {
             string jsonToSend = JsonUtility.ToJson(InworldAI.User.Request.ToPacket);
             Debug.Log($"YAN SESSIONCTRL: {jsonToSend}");
+            m_Socket.SendAsync(jsonToSend);
+        }
+        public override void SendHistory()
+        {
+            if (!m_Continuation.IsValid)
+                return;
+            string jsonToSend = JsonUtility.ToJson(m_Continuation.ToPacket);
+            Debug.Log($"YAN SESSIONCTRL: {jsonToSend}");
+            m_Socket.SendAsync(jsonToSend);
+        }
+        public override void LoadScene(string sceneFullName)
+        {
+            string jsonToSend = JsonUtility.ToJson(new LoadScenePacket(sceneFullName));
+            Debug.Log($"YAN MUTATION: {jsonToSend}");
             m_Socket.SendAsync(jsonToSend);
         }
         public override void SendText(string characterID, string textToSend)
@@ -210,56 +222,8 @@ namespace Inworld
             }
             Status = InworldConnectionStatus.Initialized;
         }
-
-        protected IEnumerator _LoadScene(string sceneFullName, string history)
-        {
-            InworldAI.Protocol = "UnitySDK/WebSocket";
-            LoadSceneRequest req = new LoadSceneRequest
-            {
-                client = InworldAI.UnitySDK,
-                user = InworldAI.User.Request,
-                userSettings = InworldAI.User.Setting,
-                capabilities = InworldAI.Capabilities
-            };
-            if (string.IsNullOrEmpty(history))
-                yield return _GetHistoryAsync(sceneFullName);
-            else
-            {
-                SessionHistory = history;
-            }
-            req.sessionContinuation = new SessionContinuation
-            {
-                previousState = SessionHistory
-            };
-            if (m_PreviousDialog.phrases.Length != 0)
-            {
-                req.sessionContinuation.previousDialog = m_PreviousDialog;
-            }
-            string json = JsonUtility.ToJson(req);
-            UnityWebRequest uwr = new UnityWebRequest(m_ServerConfig.LoadSceneURL(sceneFullName), "POST");
-            uwr.SetRequestHeader("Grpc-Metadata-session-id", m_Token.sessionId);
-            uwr.SetRequestHeader("Authorization", $"Bearer {m_Token.token}");
-            uwr.SetRequestHeader("Content-Type", "application/json");
-            byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
-            uwr.uploadHandler = new UploadHandlerRaw(bodyRaw);
-            uwr.downloadHandler = new DownloadHandlerBuffer();
-            Status = InworldConnectionStatus.LoadingScene;
-            yield return uwr.SendWebRequest();
-
-            if (uwr.result != UnityWebRequest.Result.Success)
-            {
-                Error = $"Error loading scene {m_Token.sessionId}: {uwr.error}";
-                uwr.uploadHandler.Dispose();
-                yield break;
-            }
-            string responseJson = uwr.downloadHandler.text;
-            uwr.uploadHandler.Dispose();
-            //TODO(Yan): Solve PreviousSessionResponse.
-            m_CurrentSceneData = JsonUtility.FromJson<LoadSceneResponse>(responseJson); 
-            Status = InworldConnectionStatus.LoadingSceneCompleted;
-        }
         public override void GetHistoryAsync(string sceneFullName) => StartCoroutine(_GetHistoryAsync(sceneFullName));
-
+        
         protected IEnumerator _GetHistoryAsync(string sceneFullName)
         {
             string sessionFullName = _GetSessionFullName(sceneFullName);
@@ -303,6 +267,16 @@ namespace Inworld
             Status = InworldConnectionStatus.Connecting;
             m_Socket.ConnectAsync();
         }
+        protected void _RegisterLiveSession(SessionResponseEvent sessionResponse)
+        {
+            m_CurrentSceneData = new LoadSceneResponse();
+            if (sessionResponse.loadedScene?.agents?.Count > 0)
+                m_CurrentSceneData.agents.AddRange(sessionResponse.loadedScene.agents);
+            if (sessionResponse.loadedCharacters?.agents?.Count > 0)
+                m_CurrentSceneData.agents.AddRange(sessionResponse.loadedCharacters.agents);
+            if (InworldController.CharacterHandler)
+                InworldController.CharacterHandler.RegisterLiveSession();
+        }
         protected IEnumerator _DisconnectAsync()
         {
             yield return new WaitForEndOfFrame();
@@ -317,7 +291,6 @@ namespace Inworld
         
         void OnMessageReceived(object sender, MessageEventArgs e)
         {
-            Debug.Log($"YAN receive wssdata: {e.Data}");
             NetworkPacketResponse response = JsonUtility.FromJson<NetworkPacketResponse>(e.Data);
             if (response == null || response.result == null)
             {
@@ -325,7 +298,12 @@ namespace Inworld
                 return;
             }
             InworldNetworkPacket packetReceived = response.result;
-
+            if (packetReceived.Type == PacketType.SESSION_RESPONSE)
+            {
+                if (packetReceived.Packet is SessionResponsePacket sessionResponse)
+                    _RegisterLiveSession(sessionResponse.sessionControlResponse);
+                return;
+            }
             if (packetReceived.Type == PacketType.UNKNOWN)
             {
                 if (e.Data.Contains("error"))

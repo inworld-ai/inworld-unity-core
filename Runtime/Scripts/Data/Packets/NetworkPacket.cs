@@ -4,6 +4,7 @@
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
+using Inworld.Entities;
 using System;
 
 
@@ -25,8 +26,7 @@ namespace Inworld.Packet
         public MutationEvent mutation;
         public EmotionEvent emotion;
         public ActionEvent action;
-        public RelationEvent debugInfo;
-
+        public SessionResponseEvent sessionControlResponse;
         public InworldPacket Packet
         {
             get
@@ -47,8 +47,8 @@ namespace Inworld.Packet
                     return new EmotionPacket(this, emotion);
                 if (action != null && action.narratedAction != null && !string.IsNullOrEmpty(action.narratedAction.content))
                     return new ActionPacket(this, action);
-                if (debugInfo != null)
-                    return new RelationPacket(this, debugInfo);
+                if (sessionControlResponse != null)
+                    return new SessionResponsePacket(this, sessionControlResponse);
                 return this;
             }
         }
@@ -72,8 +72,8 @@ namespace Inworld.Packet
                     return PacketType.EMOTION;
                 if (action != null && action.narratedAction != null && !string.IsNullOrEmpty(action.narratedAction.content))
                     return PacketType.ACTION;
-                if (debugInfo != null)
-                    return PacketType.RELATION;
+                if (sessionControlResponse != null)
+                    return PacketType.SESSION_RESPONSE;
                 return PacketType.UNKNOWN;
             }
         }

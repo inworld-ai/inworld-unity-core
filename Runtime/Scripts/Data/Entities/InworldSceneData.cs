@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
+using Inworld.Packet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,20 +30,39 @@ namespace Inworld.Entities
     }
     
     [Serializable]
-    public class LoadSceneRequest 
+    public class LoadSceneRequest
     {
-        public Client client;
-        public UserRequest user;
-        public Capabilities capabilities;
-        public UserSetting userSettings;
-        public SessionContinuation sessionContinuation;
+        public string name;
+    }
+    [Serializable]
+    public class LoadSceneEvent
+    {
+        public LoadSceneRequest loadScene;
+    }
+    [Serializable]
+    public class LoadScenePacket : InworldPacket
+    {
+        public LoadSceneEvent mutation;
+
+        public LoadScenePacket(string sceneFullName)
+        {
+            timestamp = InworldDateTime.UtcNow;
+            type = "MUTATION";
+            packetId = new PacketId();
+            routing = new Routing("WORLD");
+            mutation = new LoadSceneEvent
+            {
+                loadScene = new LoadSceneRequest
+                {
+                    name = sceneFullName
+                }
+            };
+        }
     }
 
     [Serializable]
     public class LoadSceneResponse
     {
         public List<InworldCharacterData> agents = new List<InworldCharacterData>();
-        public string key;
-        public object previousState; // TODO(Yan): Solve packets from saved data.
     }
 }

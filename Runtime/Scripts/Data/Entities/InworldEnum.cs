@@ -13,7 +13,6 @@ namespace Inworld
         Initializing,
         InitFailed,
         Initialized, // Logged in the server with API Key/Secret or Oculus Nonce/ID
-        LoadingScene,
         LoadingSceneCompleted,
         Connecting, // Controller is connecting to World-Engine
         Connected, // Controller is connected to World-Engine and ready to work.
@@ -49,7 +48,8 @@ namespace Inworld
         CANCEL_RESPONSE,
         EMOTION,
         ACTION,
-        RELATION
+        RELATION,
+        SESSION_RESPONSE
     }
     public enum PacketStatus
     {
