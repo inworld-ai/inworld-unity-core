@@ -91,10 +91,10 @@ namespace Inworld
         /// </summary>
         public virtual void RegisterLiveSession()
         {
-            InworldAI.Log($"{Data.givenName} Registered: {Data.agentId}");
             m_Interaction.LiveSessionID = Data.agentId = InworldController.CharacterHandler.GetLiveSessionID(this);
             if (!InworldController.CurrentCharacter && !string.IsNullOrEmpty(m_Interaction.LiveSessionID))
                 InworldController.CharacterHandler.CurrentCharacter = this;
+            InworldAI.Log($"{Data.givenName} Registered: {Data.agentId}");
         }
         /// <summary>
         /// Send the message to this character.
@@ -195,7 +195,10 @@ namespace Inworld
         }
         protected virtual void OnStatusChanged(InworldConnectionStatus newStatus)
         {
-            
+            if (newStatus == InworldConnectionStatus.Idle)
+            {
+                Data.agentId = "";
+            }
         }
         protected virtual void OnInteractionChanged(List<InworldPacket> packets)
         {

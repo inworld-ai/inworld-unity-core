@@ -29,39 +29,48 @@ namespace Inworld
         public override void SendCapabilities()
         {
             string jsonToSend = JsonUtility.ToJson(InworldAI.Capabilities.ToPacket);
-            Debug.Log($"YAN SESSIONCTRL: {jsonToSend}");
+            InworldAI.Log("Sending Capabilities...");
             m_Socket.SendAsync(jsonToSend);
         }
         public override void SendSessionConfig()
         {
             string jsonToSend = JsonUtility.ToJson(m_Token.ToPacket);
-            Debug.Log($"YAN SESSIONCTRL: {jsonToSend}");
+            InworldAI.Log("Sending Session Info...");
             m_Socket.SendAsync(jsonToSend);
         }
         public override void SendClientConfig()
         {
             string jsonToSend = JsonUtility.ToJson(InworldAI.UnitySDK.ToPacket);
-            Debug.Log($"YAN SESSIONCTRL: {jsonToSend}");
+            InworldAI.Log("Sending Client Info...");
             m_Socket.SendAsync(jsonToSend);
         }
         public override void SendUserConfig()
         {
             string jsonToSend = JsonUtility.ToJson(InworldAI.User.Request.ToPacket);
-            Debug.Log($"YAN SESSIONCTRL: {jsonToSend}");
+            InworldAI.Log("Sending User Config...");
             m_Socket.SendAsync(jsonToSend);
         }
+        // Load History Priority: User's Data (Session State > History dialog) > Session State in Runtime Memory 
+        // We'll fetch the data in runtime memory only when user did NOT put any data in Continuation.
+        //
+        // So if you'd like to keep updating the dialog history, please call `GetHistoryAsync` when terminating session,
+        // And save the session state somewhere in your own storage.
         public override void SendHistory()
         {
             if (!m_Continuation.IsValid)
-                return;
+            {
+                if (string.IsNullOrEmpty(SessionHistory))
+                    return;
+                m_Continuation.continuationType = ContinuationType.CONTINUATION_TYPE_EXTERNALLY_SAVED_STATE;
+                m_Continuation.externallySavedState = SessionHistory;
+            }
             string jsonToSend = JsonUtility.ToJson(m_Continuation.ToPacket);
-            Debug.Log($"YAN SESSIONCTRL: {jsonToSend}");
+            InworldAI.Log($"Send previous history... {jsonToSend}");
             m_Socket.SendAsync(jsonToSend);
         }
         public override void LoadScene(string sceneFullName)
         {
             string jsonToSend = JsonUtility.ToJson(new LoadScenePacket(sceneFullName));
-            Debug.Log($"YAN MUTATION: {jsonToSend}");
             m_Socket.SendAsync(jsonToSend);
         }
         public override void SendText(string characterID, string textToSend)

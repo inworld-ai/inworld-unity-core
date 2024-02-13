@@ -48,8 +48,6 @@ namespace Inworld.Packet
         public string correlationId; // Used in future.
 
         public override string ToString() => $"I: {interactionId} U: {utteranceId} P: {packetId}";
-        
-        [Obsolete] public PacketStatus Status { get; set; }
     }
 
     [Serializable]

@@ -16,17 +16,12 @@ namespace Inworld
         public string tutorialPage; //TODO(Yan): Add reference in Editor panel.
         public int port;
         public string TokenServer => $"https://{web}/{k_TokenURL}"; 
-        const string k_SessionURL = "v1/session/open?session_id="; // session/default?session_id=
+        const string k_SessionURL = "v1/session/open?session_id="; 
         const string k_TokenURL = "v1/sessionTokens/token:generate";
         /// <summary>
         /// Get the URL of runtime server.
         /// </summary>
         public string RuntimeServer => $"{runtime}:{port}";
-        /// <summary>
-        /// Get the URL for loadscene request.
-        /// </summary>
-        /// <param name="sceneFullName">the full name of the scene you want to load</param>
-        public string LoadSceneURL(string sceneFullName) => $"https://{web}/v1/{sceneFullName}:load"; // {sceneFullName}:load
         /// <summary>
         /// Get the URL for the websocket session.
         /// </summary>

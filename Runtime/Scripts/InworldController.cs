@@ -335,12 +335,10 @@ namespace Inworld
             switch (incomingStatus)
             {
                 case InworldConnectionStatus.Initialized:
-                    // if (m_AutoStart)
-                    //     LoadScene(m_SceneFullName);
                     _StartSession();
                     break;
-                case InworldConnectionStatus.LoadingSceneCompleted:
-                    // _StartSession();
+                case InworldConnectionStatus.Connected:
+                    PrepareSession();
                     break;
                 case InworldConnectionStatus.LostConnect:
                     ResetAudio();

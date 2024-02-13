@@ -184,6 +184,10 @@ namespace Inworld
         }
         protected virtual void OnStatusChanged(InworldConnectionStatus newStatus)
         {
+            if (newStatus == InworldConnectionStatus.Idle) // Completely disconnected.
+            {
+                CurrentCharacter = null;
+            }
             if (newStatus == InworldConnectionStatus.Connected)
             {
                 if (!ManualAudioHandling)
