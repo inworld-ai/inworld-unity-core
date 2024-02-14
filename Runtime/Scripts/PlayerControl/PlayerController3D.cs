@@ -28,10 +28,6 @@ namespace Inworld.Sample
                 InworldController.Audio.AutoPush = !m_ChatCanvas.activeSelf && !m_PushToTalk;
                 InworldController.CharacterHandler.ManualAudioHandling = m_ChatCanvas.activeSelf || m_PushToTalk;
             }
-            if (Input.GetKeyUp(KeyCode.Alpha1))
-            {
-                InworldController.Instance.PrepareSession();
-            }
             if (m_ChatCanvas.activeSelf)
                 base.HandleInput();
         }
