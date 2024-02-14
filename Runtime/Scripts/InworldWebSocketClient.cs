@@ -58,7 +58,8 @@ namespace Inworld
                     narratedAction = new NarrativeAction
                     {
                         content = narrativeAction
-                    }
+                    }, 
+                    playback = "UTTERANCE"
                 }
             };
             string jsonToSend = JsonUtility.ToJson(packet);
