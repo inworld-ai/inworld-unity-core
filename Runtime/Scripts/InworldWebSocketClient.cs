@@ -313,6 +313,11 @@ namespace Inworld
                     _RegisterLiveSession(sessionResponse.sessionControlResponse);
                 return;
             }
+            if (packetReceived.Type == PacketType.CONTROL && packetReceived.control.action == "WARNING")
+            {
+                InworldAI.LogWarning(packetReceived.control.description);
+                return;
+            }
             if (packetReceived.Type == PacketType.UNKNOWN)
             {
                 if (e.Data.Contains("error"))
