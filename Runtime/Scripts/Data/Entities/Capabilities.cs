@@ -55,6 +55,27 @@ namespace Inworld.Entities
                 capabilitiesConfiguration = this
             }
         };
+        public override string ToString()
+        {
+            string result = "";
+            if (audio)
+                result += "AUDIO ";
+            if (emotions)
+                result += "EMOTIONS ";
+            if (interruptions)
+                result += "INTERRUPTIONS ";
+            if (narratedActions)
+                result += "NARRATIVE ";
+            if (text)
+                result += "TEXT ";
+            if (triggers)
+                result += "TRIGGER ";
+            if (phonemeInfo)
+                result += "PHONEME ";
+            if (relations)
+                result += "RELATIONS ";
+            return result;
+        }
     }
     [Serializable]
     public class CapabilityEvent

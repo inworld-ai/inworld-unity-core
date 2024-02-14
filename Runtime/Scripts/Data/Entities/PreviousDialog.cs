@@ -103,6 +103,7 @@ namespace Inworld.Entities
                 }
             }
         }
+        
         public ContinuationPacket ToPacket => new ContinuationPacket
         {
             timestamp = InworldDateTime.UtcNow,

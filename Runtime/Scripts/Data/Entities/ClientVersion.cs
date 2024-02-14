@@ -28,6 +28,7 @@ namespace Inworld.Entities
                 clientConfiguration = this
             }
         };
+        public override string ToString() => $"{id}: {version} {description}";
     }
     [Serializable]
     public class ReleaseData

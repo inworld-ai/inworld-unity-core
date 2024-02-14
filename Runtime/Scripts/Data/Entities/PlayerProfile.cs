@@ -8,6 +8,7 @@
 using Inworld.Packet;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Inworld.Entities
@@ -31,6 +32,13 @@ namespace Inworld.Entities
                 userConfiguration = this
             }
         };
+        public override string ToString()
+        {
+            string result = $"{name}: {id}";
+            return userSettings?.playerProfile?.fields?.Count > 0
+                ? userSettings.playerProfile.fields.Aggregate(result, (current, field) => current + $" {field.fieldId}: {field.fieldValue}")
+                : result;
+        }
     }
 
     [Serializable]

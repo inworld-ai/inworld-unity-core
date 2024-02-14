@@ -29,7 +29,7 @@ namespace Inworld.Entities
                 return DateTime.UtcNow < InworldDateTime.ToDateTime(expirationTime);
             }
         }
-        public SessionControlPacket ToPacket => new SessionControlPacket
+        public SessionControlPacket ToPacket(string gameSessionID = "") => new SessionControlPacket
         {
             timestamp = InworldDateTime.UtcNow,
             type = "SESSION_CONTROL",
@@ -37,7 +37,7 @@ namespace Inworld.Entities
             routing = new Routing("WORLD"),
             sessionControl = new SessionControlEvent
             {
-                sessionConfiguration = new SessionConfiguration(sessionId)
+                sessionConfiguration = new SessionConfiguration(string.IsNullOrEmpty(gameSessionID) ? sessionId : gameSessionID)
             }
         };
     }

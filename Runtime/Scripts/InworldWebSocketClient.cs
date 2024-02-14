@@ -6,6 +6,7 @@
  *************************************************************************************************/
 using Inworld.Packet;
 using Inworld.Entities;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -29,25 +30,26 @@ namespace Inworld
         public override void SendCapabilities()
         {
             string jsonToSend = JsonUtility.ToJson(InworldAI.Capabilities.ToPacket);
-            InworldAI.Log("Sending Capabilities...");
+            InworldAI.Log($"Sending Capabilities: {InworldAI.Capabilities}");
             m_Socket.SendAsync(jsonToSend);
         }
         public override void SendSessionConfig()
         {
-            string jsonToSend = JsonUtility.ToJson(m_Token.ToPacket);
-            InworldAI.Log("Sending Session Info...");
+            string gameSessionID = $"{InworldAI.User.Name}:{m_Token.sessionId}:{_GetSessionGUID()}";
+            string jsonToSend = JsonUtility.ToJson(m_Token.ToPacket(gameSessionID));
+            InworldAI.Log($"Sending Session Info: {gameSessionID}");
             m_Socket.SendAsync(jsonToSend);
         }
         public override void SendClientConfig()
         {
             string jsonToSend = JsonUtility.ToJson(InworldAI.UnitySDK.ToPacket);
-            InworldAI.Log("Sending Client Info...");
+            InworldAI.Log($"Sending Client Info: {InworldAI.UnitySDK}");
             m_Socket.SendAsync(jsonToSend);
         }
         public override void SendUserConfig()
         {
             string jsonToSend = JsonUtility.ToJson(InworldAI.User.Request.ToPacket);
-            InworldAI.Log("Sending User Config...");
+            InworldAI.Log($"Sending User Config: {InworldAI.User.Request}");
             m_Socket.SendAsync(jsonToSend);
         }
         // Load History Priority: User's Data (Session State > History dialog) > Session State in Runtime Memory 
@@ -257,6 +259,14 @@ namespace Inworld
         {
             string[] data = sceneFullName.Split('/');
             return data.Length != 4 ? "" : $"workspaces/{data[1]}/sessions/{m_Token.sessionId}";
+        }
+        string _GetSessionGUID()
+        {
+            if (!string.IsNullOrEmpty(m_Continuation?.externallySavedState) && m_Continuation?.externallySavedState.Length >= 8)
+                return m_Continuation.externallySavedState[..8];
+            if (!string.IsNullOrEmpty(SessionHistory) && SessionHistory.Length >= 8)
+                return SessionHistory[..8];
+            return Guid.NewGuid().ToString()[..8];
         }
         protected IEnumerator _StartSession()
         {
