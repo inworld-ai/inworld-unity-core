@@ -114,7 +114,7 @@ namespace Inworld
         public override void SendTrigger(string charID, string triggerName, Dictionary<string, string> parameters)
         {
             if (string.IsNullOrEmpty(charID))
-                return;
+                charID = "WORLD";
             InworldPacket packet = new CustomPacket
             {
                 timestamp = InworldDateTime.UtcNow,

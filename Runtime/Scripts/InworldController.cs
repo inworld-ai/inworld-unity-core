@@ -207,7 +207,7 @@ namespace Inworld
             if (Client.Status != InworldConnectionStatus.Connected)
                 InworldAI.LogException($"Tried to send trigger to {charID}, but not connected to server.");
             if (string.IsNullOrEmpty(charID))
-                throw new ArgumentException("Character ID is empty.");
+                charID = "WORLD";
             m_Client.SendTrigger(charID, triggerName, parameters);
         }
         /// <summary>

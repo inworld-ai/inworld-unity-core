@@ -11,7 +11,7 @@ namespace Inworld
     {
         Idle, // Initial state
         Initializing, // Used at getting runtime token.
-        InitFailed, // Getting runtime Token failed.
+        // InitFailed, // Getting runtime Token failed.
         Initialized, // Getting runtime Token Completed. 
         LoadingSceneCompleted, // Used in legacy NDK only. 
         Connecting, // Start Session with Inworld Server by runtime token.
@@ -29,6 +29,10 @@ namespace Inworld
         GoalComplete,
         RelationUpdate,
         ConversationNextTurn,
+        Error,
+        Critical,
+        GoAway,
+        IncompleteInteraction
     }
     public enum SourceType
     {
