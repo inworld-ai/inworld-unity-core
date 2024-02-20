@@ -18,7 +18,8 @@ namespace Inworld
     {
         [SerializeField] protected InworldCharacterData m_Data;
         [SerializeField] bool m_VerboseLog;
-       
+
+        public UnityEvent onCharacterRegistered;
         public UnityEvent onBeginSpeaking;
         public UnityEvent onEndSpeaking;
         public UnityEvent<InworldPacket> onPacketReceived;
@@ -95,6 +96,8 @@ namespace Inworld
             if (!InworldController.CurrentCharacter && !string.IsNullOrEmpty(m_Interaction.LiveSessionID))
                 InworldController.CharacterHandler.CurrentCharacter = this;
             InworldAI.Log($"{Data.givenName} Registered: {Data.agentId}");
+            if (!string.IsNullOrEmpty(m_Interaction.LiveSessionID))
+                onCharacterRegistered.Invoke();
         }
         /// <summary>
         /// Send the message to this character.
