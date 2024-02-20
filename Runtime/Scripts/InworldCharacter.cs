@@ -52,6 +52,8 @@ namespace Inworld
             get => m_CurrentRelation;
             set
             {
+                if (m_CurrentRelation.IsEqualTo(value))
+                    return;
                 if (m_VerboseLog)
                     InworldAI.Log($"{Name}: {m_CurrentRelation.GetUpdate(value)}");
                 m_CurrentRelation = value;
@@ -86,7 +88,11 @@ namespace Inworld
         /// Gets the live session ID of the character. If not registered, will try to fetch one from InworldController's CharacterHandler.
         /// </summary>
         public string ID => string.IsNullOrEmpty(Data?.agentId) ? InworldController.CharacterHandler.GetLiveSessionID(this) : Data?.agentId;
-        
+        /// <summary>
+        ///     Returns the priority of the character.
+        ///     the higher the Priority is, the character is more likely responding to player.
+        /// </summary>
+        public float Priority { get; set; }
         /// <summary>
         /// Register live session. Get the live session ID for this character, and also assign it to this character's components.
         /// </summary>
@@ -242,10 +248,12 @@ namespace Inworld
         }
         protected virtual void HandleRelation(CustomPacket relationPacket)
         {
+            RelationState tmp = new RelationState();
             foreach (TriggerParameter param in relationPacket.custom.parameters)
             {
-                CurrRelation.UpdateByTrigger(param);
+                tmp.UpdateByTrigger(param);
             }
+            CurrRelation = tmp;
         }
 
         protected virtual void HandleText(TextPacket packet)

@@ -16,7 +16,15 @@ namespace Inworld.Packet
         public int familiar;
         public int flirtatious;
         public int attraction;
-        
+
+        public bool IsEqualTo(RelationState rhs)
+        {
+            return rhs.trust == trust && rhs.respect == respect && rhs.familiar == familiar && rhs.flirtatious == flirtatious && rhs.attraction == attraction;
+        }
+        public override string ToString()
+        {
+            return $"Trust: {trust}, Respect: {respect}, Familiar: {familiar}, Flirtatious: {flirtatious}, Attraction {attraction}";
+        }
         public string GetUpdate(RelationState rhs) => $"{_GetDiff("Trust", trust, rhs.trust)} {_GetDiff("Respect", respect, rhs.respect)} {_GetDiff("Familiar", familiar, rhs.familiar)} {_GetDiff("Flirtatious", flirtatious, rhs.flirtatious)} {_GetDiff("Attraction", attraction, rhs.attraction)}";
         
         string _GetDiff(string name, int nCurrent, int nUpdate)
