@@ -31,7 +31,13 @@ namespace Inworld
         RelationUpdate,
         ConversationNextTurn,
     }
-
+    public enum SourceType
+    {
+        NONE,
+        AGENT,
+        PLAYER,
+        WORLD
+    }
     public enum PacketType
     {
         UNKNOWN,
