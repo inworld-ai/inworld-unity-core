@@ -21,6 +21,7 @@ namespace Inworld
         
         RelationState m_CurrentRelation = new RelationState();
         protected InworldInteraction m_Interaction;
+        protected bool m_IsSpeaking;
         /// <summary>
         /// Gets the Unity Events of the character.
         /// </summary>
@@ -30,12 +31,24 @@ namespace Inworld
         /// </summary>
         public bool IsSpeaking
         {
-            get => m_Interaction && m_Interaction.IsSpeaking;
-            protected set
+            get => m_IsSpeaking;
+            internal set
             {
-                if (!m_Interaction)
+                if (m_IsSpeaking == value)
                     return;
-                m_Interaction.IsSpeaking = value;
+                m_IsSpeaking = value;
+                if (m_IsSpeaking)
+                {
+                    if (m_VerboseLog)
+                        InworldAI.Log($"{Name} Starts Speaking");
+                    m_CharacterEvents.onBeginSpeaking.Invoke();
+                }
+                else
+                {
+                    if (m_VerboseLog)
+                        InworldAI.Log($"{Name} Ends Speaking");
+                    m_CharacterEvents.onEndSpeaking.Invoke();
+                }
             }
         }
         /// <summary>
@@ -44,7 +57,7 @@ namespace Inworld
         public RelationState CurrRelation
         {
             get => m_CurrentRelation;
-            set
+            protected set
             {
                 if (m_CurrentRelation.IsEqualTo(value))
                     return;
@@ -58,15 +71,10 @@ namespace Inworld
         /// Gets/Sets the character's data.
         /// If set, it'll also allocate the live session ID to the character's `InworldInteraction` component.
         /// </summary>
-        public InworldCharacterData Data
+        public InworldCharacterData Data 
         {
             get => m_Data;
-            set
-            {
-                m_Data = value;
-                if (!string.IsNullOrEmpty(m_Data.agentId))
-                    m_Interaction.LiveSessionID = m_Data.agentId;
-            }
+            set => m_Data = value;
         }
         /// <summary>
         /// Get the display name for the character. Note that name may not be unique.
@@ -92,11 +100,11 @@ namespace Inworld
         /// </summary>
         public virtual void RegisterLiveSession()
         {
-            m_Interaction.LiveSessionID = Data.agentId = InworldController.CharacterHandler.GetLiveSessionID(this);
-            if (!InworldController.CurrentCharacter && !string.IsNullOrEmpty(m_Interaction.LiveSessionID))
+            Data.agentId = InworldController.CharacterHandler.GetLiveSessionID(this);
+            if (!InworldController.CurrentCharacter && !string.IsNullOrEmpty(Data.agentId))
                 InworldController.CharacterHandler.CurrentCharacter = this;
             InworldAI.Log($"{Data.givenName} Registered: {Data.agentId}");
-            if (!string.IsNullOrEmpty(m_Interaction.LiveSessionID))
+            if (!string.IsNullOrEmpty(Data.agentId))
                 m_CharacterEvents.onCharacterRegistered.Invoke();
         }
         /// <summary>
@@ -150,43 +158,34 @@ namespace Inworld
         protected virtual void OnEnable()
         {
             InworldController.CharacterHandler.OnCharacterRegistered += OnCharRegistered;
+            InworldController.CharacterHandler.OnCharacterChanged += OnCharChanged;
             InworldController.Client.OnStatusChanged += OnStatusChanged;
-            m_Interaction.OnStartStopInteraction += OnStartStopInteraction;
-            // YAN: This event is for handling global packets. Please only use it in InworldCharacter.
-            //      For customized integration, please use InworldController.Instance.OnCharacterInteraction
-            m_Interaction.OnInteractionChanged += OnInteractionChanged;
         }
         protected virtual void OnDisable()
         {
-            m_Interaction.OnStartStopInteraction -= OnStartStopInteraction;
-            m_Interaction.OnInteractionChanged -= OnInteractionChanged;
             if (!InworldController.Instance)
                 return;
             InworldController.CharacterHandler.OnCharacterRegistered -= OnCharRegistered;
+            InworldController.CharacterHandler.OnCharacterChanged -= OnCharChanged;
             InworldController.Client.OnStatusChanged -= OnStatusChanged;
         }
         protected virtual void OnDestroy()
         {
             m_CharacterEvents.onCharacterDestroyed?.Invoke();
         }
-        protected virtual void OnStartStopInteraction(bool isStarting)
+        protected virtual void OnCharChanged(InworldCharacter lastCharacter, InworldCharacter currentCharacter)
         {
-            if (isStarting)
-            {
-                if (m_VerboseLog)
-                    InworldAI.Log($"{Name} Starts Speaking");
-                m_CharacterEvents.onBeginSpeaking.Invoke();
-            }
-            else
-            {
-                if (m_VerboseLog)
-                    InworldAI.Log($"{Name} Ends Speaking");
-                m_CharacterEvents.onEndSpeaking.Invoke();
-            }
+            if (string.IsNullOrEmpty(BrainName))
+                return;
+            if (lastCharacter.BrainName == BrainName)
+                Event.onCharacterDeselected.Invoke();
+            if (currentCharacter.BrainName == BrainName)
+                Event.onCharacterSelected.Invoke();
         }
         protected virtual void OnCharRegistered(InworldCharacterData charData)
         {
-            
+            if (charData.brainName == Data.brainName)
+                RegisterLiveSession();
         }
         protected virtual void OnStatusChanged(InworldConnectionStatus newStatus)
         {
@@ -195,7 +194,7 @@ namespace Inworld
                 Data.agentId = "";
             }
         }
-        protected virtual void OnInteractionChanged(List<InworldPacket> packets)
+        internal virtual void OnInteractionChanged(List<InworldPacket> packets)
         {
             foreach (InworldPacket packet in packets)
             {
@@ -203,7 +202,7 @@ namespace Inworld
             }
         }
 
-        protected virtual void ProcessPacket(InworldPacket incomingPacket)
+        internal virtual void ProcessPacket(InworldPacket incomingPacket)
         {
             m_CharacterEvents.onPacketReceived.Invoke(incomingPacket);
             InworldController.Instance.CharacterInteract(incomingPacket);

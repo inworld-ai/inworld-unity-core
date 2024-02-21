@@ -25,18 +25,15 @@ namespace Inworld.Interactions
         [SerializeField] protected bool m_AutoProceed = true;
         [SerializeField] protected int m_MaxItemCount = 100;
         [SerializeField] protected float m_TextSpeedMultipler = 0.02f;
+        protected InworldCharacter m_Character;
         protected Interaction m_CurrentInteraction;
         protected IEnumerator m_CurrentCoroutine;
         protected readonly IndexQueue<Interaction> m_Prepared = new IndexQueue<Interaction>();
         protected readonly IndexQueue<Interaction> m_Processed = new IndexQueue<Interaction>();
         protected readonly IndexQueue<Interaction> m_Cancelled = new IndexQueue<Interaction>();
-        protected bool m_IsSpeaking;
+
         protected bool m_Proceed = true;
-        public event Action<List<InworldPacket>> OnInteractionChanged;
-        public event Action<bool> OnStartStopInteraction;
-
         protected float m_AnimFactor;
-
         protected bool m_IsContinueKeyPressed;
         protected bool m_LastFromPlayer;
         /// <summary>
@@ -48,35 +45,14 @@ namespace Inworld.Interactions
             get => Random.Range(0, 1);
             set => m_AnimFactor = value;
         }
-
-        /// <summary>
-        /// Gets/Sets if this character is speaking.
-        /// If set, will trigger the event OnStartStopInteraction.
-        /// </summary>
-        public bool IsSpeaking
-        {
-            get => m_IsSpeaking;
-            set
-            {
-                if (m_IsSpeaking == value)
-                    return;
-                m_IsSpeaking = value;
-                OnStartStopInteraction?.Invoke(m_IsSpeaking);
-            }
-        }
-        
-        /// <summary>
-        /// Gets/Sets the live session ID of the character.
-        /// </summary>
-        public string LiveSessionID { get; set; }
         
         /// <summary>
         /// If the target packet is sent or received by this character.
         /// </summary>
         /// <param name="packet">the target packet.</param>
         public bool IsRelated(InworldPacket packet) => 
-            !string.IsNullOrEmpty(LiveSessionID) && 
-            (packet.routing.source.name == LiveSessionID || packet.routing.target.name == LiveSessionID);
+            !string.IsNullOrEmpty(m_Character.ID) && 
+            (packet.routing.source.name == m_Character.ID || packet.routing.target.name == m_Character.ID);
         /// <summary>
         /// Interrupt this character by cancelling its incoming sentences.
         /// Hard cancelling means even cancel and interrupt the current interaction.
@@ -85,15 +61,22 @@ namespace Inworld.Interactions
         /// <param name="isHardCancelling">If it's hard cancelling. By default it's true.</param>
         public virtual void CancelResponse(bool isHardCancelling = true)
         {
-            if (string.IsNullOrEmpty(LiveSessionID) || !m_Interruptable)
+            if (string.IsNullOrEmpty(m_Character.ID) || !m_Interruptable)
                 return;
             if (isHardCancelling && m_CurrentInteraction != null)
             {
                 m_CurrentInteraction.Cancel();
-                InworldController.Instance.SendCancelEvent(LiveSessionID, m_CurrentInteraction.ID);
+                InworldController.Instance.SendCancelEvent(m_Character.ID, m_CurrentInteraction.ID);
             }
             m_Prepared.PourTo(m_Cancelled);
             m_CurrentInteraction = null;
+        }
+        protected virtual void Awake()
+        {
+            if (!m_Character)
+                m_Character = GetComponent<InworldCharacter>();
+            if (!m_Character)
+                enabled = false;
         }
         protected virtual void OnEnable()
         {
@@ -156,8 +139,8 @@ namespace Inworld.Interactions
                 {
                     yield return PlayNextUtterance();
                 }
-                else
-                    IsSpeaking = false;
+                else if (m_Character)
+                    m_Character.IsSpeaking = false;
             }
             else
             {
@@ -189,13 +172,11 @@ namespace Inworld.Interactions
                     // Send Directly.
                     if (!(incomingPacket is AudioPacket))
                         m_LastFromPlayer = true;
-                    Dispatch(incomingPacket);
+                    if (m_Character)
+                        m_Character.ProcessPacket(incomingPacket);
                     break;
             }
         }
-        protected void Dispatch(List<InworldPacket> packets) => OnInteractionChanged?.Invoke(packets);
-        protected void Dispatch(InworldPacket packet) => OnInteractionChanged?.Invoke(new List<InworldPacket> {packet});
-
         protected void HandleAgentPackets(InworldPacket packet)
         {
             if (m_Processed.IsOverDue(packet))
@@ -236,7 +217,7 @@ namespace Inworld.Interactions
         }
         protected virtual IEnumerator PlayNextUtterance()
         {
-            Dispatch(m_CurrentInteraction.CurrentUtterance.Packets);
+            m_Character.OnInteractionChanged(m_CurrentInteraction.CurrentUtterance.Packets);
             yield return new WaitForSeconds(m_CurrentInteraction.CurrentUtterance.GetTextSpeed() * m_TextSpeedMultipler);
             if (m_CurrentInteraction != null)
                 m_CurrentInteraction.CurrentUtterance = null; // YAN: Processed.

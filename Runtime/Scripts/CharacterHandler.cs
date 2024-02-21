@@ -25,10 +25,10 @@ namespace Inworld
         [SerializeField] bool m_ManualAudioHandling;
         InworldCharacter m_CurrentCharacter;
         InworldCharacter m_LastCharacter;
-        protected readonly List<InworldCharacter> m_CharacterList = new List<InworldCharacter>();
         public event Action<InworldCharacterData> OnCharacterRegistered;
         public event Action<InworldCharacter, InworldCharacter> OnCharacterChanged;
 
+        protected readonly List<InworldCharacter> m_CharacterList = new List<InworldCharacter>();
         // YAN: Now LiveSessionID is handled by CharacterHandler Only. It'll always be updated. 
         //      Both Keys are BrainNames
         protected readonly Dictionary<string, string> m_LiveSession = new Dictionary<string, string>();
@@ -102,9 +102,7 @@ namespace Inworld
         {
             if (!character || string.IsNullOrEmpty(character.BrainName))
                 return null;
-            // ReSharper disable once CanSimplifyDictionaryLookupWithTryAdd
-            if (!m_CharacterData.ContainsKey(character.BrainName))
-                m_CharacterData[character.BrainName] = character.Data;
+            m_CharacterData[character.BrainName] = character.Data;
             if (!m_CharacterList.Contains(character))
             {
                 m_CharacterList.Add(character);
@@ -124,8 +122,8 @@ namespace Inworld
                 return null;
             }
             string key = m_LiveSession.First(kvp => kvp.Value == agentID).Key;
-            if (m_CharacterData.TryGetValue(key, out InworldCharacterData character))
-                return character;
+            if (m_CharacterData.TryGetValue(key, out InworldCharacterData characterData))
+                return characterData;
             InworldAI.LogError($"{key} Not Registered!");
             return null;
         }
@@ -219,13 +217,12 @@ namespace Inworld
             if (character == null || !InworldController.Instance)
                 return;
             m_CharacterList.Remove(character);
-            if (character == CurrentCharacter)
-            {
-                _StopAudio();
-                m_LastCharacter = null;
-                m_CurrentCharacter = null;
-                OnCharacterChanged?.Invoke(m_LastCharacter, m_CurrentCharacter);
-            }
+            if (character != CurrentCharacter)
+                return;
+            _StopAudio();
+            m_LastCharacter = null;
+            m_CurrentCharacter = null;
+            OnCharacterChanged?.Invoke(m_LastCharacter, m_CurrentCharacter);
         }
     }
 }

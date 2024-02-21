@@ -13,14 +13,16 @@ namespace Inworld.Entities
 	[Serializable]
 	public class CharacterEvents
 	{
-		public UnityEvent onCharacterRegistered;
-		public UnityEvent onBeginSpeaking;
-		public UnityEvent onEndSpeaking;
-		public UnityEvent<InworldPacket> onPacketReceived;
+		public UnityEvent onCharacterRegistered;			
+		public UnityEvent onCharacterSelected;				
+		public UnityEvent onCharacterDeselected;			
+		public UnityEvent onCharacterDestroyed;
+		public UnityEvent onBeginSpeaking; 
+		public UnityEvent onEndSpeaking; 
+		public UnityEvent<InworldPacket> onPacketReceived; 
 		public UnityEvent<string ,string> onCharacterSpeaks;
 		public UnityEvent<string, string> onEmotionChanged;
 		public UnityEvent<string> onGoalCompleted;
 		public UnityEvent onRelationUpdated;
-		public UnityEvent onCharacterDestroyed;
 	}
 }
