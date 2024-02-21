@@ -21,6 +21,8 @@ namespace Inworld.Entities
         public bool phonemeInfo;
         public bool relations;
         public bool debugInfo;
+        public bool multiAgent;
+
         public Capabilities() {}
         public Capabilities(Capabilities rhs)
         {
@@ -33,6 +35,7 @@ namespace Inworld.Entities
             phonemeInfo = rhs.phonemeInfo;
             relations = rhs.relations;
             debugInfo = rhs.debugInfo;
+            multiAgent = rhs.multiAgent;
         }
         public void CopyFrom(Capabilities rhs)
         {
@@ -45,6 +48,7 @@ namespace Inworld.Entities
             phonemeInfo = rhs.phonemeInfo;
             relations = rhs.relations;
             debugInfo = rhs.debugInfo;
+            multiAgent = rhs.multiAgent;
         }
         public CapabilityPacket ToPacket => new CapabilityPacket
         {
@@ -76,6 +80,8 @@ namespace Inworld.Entities
                 result += "PHONEME ";
             if (relations)
                 result += "RELATIONS ";
+            if (multiAgent)
+                result += "MULTIAGENT";
             return result;
         }
     }

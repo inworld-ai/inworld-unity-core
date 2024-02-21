@@ -5,6 +5,8 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 using System;
+using System.Collections.Generic;
+using System.Linq;
 namespace Inworld.Packet
 {
     [Serializable]
@@ -18,13 +20,14 @@ namespace Inworld.Packet
     {
         public Source source;
         public Source target;
-
+        public List<Source> targets;
         public Routing()
         {
             source = new Source();
             target = new Source();
+            targets = new List<Source>();
         }
-        public Routing(string id = "")
+        public Routing(string id = "", List<string> characters = null)
         {
             source = new Source
             {
@@ -36,6 +39,19 @@ namespace Inworld.Packet
                 name = id,
                 type = id == "WORLD" ? id : "AGENT",
             };
+            if (characters == null)
+                return;
+            foreach (string characterID in characters)
+            {
+                targets = new List<Source>
+                {
+                    new Source
+                    {
+                        name = characterID,
+                        type = "AGENT"
+                    }
+                };
+            }
         }
     }
 
@@ -71,5 +87,22 @@ namespace Inworld.Packet
             routing = rhs.routing;
             type = rhs.type;
         }
+        public SourceType Source => Enum.TryParse(routing?.source?.type, true, out SourceType result) ? result : SourceType.NONE;
+        
+        public SourceType Target => Enum.TryParse(routing?.target?.type, true, out SourceType result) ? result : SourceType.NONE;
+
+        public bool IsBroadCast => string.IsNullOrEmpty(routing?.target?.name);
+
+        public string SourceName => routing?.source?.name;
+        
+        public string TargetName => routing?.target?.name;
+        
+        public bool IsSource(string agentID) => !string.IsNullOrEmpty(agentID) && SourceName == agentID;
+        
+        public bool IsTarget(string agentID) => !string.IsNullOrEmpty(agentID) && TargetName == agentID;
+
+        public bool Contains(string agentID) => !string.IsNullOrEmpty(agentID) && (routing?.targets?.Any(agent => agent.name == agentID) ?? false);
+
+        public bool IsRelated(string agentID) => IsSource(agentID) || IsTarget(agentID) || Contains(agentID);
     }
 }

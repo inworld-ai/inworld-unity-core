@@ -43,6 +43,7 @@ namespace Inworld.Entities
 				[k_IncompleteInteraction] = InworldMessage.IncompleteInteraction
 			};
 		}
+		public static string NextTurn => k_ConversationNextTurn;
 		public static int GoalCompleteHead => k_GoalComplete.Length + 1; // YAN: With a dot in the end.
 		public static InworldMessage ProcessPacket(CustomPacket packet) => 
 			(from data in s_Message where packet.custom.name.StartsWith(data.Key) select data.Value).FirstOrDefault();

@@ -80,6 +80,7 @@ namespace Inworld.Interactions
             else
             {
                 AnimFactor = m_AudioClip.length;
+                InworldController.Audio.CurrentPlayingPlayer = m_PlaybackSource;
                 m_PlaybackSource.PlayOneShot(m_AudioClip);
                 m_Character.OnInteractionChanged(m_CurrentInteraction.CurrentUtterance.Packets);
                 yield return new WaitUntil(() => !m_PlaybackSource.isPlaying);

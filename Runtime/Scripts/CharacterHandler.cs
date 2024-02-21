@@ -18,17 +18,19 @@ namespace Inworld
     {
         Manual,
         KeyCode,
-        SightAngle
+        SightAngle,
+        AutoChat
     }
     public class CharacterHandler : MonoBehaviour
     {
         [SerializeField] bool m_ManualAudioHandling;
         InworldCharacter m_CurrentCharacter;
         InworldCharacter m_LastCharacter;
-        public event Action<InworldCharacterData> OnCharacterRegistered;
-        public event Action<InworldCharacter, InworldCharacter> OnCharacterChanged;
 
         protected readonly List<InworldCharacter> m_CharacterList = new List<InworldCharacter>();
+
+        public event Action<InworldCharacterData> OnCharacterRegistered;
+        public event Action<InworldCharacter, InworldCharacter> OnCharacterChanged;
         // YAN: Now LiveSessionID is handled by CharacterHandler Only. It'll always be updated. 
         //      Both Keys are BrainNames
         protected readonly Dictionary<string, string> m_LiveSession = new Dictionary<string, string>();
@@ -36,6 +38,10 @@ namespace Inworld
         //      And Call RegisterLiveSession if outdated.
         protected readonly Dictionary<string, InworldCharacterData> m_CharacterData = new Dictionary<string, InworldCharacterData>();
 
+        /// <summary>
+        /// Gets the list of all the current agent IDs in the scene.
+        /// </summary>
+        public List<string> SessionCharacters => m_LiveSession.Values.ToList();
         /// <summary>
         ///     Return if any character is speaking.
         /// </summary>
@@ -140,25 +146,22 @@ namespace Inworld
 
         protected void _StartAudio()
         {
-            if (!m_CurrentCharacter || InworldController.Client.Status != InworldConnectionStatus.Connected)
+            if (InworldController.Client.Status != InworldConnectionStatus.Connected)
                 return;
-            try
-            {
-                InworldController.Instance.StartAudio(m_CurrentCharacter.ID);
-            }
-            catch (InworldException e)
-            {
-                InworldAI.LogWarning($"Audio failed to start: {e}");
-            }
+
+            string charID = CurrentCharacter ? CurrentCharacter.ID : "";
+            if (!string.IsNullOrEmpty(charID))
+                InworldController.Instance.StartAudio(charID);
+            else
+                InworldAI.LogWarning("No characters in the session");
         }
         
         protected void _StopAudio()
         {
-            if (!m_CurrentCharacter)
-                return;
             try
             {
-                InworldController.Instance.StopAudio(m_CurrentCharacter.ID);
+                string charID = CurrentCharacter ? CurrentCharacter.ID : "";
+                InworldController.Instance.StopAudio(charID);
             }
             catch (InworldException e)
             {
@@ -202,6 +205,7 @@ namespace Inworld
             if (response == null)
                 return;
             m_LiveSession.Clear();
+            // YAN: Fetch all the characterData in the current session.
             foreach (InworldCharacterData agent in response.agents.Where(agent => !string.IsNullOrEmpty(agent.agentId) && !string.IsNullOrEmpty(agent.brainName)))
             {
                 agent.NormalizeBrainName();

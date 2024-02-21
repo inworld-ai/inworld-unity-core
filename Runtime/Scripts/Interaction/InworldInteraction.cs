@@ -45,14 +45,13 @@ namespace Inworld.Interactions
             get => Random.Range(0, 1);
             set => m_AnimFactor = value;
         }
-        
+
         /// <summary>
         /// If the target packet is sent or received by this character.
         /// </summary>
         /// <param name="packet">the target packet.</param>
-        public bool IsRelated(InworldPacket packet) => 
-            !string.IsNullOrEmpty(m_Character.ID) && 
-            (packet.routing.source.name == m_Character.ID || packet.routing.target.name == m_Character.ID);
+        public bool IsRelated(InworldPacket packet) => packet.IsRelated(m_Character.ID);
+
         /// <summary>
         /// Interrupt this character by cancelling its incoming sentences.
         /// Hard cancelling means even cancel and interrupt the current interaction.
@@ -137,7 +136,8 @@ namespace Inworld.Interactions
                 }
                 if (m_CurrentInteraction != null && m_CurrentInteraction.CurrentUtterance != null)
                 {
-                    yield return PlayNextUtterance();
+                    if (InworldController.Audio.SampleMode != MicSampleMode.TURN_BASED || !InworldController.Audio.CurrentPlayingPlayer || !InworldController.Audio.CurrentPlayingPlayer.isPlaying)
+                        yield return PlayNextUtterance();
                 }
                 else if (m_Character)
                     m_Character.IsSpeaking = false;
@@ -162,19 +162,19 @@ namespace Inworld.Interactions
         {
             if (!IsRelated(incomingPacket))
                 return;
-            switch (incomingPacket.routing?.source?.type.ToUpper())
+            
+            if (incomingPacket.Source == SourceType.PLAYER && (incomingPacket.IsBroadCast || incomingPacket.IsTarget(m_Character.ID)))
             {
-                case "AGENT":
-                    m_LastFromPlayer = false;
-                    HandleAgentPackets(incomingPacket);
-                    break;
-                case "PLAYER":
-                    // Send Directly.
-                    if (!(incomingPacket is AudioPacket))
-                        m_LastFromPlayer = true;
-                    if (m_Character)
-                        m_Character.ProcessPacket(incomingPacket);
-                    break;
+                if (!(incomingPacket is AudioPacket))
+                    m_LastFromPlayer = true;
+                m_Character.ProcessPacket(incomingPacket);
+            }
+            if (incomingPacket.Source == SourceType.AGENT && (incomingPacket.IsSource(m_Character.ID) || incomingPacket.IsTarget(m_Character.ID)))
+            {
+                if (incomingPacket is AudioPacket && !incomingPacket.IsSource(m_Character.ID)) //Audio chunk only dispatch once. to the source.
+                    return;
+                m_LastFromPlayer = false;
+                HandleAgentPackets(incomingPacket);
             }
         }
         protected void HandleAgentPackets(InworldPacket packet)

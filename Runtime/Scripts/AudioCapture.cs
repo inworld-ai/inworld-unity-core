@@ -17,6 +17,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 
 
+
 namespace Inworld
 {
     /// <summary>
@@ -29,7 +30,8 @@ namespace Inworld
         [Range(1, 2)][SerializeField] protected float m_PlayerVolumeThreshold = 2f;
         [SerializeField] protected int m_BufferSeconds = 1;
         [SerializeField] protected string m_DeviceName;
-        
+
+        public AudioSource CurrentPlayingPlayer { get; set; }
         public UnityEvent OnRecordingStart;
         public UnityEvent OnRecordingEnd;
         public UnityEvent OnPlayerStartSpeaking;
