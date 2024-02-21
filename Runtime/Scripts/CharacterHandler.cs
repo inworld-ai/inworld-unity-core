@@ -108,7 +108,7 @@ namespace Inworld
             if (!m_CharacterList.Contains(character))
             {
                 m_CharacterList.Add(character);
-                character.onCharacterDestroyed.AddListener(() => OnCharacterDestroyed(character));
+                character.Event.onCharacterDestroyed.AddListener(() => OnCharacterDestroyed(character));
             }
             return m_LiveSession[character.BrainName];
         }

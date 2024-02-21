@@ -9,7 +9,6 @@ using Inworld.Packet;
 using Inworld.Entities;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Inworld
 {
@@ -17,20 +16,15 @@ namespace Inworld
     public class InworldCharacter : MonoBehaviour
     {
         [SerializeField] protected InworldCharacterData m_Data;
+        [SerializeField] CharacterEvents m_CharacterEvents;
         [SerializeField] bool m_VerboseLog;
-
-        public UnityEvent onCharacterRegistered;
-        public UnityEvent onBeginSpeaking;
-        public UnityEvent onEndSpeaking;
-        public UnityEvent<InworldPacket> onPacketReceived;
-        public UnityEvent<string ,string> onCharacterSpeaks;
-        public UnityEvent<string, string> onEmotionChanged;
-        public UnityEvent<string> onGoalCompleted;
-        public UnityEvent onRelationUpdated;
-        public UnityEvent onCharacterDestroyed;
         
         RelationState m_CurrentRelation = new RelationState();
         protected InworldInteraction m_Interaction;
+        /// <summary>
+        /// Gets the Unity Events of the character.
+        /// </summary>
+        public CharacterEvents Event => m_CharacterEvents;
         /// <summary>
         /// Gets/Sets if this character is speaking.
         /// </summary>
@@ -57,7 +51,7 @@ namespace Inworld
                 if (m_VerboseLog)
                     InworldAI.Log($"{Name}: {m_CurrentRelation.GetUpdate(value)}");
                 m_CurrentRelation = value;
-                onRelationUpdated.Invoke();
+                m_CharacterEvents.onRelationUpdated.Invoke();
             }
         }
         /// <summary>
@@ -103,7 +97,7 @@ namespace Inworld
                 InworldController.CharacterHandler.CurrentCharacter = this;
             InworldAI.Log($"{Data.givenName} Registered: {Data.agentId}");
             if (!string.IsNullOrEmpty(m_Interaction.LiveSessionID))
-                onCharacterRegistered.Invoke();
+                m_CharacterEvents.onCharacterRegistered.Invoke();
         }
         /// <summary>
         /// Send the message to this character.
@@ -181,7 +175,7 @@ namespace Inworld
         }
         protected virtual void OnDestroy()
         {
-            onCharacterDestroyed?.Invoke();
+            m_CharacterEvents.onCharacterDestroyed?.Invoke();
         }
         protected virtual void OnStartStopInteraction(bool isStarting)
         {
@@ -189,13 +183,13 @@ namespace Inworld
             {
                 if (m_VerboseLog)
                     InworldAI.Log($"{Name} Starts Speaking");
-                onBeginSpeaking.Invoke();
+                m_CharacterEvents.onBeginSpeaking.Invoke();
             }
             else
             {
                 if (m_VerboseLog)
                     InworldAI.Log($"{Name} Ends Speaking");
-                onEndSpeaking.Invoke();
+                m_CharacterEvents.onEndSpeaking.Invoke();
             }
         }
         protected virtual void OnCharRegistered(InworldCharacterData charData)
@@ -219,7 +213,7 @@ namespace Inworld
 
         protected virtual void ProcessPacket(InworldPacket incomingPacket)
         {
-            onPacketReceived.Invoke(incomingPacket);
+            m_CharacterEvents.onPacketReceived.Invoke(incomingPacket);
             InworldController.Instance.CharacterInteract(incomingPacket);
             
             switch (incomingPacket)
@@ -266,12 +260,12 @@ namespace Inworld
                     IsSpeaking = true;
                     if (m_VerboseLog)
                         InworldAI.Log($"{Name}: {packet.text.text}");
-                    onCharacterSpeaks.Invoke(packet.routing.source.name, packet.text.text);
+                    m_CharacterEvents.onCharacterSpeaks.Invoke(packet.routing.source.name, packet.text.text);
                     break;
                 case "PLAYER":
                     if (m_VerboseLog)
                         InworldAI.Log($"{InworldAI.User.Name}: {packet.text.text}");
-                    onCharacterSpeaks.Invoke(InworldAI.User.Name, packet.text.text);
+                    m_CharacterEvents.onCharacterSpeaks.Invoke(InworldAI.User.Name, packet.text.text);
                     CancelResponse();
                     break;
             }
@@ -280,7 +274,7 @@ namespace Inworld
         {
             if (m_VerboseLog)
                 InworldAI.Log($"{Name}: {packet.emotion.behavior} {packet.emotion.strength}");
-            onEmotionChanged.Invoke(packet.emotion.strength, packet.emotion.behavior);
+            m_CharacterEvents.onEmotionChanged.Invoke(packet.emotion.strength, packet.emotion.behavior);
         }
         protected virtual void HandleTrigger(CustomPacket customPacket)
         {
@@ -297,7 +291,7 @@ namespace Inworld
                     InworldAI.Log($"With {param.name}: {param.value}");
                 }
             }
-            onGoalCompleted.Invoke(customPacket.TriggerName);
+            m_CharacterEvents.onGoalCompleted.Invoke(customPacket.TriggerName);
         }
         protected virtual void HandleAction(ActionPacket actionPacket)
         {
