@@ -16,7 +16,7 @@ namespace Inworld
         LoadingSceneCompleted, // Used in legacy NDK only. 
         Connecting, // Start Session with Inworld Server by runtime token.
         Connected, // Controller is connected to World-Engine and ready to work.
-        LostConnect, // Received when session expired without error, i.e, due to inactivity
+        // LostConnect, // Received when session expired without error, i.e, due to inactivity
         Exhausted, // Received when user is running out of quota.
         Error // Some error occured.
     }

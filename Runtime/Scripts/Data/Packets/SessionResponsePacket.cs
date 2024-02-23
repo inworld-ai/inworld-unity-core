@@ -6,6 +6,7 @@
  *************************************************************************************************/
 using Inworld.Entities;
 using System;
+using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace Inworld.Packet
@@ -32,6 +33,7 @@ namespace Inworld.Packet
 			type = "SESSION_RESPONSE";
 			sessionControlResponse = evt;
 		}
+		public override string ToJson => JsonUtility.ToJson(this); 
 	}
 }
 

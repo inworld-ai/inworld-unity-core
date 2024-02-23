@@ -26,26 +26,21 @@ namespace Inworld
         [SerializeField] bool m_ManualAudioHandling;
         InworldCharacter m_CurrentCharacter;
         InworldCharacter m_LastCharacter;
-
+        
+        public event Action<InworldCharacter> OnCharacterListJoined;
+        public event Action<InworldCharacter> OnCharacterListLeft;
+        public event Action<InworldCharacter, InworldCharacter> OnCharacterChanged;   
+        // The Character List only lists the interactable characters.
+        // Although InworldCharacter also has InworldCharacterData, its agentID won't be always updated. Please check m_LiveSession
+        // and Call RegisterLiveSession if outdated.
         protected readonly List<InworldCharacter> m_CharacterList = new List<InworldCharacter>();
-
-        public event Action<InworldCharacterData> OnCharacterRegistered;
-        public event Action<InworldCharacter, InworldCharacter> OnCharacterChanged;
-        // YAN: Now LiveSessionID is handled by CharacterHandler Only. It'll always be updated. 
-        //      Both Keys are BrainNames
-        protected readonly Dictionary<string, string> m_LiveSession = new Dictionary<string, string>();
-        // YAN: Although InworldCharacterData also has agentID, it won't be always updated. Please check m_LiveSession
-        //      And Call RegisterLiveSession if outdated.
-        protected readonly Dictionary<string, InworldCharacterData> m_CharacterData = new Dictionary<string, InworldCharacterData>();
-
-        /// <summary>
-        /// Gets the list of all the current agent IDs in the scene.
-        /// </summary>
-        public List<string> SessionCharacters => m_LiveSession.Values.ToList();
+        
         /// <summary>
         ///     Return if any character is speaking.
         /// </summary>
         public virtual bool IsAnyCharacterSpeaking => CurrentCharacter.IsSpeaking;
+
+        public List<string> CurrentCharacterNames => m_CharacterList.Select(a => a.BrainName).ToList();
 
         /// <summary>
         /// Gets/Sets the current interacting character.
@@ -60,14 +55,22 @@ namespace Inworld
                 string newBrainName = value ? value.BrainName : "";
                 if (oldBrainName == newBrainName)
                     return;
-                _StopAudio();
+                // TODO(Yan): Solve Audio later as it's blocked.
+                // if (!string.IsNullOrEmpty(oldBrainName))
+                //     InworldController.Instance.StopAudio();
                 m_LastCharacter = m_CurrentCharacter;
                 m_CurrentCharacter = value;
-                if(!ManualAudioHandling)
-                    _StartAudio();
+                // if(!ManualAudioHandling && !string.IsNullOrEmpty(newBrainName))
+                //     InworldController.Instance.StartAudio();
                 OnCharacterChanged?.Invoke(m_LastCharacter, m_CurrentCharacter);
             }
         }
+        /// <summary>
+        /// Gets the current interacting characters in the group.
+        /// If set, it'll also start audio sampling if `ManualAudioHandling` is false, and invoke the event OnCharacterChanged
+        /// </summary>
+        public List<InworldCharacter> CurrentCharacters => m_CharacterList;
+        
         /// <summary>
         /// If it's false, AudioCapture of the InworldController will automatically start recording player's voice when at least a character is selected.
         /// Otherwise, developers need to manually call `InworldController.Instance.StartAudio()` to start microphone.
@@ -81,9 +84,9 @@ namespace Inworld
                     return;
                 m_ManualAudioHandling = value;
                 if (m_ManualAudioHandling)
-                    _StopAudio();
+                    InworldController.Instance.StopAudio();
                 else 
-                    _StartAudio();
+                    InworldController.Instance.StartAudio();
             }
         }
         /// <summary>
@@ -95,44 +98,8 @@ namespace Inworld
         ///     Change the method of how to select character.
         /// </summary>
         public virtual void ChangeSelectingMethod() {}
-        /// <summary>
-        /// Check if a character is registered.
-        /// </summary>
-        /// <param name="characterID">The live session ID of the Inworld character.</param>
-        public bool IsRegistered(string characterID) => !string.IsNullOrEmpty(characterID) && m_LiveSession.ContainsValue(characterID);
-        /// <summary>
-        /// Get the live session ID for an Inworld character.
-        /// </summary>
-        /// <param name="character">The request Inworld character.</param>
-        public virtual string GetLiveSessionID(InworldCharacter character)
-        {
-            if (!character || string.IsNullOrEmpty(character.BrainName))
-                return null;
-            m_CharacterData[character.BrainName] = character.Data;
-            if (!m_CharacterList.Contains(character))
-            {
-                m_CharacterList.Add(character);
-                character.Event.onCharacterDestroyed.AddListener(() => OnCharacterDestroyed(character));
-            }
-            return m_LiveSession[character.BrainName];
-        }
-        /// <summary>
-        /// Get the InworldCharacterData by character's live session ID.
-        /// </summary>
-        /// <param name="agentID">the request character's live session ID.</param>
-        public InworldCharacterData GetCharacterDataByID(string agentID)
-        {
-            if (!m_LiveSession.ContainsValue(agentID))
-            {
-                InworldAI.LogError($"{agentID} Not Registered!");
-                return null;
-            }
-            string key = m_LiveSession.First(kvp => kvp.Value == agentID).Key;
-            if (m_CharacterData.TryGetValue(key, out InworldCharacterData characterData))
-                return characterData;
-            InworldAI.LogError($"{key} Not Registered!");
-            return null;
-        }
+
+
         protected virtual void OnEnable()
         {
             InworldController.Client.OnStatusChanged += OnStatusChanged;
@@ -142,31 +109,6 @@ namespace Inworld
         {
             if (InworldController.Instance)
                 InworldController.Client.OnStatusChanged -= OnStatusChanged;
-        }
-
-        protected void _StartAudio()
-        {
-            if (InworldController.Client.Status != InworldConnectionStatus.Connected)
-                return;
-
-            string charID = CurrentCharacter ? CurrentCharacter.ID : "";
-            if (!string.IsNullOrEmpty(charID))
-                InworldController.Instance.StartAudio(charID);
-            else
-                InworldAI.LogWarning("No characters in the session");
-        }
-        
-        protected void _StopAudio()
-        {
-            try
-            {
-                string charID = CurrentCharacter ? CurrentCharacter.ID : "";
-                InworldController.Instance.StopAudio(charID);
-            }
-            catch (InworldException e)
-            {
-                InworldAI.LogWarning($"Audio failed to stop: {e}");
-            }
         }
         IEnumerator UpdateThumbnail(InworldCharacterData agent)
         {
@@ -189,41 +131,34 @@ namespace Inworld
             {
                 CurrentCharacter = null;
             }
-            if (newStatus == InworldConnectionStatus.Connected)
-            {
-                if (!ManualAudioHandling)
-                    _StartAudio();
-            }
-            else
-            {
-                _StopAudio();
-            }
         }
-        public void RegisterLiveSession()
+        public virtual void Register(InworldCharacter character)
         {
-            LoadSceneResponse response = InworldController.Client.GetLiveSessionInfo();
-            if (response == null)
-                return;
-            m_LiveSession.Clear();
-            // YAN: Fetch all the characterData in the current session.
-            foreach (InworldCharacterData agent in response.agents.Where(agent => !string.IsNullOrEmpty(agent.agentId) && !string.IsNullOrEmpty(agent.brainName)))
+            if (!m_CharacterList.Contains(character))
             {
-                agent.NormalizeBrainName();
-                m_LiveSession[agent.brainName] = agent.agentId;
-                m_CharacterData[agent.brainName] = agent;
-                StartCoroutine(UpdateThumbnail(agent));
-                OnCharacterRegistered?.Invoke(agent);
+                m_CharacterList.Add(character);
+                if (m_CharacterList.Count == 1)
+                    CurrentCharacter = character;
+                OnCharacterListJoined?.Invoke(character);
             }
         }
-        
-        protected virtual void OnCharacterDestroyed(InworldCharacter character)
+        /// <summary>
+        /// Remove the character from the character list.
+        /// If it's current character, or in the group chat, also remove it.
+        /// </summary>
+        /// <param name="character">target character to remove.</param>
+        public virtual void Unregister(InworldCharacter character)
         {
             if (character == null || !InworldController.Instance)
                 return;
-            m_CharacterList.Remove(character);
-            if (character != CurrentCharacter)
+            if (m_CharacterList.Contains(character))
+            {
+                m_CharacterList.Remove(character);
+                OnCharacterListLeft?.Invoke(character);
+            }
+            if (character != CurrentCharacter) // TODO(Yan): Process if the character is also in the group chat.
                 return;
-            _StopAudio();
+            InworldController.Instance.StopAudio();
             m_LastCharacter = null;
             m_CurrentCharacter = null;
             OnCharacterChanged?.Invoke(m_LastCharacter, m_CurrentCharacter);

@@ -26,7 +26,8 @@ namespace Inworld.Sample
                 if (m_PushToTalk)
                     InworldController.Instance.StopAudio();
                 InworldController.Audio.AutoPush = !m_ChatCanvas.activeSelf && !m_PushToTalk;
-                InworldController.CharacterHandler.ManualAudioHandling = m_ChatCanvas.activeSelf || m_PushToTalk;
+                if (InworldController.CurrentCharacter)
+                    InworldController.CharacterHandler.ManualAudioHandling = m_ChatCanvas.activeSelf || m_PushToTalk;
             }
             if (m_ChatCanvas.activeSelf)
                 base.HandleInput();

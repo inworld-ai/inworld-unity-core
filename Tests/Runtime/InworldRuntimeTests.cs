@@ -36,7 +36,7 @@ namespace Inworld.Test
 			m_LiveSessionAgentInfo = new LoadSceneResponse();
 			InworldController.Client.OnStatusChanged += OnClientStatusChanged;
 			InworldController.Client.OnPacketReceived += OnPacketReceived;
-			InworldController.CharacterHandler.OnCharacterRegistered += OnCharacterRegistered;
+			InworldController.Client.OnSessionUpdated += SessionUpdated;
 		}
 		[OneTimeTearDown]
 		public void CleanupEnv()
@@ -46,7 +46,7 @@ namespace Inworld.Test
 			{
 				InworldController.Client.OnStatusChanged -= OnClientStatusChanged;
 				InworldController.Client.OnPacketReceived -= OnPacketReceived;
-				InworldController.CharacterHandler.OnCharacterRegistered -= OnCharacterRegistered;
+				InworldController.Client.OnSessionUpdated -= SessionUpdated;
 				Object.DestroyImmediate(InworldController.Instance);
 			}
 			Assert.IsNull(InworldController.Instance);
@@ -100,7 +100,7 @@ namespace Inworld.Test
 			if (packet.routing.source.type.ToUpper() == "AGENT")
 				m_Conversation.Add(packet);
 		}
-		void OnCharacterRegistered(InworldCharacterData charData)
+		void SessionUpdated(InworldCharacterData charData)
 		{
 			m_LiveSessionAgentInfo.agents.Add(charData);
 		}
@@ -121,7 +121,7 @@ namespace Inworld.Test
 		public IEnumerator InworldRuntimeTest_SendText()
 		{
 			m_Conversation.Clear();
-			InworldController.Instance.SendText(m_LiveSessionAgentInfo.agents[0].agentId, "Hello");
+			InworldController.Client.SendText(m_LiveSessionAgentInfo.agents[0].agentId, "Hello");
 			yield return ConversationCheck(5);
 			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "TEXT"));
 			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "AUDIO"));

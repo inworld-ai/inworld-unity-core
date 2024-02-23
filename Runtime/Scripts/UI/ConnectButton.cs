@@ -25,7 +25,7 @@ namespace Inworld.UI
             switch (InworldController.Status)
             {
                 case InworldConnectionStatus.Idle:
-                case InworldConnectionStatus.LostConnect:
+                // case InworldConnectionStatus.LostConnect:
                     InworldController.Instance.Reconnect();
                     break;
                 case InworldConnectionStatus.Initialized:
@@ -62,17 +62,17 @@ namespace Inworld.UI
                     _SetButtonStatus(true, "DISCONNECT");
                     break;
                 case InworldConnectionStatus.Initialized:
-                    if (!InworldController.IsAutoStart)
-                        _SetButtonStatus(true, "LOAD SCENE");
-                    else
+                    // if (!InworldController.IsAutoStart)
+                    //     _SetButtonStatus(true, "LOAD SCENE");
+                    // else
                         _SetButtonStatus(false);
                     break;
-                case InworldConnectionStatus.LostConnect:
-                    if (!InworldController.IsAutoStart)
-                        _SetButtonStatus(true, "RECONNECT");
-                    else
-                        _SetButtonStatus(false);
-                    break;
+                // case InworldConnectionStatus.LostConnect:
+                //     // if (!InworldController.IsAutoStart)
+                //     //    _SetButtonStatus(true, "RECONNECT");
+                //     // else
+                //         _SetButtonStatus(false);
+                //     break;
                 default:
                     _SetButtonStatus(false);
                     break;

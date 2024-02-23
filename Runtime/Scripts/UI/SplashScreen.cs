@@ -69,9 +69,9 @@ namespace Inworld.Sample
                 m_Canvas.enabled = true;
                 switch (newStatus)
                 {
-                    case InworldConnectionStatus.LostConnect:
-                        m_HintText.text = "Reconnecting...";
-                        break;
+                    // case InworldConnectionStatus.LostConnect:
+                    //     m_HintText.text = "Reconnecting...";
+                    //     break;
                     case InworldConnectionStatus.Exhausted:
                         _SetDialog(m_TitleExhaust, m_ContentExhaust);
                         break;

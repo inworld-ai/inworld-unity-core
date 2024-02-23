@@ -51,5 +51,13 @@ namespace Inworld.Entities
 		public static void EnableGoal(string goalName, string agentID) => InworldController.Instance.SendTrigger($"{k_GoalEnable}.{goalName}", agentID);
 		
 		public static void DisableGoal(string goalName, string agentID) => InworldController.Instance.SendTrigger($"{k_GoalDisable}.{goalName}", agentID);
+
+		public static void DebugSendError() => InworldController.Instance.SendTrigger(k_Error);
+		
+		public static void DebugSendCritical() => InworldController.Instance.SendTrigger(k_Critical);
+		
+		public static void DebugSendGoAway() => InworldController.Instance.SendTrigger(k_GoAway);
+		
+		public static void DebugSendIncompleteInteraction() => InworldController.Instance.SendTrigger(k_IncompleteInteraction);
 	}
 }

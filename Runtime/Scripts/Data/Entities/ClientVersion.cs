@@ -6,6 +6,7 @@
  *************************************************************************************************/
 using Inworld.Packet;
 using System;
+using UnityEngine;
 
 
 namespace Inworld.Entities
@@ -22,7 +23,7 @@ namespace Inworld.Entities
             timestamp = InworldDateTime.UtcNow,
             type = "SESSION_CONTROL",
             packetId = new PacketId(),
-            routing = new Routing("WORLD"),
+            routing = new Routing(),
             sessionControl = new ClientConfigEvent
             {
                 clientConfiguration = this
@@ -53,5 +54,6 @@ namespace Inworld.Entities
     public class ClientConfigPacket : InworldPacket
     {
         public ClientConfigEvent sessionControl;
+        public override string ToJson => JsonUtility.ToJson(this);
     }
 }

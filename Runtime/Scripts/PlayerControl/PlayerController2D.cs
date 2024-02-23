@@ -26,7 +26,7 @@ namespace Inworld.Sample
         protected override void OnEnable()
         {
             base.OnEnable();
-            InworldController.CharacterHandler.OnCharacterRegistered += OnCharacterRegistered;
+            InworldController.Client.OnSessionUpdated += SessionUpdated;
         }
 
         protected override void OnDisable()
@@ -34,10 +34,10 @@ namespace Inworld.Sample
             base.OnDisable();
             if (!InworldController.Instance)
                 return;
-            InworldController.CharacterHandler.OnCharacterRegistered -= OnCharacterRegistered;
+            InworldController.Client.OnSessionUpdated -= SessionUpdated;
         }
         
-        protected virtual void OnCharacterRegistered(InworldCharacterData charData)
+        protected virtual void SessionUpdated(InworldCharacterData charData)
         {
 
         }

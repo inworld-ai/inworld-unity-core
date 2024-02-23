@@ -23,13 +23,26 @@ namespace Inworld.Sample
         string m_CurrentContent;
         void OnEnable()
         {
-            InworldController.Instance.OnCharacterInteraction += OnInteraction;
+            InworldController.CharacterHandler.OnCharacterListJoined += OnCharacterJoined;
+            InworldController.CharacterHandler.OnCharacterListLeft += OnCharacterLeft;
         }
         void OnDisable()
         {
             if (!InworldController.Instance)
                 return;
-            InworldController.Instance.OnCharacterInteraction -= OnInteraction;
+            InworldController.CharacterHandler.OnCharacterListJoined -= OnCharacterJoined;
+            InworldController.CharacterHandler.OnCharacterListLeft -= OnCharacterLeft;
+        }
+        protected virtual void OnCharacterJoined(InworldCharacter character)
+        {
+            // YAN: Clear existing event listener to avoid adding multiple times.
+            character.Event.onPacketReceived.RemoveListener(OnInteraction); 
+            character.Event.onPacketReceived.AddListener(OnInteraction);
+        }
+
+        protected virtual void OnCharacterLeft(InworldCharacter character)
+        {
+            character.Event.onPacketReceived.RemoveListener(OnInteraction); 
         }
         protected virtual void OnInteraction(InworldPacket packet)
         {
@@ -43,8 +56,7 @@ namespace Inworld.Sample
                     m_Subtitle.text = $"{InworldAI.User.Name}: {playerPacket.text.text}";
                     break;
                 case "AGENT":
-                    InworldCharacterData character = InworldController.CharacterHandler.GetCharacterDataByID(packet.routing.source.name);
-                    if (character == null)
+                    if (!InworldController.Client.LiveSessionData.TryGetValue(packet.routing.source.name, out InworldCharacterData character))
                         return;
                     m_Subtitle.text = $"{character.givenName}: {playerPacket.text.text}";
                     break;

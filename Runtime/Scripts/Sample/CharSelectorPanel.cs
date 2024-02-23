@@ -19,19 +19,19 @@ namespace Inworld.Sample
         public override bool IsUIReady => base.IsUIReady  && m_CharSelectorPrefab;
         void OnEnable()
         {
-            InworldController.CharacterHandler.OnCharacterRegistered += OnCharacterRegistered;
+            InworldController.Client.OnSessionUpdated += SessionUpdated;
         }
 
         void OnDisable()
         {
             if (!InworldController.Instance)
                 return;
-            InworldController.CharacterHandler.OnCharacterRegistered -= OnCharacterRegistered;
+            InworldController.Client.OnSessionUpdated -= SessionUpdated;
         }
 
 
 
-        void OnCharacterRegistered(InworldCharacterData charData)
+        void SessionUpdated(InworldCharacterData charData)
         {
             if (!IsUIReady)
                 return;

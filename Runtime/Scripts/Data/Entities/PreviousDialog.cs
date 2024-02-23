@@ -7,6 +7,7 @@
 using Inworld.Packet;
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Inworld.Entities
 {
@@ -109,7 +110,7 @@ namespace Inworld.Entities
             timestamp = InworldDateTime.UtcNow,
             type = "SESSION_CONTROL",
             packetId = new PacketId(),
-            routing = new Routing("WORLD"),
+            routing = new Routing(),
             sessionControl = new ContinuationEvent
             {
                 continuation = this
@@ -125,6 +126,8 @@ namespace Inworld.Entities
     public class ContinuationPacket : InworldPacket
     {
         public ContinuationEvent sessionControl;
+
+        public override string ToJson => JsonUtility.ToJson(this);
     }
 
   #endregion

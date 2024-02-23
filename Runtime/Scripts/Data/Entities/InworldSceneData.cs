@@ -9,6 +9,7 @@ using Inworld.Packet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace Inworld.Entities
 {
@@ -49,7 +50,7 @@ namespace Inworld.Entities
             timestamp = InworldDateTime.UtcNow;
             type = "MUTATION";
             packetId = new PacketId();
-            routing = new Routing("WORLD");
+            routing = new Routing();
             mutation = new LoadSceneEvent
             {
                 loadScene = new LoadSceneRequest
@@ -58,11 +59,25 @@ namespace Inworld.Entities
                 }
             };
         }
+        public override string ToJson => JsonUtility.ToJson(this);
     }
 
     [Serializable]
     public class LoadSceneResponse
     {
         public List<InworldCharacterData> agents = new List<InworldCharacterData>();
+
+        public List<string> UpdateRegisteredCharacter(ref List<InworldCharacterData> outData)
+        {
+            List<string> result = new List<string>();
+            foreach (var charData in outData)
+            {
+                string registeredID = agents.FirstOrDefault(a => a.brainName == charData.brainName)?.agentId;
+                if (string.IsNullOrEmpty(registeredID))
+                    result.Add(charData.givenName);
+                charData.agentId = registeredID;
+            }
+            return result;
+        }
     }
 }

@@ -65,7 +65,7 @@ namespace Inworld.Interactions
             if (isHardCancelling && m_CurrentInteraction != null)
             {
                 m_CurrentInteraction.Cancel();
-                InworldController.Instance.SendCancelEvent(m_Character.ID, m_CurrentInteraction.ID);
+                InworldController.Client.SendCancelEvent(m_Character.ID, m_CurrentInteraction.ID);
             }
             m_Prepared.PourTo(m_Cancelled);
             m_CurrentInteraction = null;

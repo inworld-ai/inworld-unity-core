@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 using System;
+using UnityEngine;
 
 namespace Inworld.Packet
 {
@@ -84,6 +85,7 @@ namespace Inworld.Packet
             type = "RELATION";
             debugInfo = evt;
         }
+        public override string ToJson => JsonUtility.ToJson(this); 
         public string Relation => debugInfo.relation.relationState.GetUpdate(debugInfo.relation.relationUpdate);
     }
 }

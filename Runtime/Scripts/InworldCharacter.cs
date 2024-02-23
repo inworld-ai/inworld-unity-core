@@ -20,14 +20,29 @@ namespace Inworld
         [SerializeField] protected InworldCharacterData m_Data;
         [SerializeField] protected CharacterEvents m_CharacterEvents;
         [SerializeField] protected bool m_VerboseLog;
-        
-        RelationState m_CurrentRelation = new RelationState();
+
+        protected Animator m_Animator;
         protected InworldInteraction m_Interaction;
         protected bool m_IsSpeaking;
+        
+        RelationState m_CurrentRelation = new RelationState();
+
         /// <summary>
         /// Gets the Unity Events of the character.
         /// </summary>
         public CharacterEvents Event => m_CharacterEvents;
+        /// <summary>
+        /// Gets the character's animator.
+        /// </summary>
+        public Animator Animator
+        {
+            get
+            {
+                if (!m_Animator)
+                    m_Animator = GetComponent<Animator>();
+                return m_Animator;
+            }
+        }
         /// <summary>
         /// Gets/Sets if this character is speaking.
         /// </summary>
@@ -91,7 +106,7 @@ namespace Inworld
         /// <summary>
         /// Gets the live session ID of the character. If not registered, will try to fetch one from InworldController's CharacterHandler.
         /// </summary>
-        public string ID => string.IsNullOrEmpty(Data?.agentId) ? InworldController.CharacterHandler.GetLiveSessionID(this) : Data?.agentId;
+        public string ID => string.IsNullOrEmpty(Data?.agentId) ? GetLiveSessionID() : Data?.agentId;
         /// <summary>
         ///     Returns the priority of the character.
         ///     the higher the Priority is, the character is more likely responding to player.
@@ -102,13 +117,25 @@ namespace Inworld
         /// </summary>
         public virtual void RegisterLiveSession()
         {
-            Data.agentId = InworldController.CharacterHandler.GetLiveSessionID(this);
-            // if (!InworldController.CurrentCharacter && !string.IsNullOrEmpty(Data.agentId))
-            //     InworldController.CharacterHandler.CurrentCharacter = this;
+            GetLiveSessionID();
             if (m_VerboseLog)
                 InworldAI.Log($"{Data.givenName} Registered: {Data.agentId}");
             if (!string.IsNullOrEmpty(Data.agentId))
                 m_CharacterEvents.onCharacterRegistered.Invoke();
+        }
+        /// <summary>
+        /// Register the character in the character list.
+        /// Get the live session ID for an Inworld character.
+        /// </summary>
+
+        public virtual string GetLiveSessionID()
+        {
+            if (string.IsNullOrEmpty(BrainName))
+                return "";
+            if (!InworldController.Client.LiveSessionData.TryGetValue(BrainName, out InworldCharacterData value))
+                return "";
+            Data = value;
+            return Data.agentId;
         }
         /// <summary>
         /// Send the message to this character.
@@ -119,7 +146,7 @@ namespace Inworld
             // 1. Interrupt current speaking.
             CancelResponse();
             // 2. Send Text.
-            InworldController.Instance.SendText(ID, text);
+            InworldController.Client.SendText(ID, text);
         }
         /// <summary>
         /// Send the trigger to this character.
@@ -160,7 +187,8 @@ namespace Inworld
 
         protected virtual void OnEnable()
         {
-            InworldController.CharacterHandler.OnCharacterRegistered += OnCharRegistered;
+            InworldController.CharacterHandler.Register(this);
+            InworldController.Client.OnSessionUpdated += OnSessionUpdated;
             InworldController.CharacterHandler.OnCharacterChanged += OnCharChanged;
             InworldController.Client.OnStatusChanged += OnStatusChanged;
         }
@@ -168,12 +196,16 @@ namespace Inworld
         {
             if (!InworldController.Instance)
                 return;
-            InworldController.CharacterHandler.OnCharacterRegistered -= OnCharRegistered;
+            InworldController.CharacterHandler.Unregister(this);
+            InworldController.Client.OnSessionUpdated -= OnSessionUpdated;
             InworldController.CharacterHandler.OnCharacterChanged -= OnCharChanged;
             InworldController.Client.OnStatusChanged -= OnStatusChanged;
         }
         protected virtual void OnDestroy()
         {
+            if (!InworldController.Instance)
+                return;
+            InworldController.CharacterHandler.Unregister(this);
             m_CharacterEvents.onCharacterDestroyed?.Invoke();
         }
         protected virtual void OnCharChanged(InworldCharacter lastCharacter, InworldCharacter currentCharacter)
@@ -185,7 +217,7 @@ namespace Inworld
             if (currentCharacter && currentCharacter.BrainName == BrainName)
                 Event.onCharacterSelected.Invoke();
         }
-        protected virtual void OnCharRegistered(InworldCharacterData charData)
+        protected virtual void OnSessionUpdated(InworldCharacterData charData)
         {
             if (charData.brainName == Data.brainName)
                 RegisterLiveSession();
@@ -210,7 +242,6 @@ namespace Inworld
             if (!incomingPacket.IsRelated(ID))
                 return;
             m_CharacterEvents.onPacketReceived.Invoke(incomingPacket);
-            InworldController.Instance.CharacterInteract(incomingPacket);
             
             switch (incomingPacket)
             {

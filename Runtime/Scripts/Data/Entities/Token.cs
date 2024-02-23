@@ -34,7 +34,7 @@ namespace Inworld.Entities
             timestamp = InworldDateTime.UtcNow,
             type = "SESSION_CONTROL",
             packetId = new PacketId(),
-            routing = new Routing("WORLD"),
+            routing = new Routing(),
             sessionControl = new SessionControlEvent
             {
                 sessionConfiguration = new SessionConfiguration(string.IsNullOrEmpty(gameSessionID) ? sessionId : gameSessionID)
@@ -66,5 +66,7 @@ namespace Inworld.Entities
     public class SessionControlPacket : InworldPacket
     {
         public SessionControlEvent sessionControl;
+
+        public override string ToJson => JsonUtility.ToJson(this);
     }
 }

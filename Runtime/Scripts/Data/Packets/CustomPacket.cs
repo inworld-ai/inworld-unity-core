@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using UnityEngine;
 namespace Inworld.Packet
 {
     [Serializable]
@@ -89,5 +90,7 @@ namespace Inworld.Packet
             }
         }
         public InworldMessage Message => InworldMessenger.ProcessPacket(this);
+        
+        public override string ToJson => JsonUtility.ToJson(this); 
     }
 }

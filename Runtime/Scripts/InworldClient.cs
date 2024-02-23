@@ -8,7 +8,10 @@
 using Inworld.Packet;
 using Inworld.Entities;
 using System;
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Inworld
@@ -16,23 +19,64 @@ namespace Inworld
     public class InworldClient : MonoBehaviour
     {
         [SerializeField] protected InworldServerConfig m_ServerConfig;
+        [SerializeField] protected string m_SceneFullName;
         [SerializeField] protected string m_APIKey;
         [SerializeField] protected string m_APISecret;
         [SerializeField] protected string m_CustomToken;
         [SerializeField] protected string m_PublicWorkspace;
-        [Tooltip("This is for the new previous data")] [SerializeField] protected Continuation m_Continuation;
+        [Tooltip("This is for the new previous data")] 
+        [SerializeField] protected Continuation m_Continuation;
+        [SerializeField] protected int m_MaxWaitingListSize = 100;
         public event Action<InworldConnectionStatus> OnStatusChanged;
+        public event Action<InworldCharacterData> OnSessionUpdated;
         #if UNITY_INCLUDE_TESTS
         public event Action<InworldPacket> OnPacketReceived;
         #else
         internal event Action<InworldPacket> OnPacketReceived;
         #endif
+        
         const string k_NotImplented = "No InworldClient found. Need at least one connection protocol";
+        // These data will always be updated once session is refreshed and character ID is fetched. 
+        // key by character's live session ID.
+        protected readonly Dictionary<string, InworldCharacterData> m_LiveSessionData = new Dictionary<string, InworldCharacterData>();
+        
+        protected readonly ConcurrentQueue<OutgoingPacketData> m_OutgoingQueue = new ConcurrentQueue<OutgoingPacketData>();
         protected Token m_Token;
         protected string m_SessionKey;
+        protected IEnumerator m_OutgoingCoroutine;
         InworldConnectionStatus m_Status;
         protected string m_Error;
-        
+
+        public Dictionary<string, InworldCharacterData> LiveSessionData => m_LiveSessionData;
+        /// <summary>
+        /// Get the InworldCharacterData by characters' full name.
+        /// </summary>
+        /// <param name="characterFullNames">the request characters' Brain ID.</param>
+        protected Dictionary<string, string> _GetCharacterDataByFullName(List<string> characterFullNames)
+        {
+            Dictionary<string, string> result = new Dictionary<string, string>();
+            if (characterFullNames == null || characterFullNames.Count == 0)
+                return result;
+            foreach (string brainID in characterFullNames)
+            {
+                if (m_LiveSessionData.TryGetValue(brainID, out InworldCharacterData value))
+                    result[brainID] = value.agentId;
+                else
+                    result[brainID] = "";
+            }
+            return result;
+        }
+        protected virtual void RegisterLiveSession(LoadSceneResponse loadSceneResponse)
+        {
+            m_LiveSessionData.Clear();
+            // YAN: Fetch all the characterData in the current session.
+            foreach (InworldCharacterData agent in loadSceneResponse.agents.Where(agent => !string.IsNullOrEmpty(agent.agentId) && !string.IsNullOrEmpty(agent.brainName)))
+            {
+                agent.NormalizeBrainName();        
+                m_LiveSessionData[agent.brainName] = agent;
+                OnSessionUpdated?.Invoke(agent);
+            }
+        }
         /// <summary>
         /// Get/Set the session history.
         /// Session History is a string
@@ -88,6 +132,7 @@ namespace Inworld
             }
         }
         public virtual void GetHistoryAsync(string sceneFullName) => Error = k_NotImplented;
+        public virtual void SendPackets() => Error = k_NotImplented; 
         /// <summary>
         /// Gets the access token. Would be implemented by child class.
         /// </summary>
@@ -150,6 +195,11 @@ namespace Inworld
         /// <param name="sceneFullName">the full string of the scene to load.</param>
         public virtual void LoadScene(string sceneFullName) => Error = k_NotImplented;
         /// <summary>
+        /// Gets when packet is received.
+        /// </summary>
+        /// <param name="packet">incoming packet</param>
+        public virtual void Enqueue(InworldPacket packet) => Error = k_NotImplented;
+        /// <summary>
         /// Send Capabilities to Inworld Server.
         /// It should be sent immediately after session started to enable all the conversations. 
         /// </summary>
@@ -176,43 +226,88 @@ namespace Inworld
         /// <param name="sceneFullName">target scene to send</param>
         public virtual void SendHistory() => Error = k_NotImplented;
         /// <summary>
-        /// Send messages to an InworldCharacter in this current scene.
+        /// New Send messages to an InworldCharacter in this current scene.
+        /// NOTE: 1. New method uses brain ID (aka character's full name) instead of live session ID
+        ///       2. New method support broadcasting to multiple characters.
+        /// </summary>
+        /// <param name="textToSend">the message to send.</param>
+        /// <param name="characters">the list of the characters full name.</param>
+        public virtual void SendTextTo(string textToSend, List<string> characters = null) => Error = k_NotImplented;
+        /// <summary>
+        /// Legacy Send messages to an InworldCharacter in this current scene.
         /// </summary>
         /// <param name="characterID">the live session ID of the single character to send</param>
         /// <param name="textToSend">the message to send.</param>
-        /// <param name="characters">the live session ID of the characters to send</param>
-        public virtual void SendText(string characterID, string textToSend, List<string> characters = null) => Error = k_NotImplented;
+        public virtual void SendText(string characterID, string textToSend) => Error = k_NotImplented;
         /// <summary>
-        /// Send the CancelResponse Event to InworldServer to interrupt the character's speaking.
+        /// New Send the CancelResponse Event to InworldServer to interrupt the character's speaking.
+        /// NOTE: 1. New method uses brain ID (aka character's full name) instead of live session ID
+        ///       2. New method support broadcasting to multiple characters.
+        /// </summary>
+        /// <param name="interactionID">the handle of the dialog context that needs to be cancelled.</param>
+        /// <param name="characters">the live session ID of the characters in the scene.</param>
+        public virtual void SendCancelEventTo(string interactionID, List<string> characters = null) => Error = k_NotImplented;
+        /// <summary>
+        /// Legacy Send the CancelResponse Event to InworldServer to interrupt the character's speaking.
         /// </summary>
         /// <param name="characterID">the live session ID of the character to send</param>
         /// <param name="interactionID">the handle of the dialog context that needs to be cancelled.</param>
-        /// <param name="characters">the live session ID of the characters in the scene.</param>
-        public virtual void SendCancelEvent(string characterID, string interactionID, List<string> characters = null) => Error = k_NotImplented;
+        public virtual void SendCancelEvent(string characterID, string interactionID) => Error = k_NotImplented;
         /// <summary>
-        /// Send the trigger to an InworldCharacter in the current scene.
+        /// New Send the trigger to an InworldCharacter in the current scene.
+        /// NOTE: 1. New method uses brain ID (aka character's full name) instead of live session ID
+        ///       2. New method support broadcasting to multiple characters.
+        /// </summary>
+        /// <param name="triggerName">the name of the trigger to send.</param>
+        /// <param name="parameters">the parameters and their values for the triggers.</param>
+        /// <param name="characters">the live session ID of the characters in the scene.</param>
+        public virtual void SendTriggerTo(string triggerName, Dictionary<string, string> parameters = null, List<string> characters = null) => Error = k_NotImplented;
+        /// <summary>
+        /// Legacy Send the trigger to an InworldCharacter in the current scene.
         /// </summary>
         /// <param name="charID">the live session ID of the character to send.</param>
         /// <param name="triggerName">the name of the trigger to send.</param>
         /// <param name="parameters">the parameters and their values for the triggers.</param>
-        /// <param name="characters">the live session ID of the characters in the scene.</param>
-        public virtual void SendTrigger(string charID, string triggerName, Dictionary<string, string> parameters, List<string> characters = null) => Error = k_NotImplented;
+        public virtual void SendTrigger(string charID, string triggerName, Dictionary<string, string> parameters = null) => Error = k_NotImplented;
         /// <summary>
-        /// Send AUDIO_SESSION_START control events to server.
+        /// New Send AUDIO_SESSION_START control events to server.
+        /// NOTE: 1. New method uses brain ID (aka character's full name) instead of live session ID
+        ///       2. New method support broadcasting to multiple characters.
+        /// </summary>
+        /// <param name="characters">the live session ID of the characters to send.</param>
+        public virtual void StartAudioTo(List<string> characters = null) => Error = k_NotImplented;
+        /// <summary>
+        /// Legacy Send AUDIO_SESSION_START control events to server.
         /// Without sending this message, all the audio data would be discarded by server.
         /// However, if you send this event twice in a row, without sending `StopAudio()`, Inworld server will also through exceptions and terminate the session.
         /// </summary>
         /// <param name="charID">the live session ID of the character to send.</param>
-        /// <param name="characters">the live session ID of the characters to send.</param>
-        public virtual void StartAudio(string charID, List<string> characters = null) => Error = k_NotImplented;
+        public virtual void StartAudio(string charID) => Error = k_NotImplented;
         /// <summary>
-        /// Send AUDIO_SESSION_END control events to server to.
+        /// New Send AUDIO_SESSION_END control events to server to.
+        /// NOTE: 1. New method uses brain ID (aka character's full name) instead of live session ID
+        ///       2. New method support broadcasting to multiple characters.
+        /// </summary>
+        /// <param name="characters">the live session ID of the character to send.</param>
+        public virtual void StopAudioTo(List<string> characters = null) => Error = k_NotImplented;
+        /// <summary>
+        /// Legacy Send AUDIO_SESSION_END control events to server to.
         /// </summary>
         /// <param name="charID">the live session ID of the character to send.</param>
-        /// <param name="characters">the live session ID of the character to send.</param>
-        public virtual void StopAudio(string charID, List<string> characters = null) => Error = k_NotImplented;
+        public virtual void StopAudio(string charID) => Error = k_NotImplented;
         /// <summary>
-        /// Send the wav data to server to a specific character.
+        /// New Send the wav data to server to a specific character.
+        /// Need to make sure that AUDIO_SESSION_START control event has been sent to server.
+        /// NOTE: 1. New method uses brain ID (aka character's full name) instead of live session ID
+        ///       2. New method support broadcasting to multiple characters.
+        /// Only the base64 string of the wave data is supported by Inworld server.
+        /// Additionally, the sample rate of the wave data has to be 16000, mono channel.
+        /// </summary>
+        /// <param name="base64">the base64 string of the wave data to send.</param>
+        /// <param name="characters">the live session ID of the character to send.</param>
+        public virtual void SendAudioTo(string base64, List<string> characters = null) => Error = k_NotImplented;
+        /// <summary>
+        /// Legacy Send the wav data to server to a specific character.
         /// Need to make sure that AUDIO_SESSION_START control event has been sent to server.
         ///
         /// Only the base64 string of the wave data is supported by Inworld server.
@@ -220,8 +315,7 @@ namespace Inworld
         /// </summary>
         /// <param name="charID">the live session ID of the character to send.</param>
         /// <param name="base64">the base64 string of the wave data to send.</param>
-        /// <param name="characters">the live session ID of the character to send.</param>
-        public virtual void SendAudio(string charID, string base64, List<string> characters = null) => Error = k_NotImplented;
+        public virtual void SendAudio(string charID, string base64) => Error = k_NotImplented;
         /// <summary>
         /// Change the current status of the Inworld client.
         /// </summary>
@@ -244,8 +338,6 @@ namespace Inworld
             CustomToken = rhs.CustomToken;
             InworldController.Client = this;
         }
-        protected virtual void Init() {}
-
         internal string APIKey
         {
             get => m_APIKey;
@@ -256,14 +348,28 @@ namespace Inworld
             get => m_APISecret;
             set => m_APISecret = value;
         }
+        internal string SceneFullName
+        {
+            get => m_SceneFullName;
+            set => m_SceneFullName = value;
+        }
         internal string CustomToken
         {
             get => m_CustomToken;
             set => m_CustomToken = value;
         }
-        void OnEnable()
+        protected virtual void OnEnable()
         {
-            Init();
+            m_OutgoingCoroutine = OutgoingCoroutine();
+            StartCoroutine(m_OutgoingCoroutine);
+        }
+        public virtual IEnumerator PrepareSession()
+        {
+            yield break;
+        }
+        protected virtual IEnumerator OutgoingCoroutine()
+        {
+            yield break;
         }
     }
 }
