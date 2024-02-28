@@ -25,9 +25,12 @@ namespace Inworld.Entities
         {
             InworldController.Client.StopAudioTo(currentBrainNames);
             lastBrainNames = currentBrainNames;
+            currentBrainNames.Clear();
         }
         public void StartAudio(List<string> characterBrainNames)
         {
+            if (characterBrainNames.Count == 0)
+                return;
             if (CharactersAreSame(characterBrainNames))
                 return;
             InworldController.Client.StartAudioTo(characterBrainNames);

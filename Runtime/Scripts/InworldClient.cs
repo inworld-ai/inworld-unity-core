@@ -25,6 +25,8 @@ namespace Inworld
         [SerializeField] protected string m_APISecret;
         [SerializeField] protected string m_CustomToken;
         [SerializeField] protected string m_PublicWorkspace;
+        [Tooltip("If checked, we'll automatically find the first scene belonged to the characters.")] 
+        [SerializeField] protected bool m_AutoScene = false;
         [Tooltip("This is for the new previous data")] 
         [SerializeField] protected Continuation m_Continuation;
         [SerializeField] protected int m_MaxWaitingListSize = 100;
@@ -61,6 +63,14 @@ namespace Inworld
         /// Session History is a string
         /// </summary>
         public string SessionHistory { get; set; }
+        /// <summary>
+        /// Get/Set if client will automatically search for a scene for the selected characters.
+        /// </summary>
+        public bool AutoSceneSearch
+        {
+            get => m_AutoScene;
+            set => m_AutoScene = value;
+        }
         /// <summary>
         /// Gets/Sets the current Inworld server this client is connecting.
         /// </summary>

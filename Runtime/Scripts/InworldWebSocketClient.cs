@@ -25,6 +25,7 @@ namespace Inworld
         protected WebSocket m_Socket;
         protected LoadSceneResponse m_CurrentSceneData;
         protected const string k_DisconnectMsg = "The remote party closed the WebSocket connection without completing the close handshake.";
+        
         public override void GetAccessToken() => StartCoroutine(_GetAccessToken(m_PublicWorkspace));
         public override void StartSession() => StartCoroutine(_StartSession());
         public override void Disconnect() => StartCoroutine(_DisconnectAsync());
@@ -92,7 +93,7 @@ namespace Inworld
             }
             else
             {
-                List<string> result = _GetSceneNameByCharacter();
+                List<string> result = AutoSceneSearch ? _GetSceneNameByCharacter() : m_Prepared[0].Targets.Keys.ToList();
                 if (result == null || result.Count == 0)
                 {
                     InworldAI.LogException("Characters not found in the workspace");

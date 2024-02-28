@@ -118,10 +118,11 @@ namespace Inworld
         {
             if (m_CharacterList.Contains(character))
                 return;
+            OnCharacterListJoined?.Invoke(character);
             m_CharacterList.Add(character);
-            OnCharacterListJoined?.Invoke(character); // Happens AFTER char List added.
             if (m_CharacterList.Count == 1)
                 CurrentCharacter = character;
+            
         }
         /// <summary>
         /// Remove the character from the character list.
@@ -132,13 +133,12 @@ namespace Inworld
         {
             if (character == null || !InworldController.Instance)
                 return;
-            OnCharacterListLeft?.Invoke(character); // Happens BEFORE char List removed.
             if (character == CurrentCharacter) 
                 CurrentCharacter = null;
             if (!m_CharacterList.Contains(character))
                 return;
             m_CharacterList.Remove(character);
-            
+            OnCharacterListLeft?.Invoke(character); 
         }
     }
 }
