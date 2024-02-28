@@ -7,6 +7,7 @@
 
 using UnityEngine;
 using Inworld.Packet;
+using Inworld.Sample;
 using System.Collections;
 
 using Random = UnityEngine.Random;
@@ -89,6 +90,8 @@ namespace Inworld.Interactions
         }
         void Update()
         {
+            if (PlayerController.Instance)
+                AlignPlayerInput();
             if (Input.GetKeyUp(m_SkipKey))
                 SkipCurrentUtterance();
             if (Input.GetKeyDown(m_ContinueKey))
@@ -105,9 +108,24 @@ namespace Inworld.Interactions
         {
             m_IsContinueKeyPressed = false;
         }
-        protected virtual void SkipCurrentUtterance()
+        protected virtual void AlignPlayerInput()
         {
-            if (m_CurrentInteraction != null && m_CurrentInteraction.CurrentUtterance != null)
+            if (!PlayerController.Instance)
+                return;
+            if (PlayerController.Instance.continueKey != KeyCode.None)
+            {
+                m_AutoProceed = false;
+                m_ContinueKey = PlayerController.Instance.continueKey;
+            }
+            if (PlayerController.Instance.skipKey != KeyCode.None)
+            {
+                m_Interruptable = true;
+                m_SkipKey = PlayerController.Instance.skipKey;
+            }
+        }
+        protected virtual void SkipCurrentUtterance() 
+        {
+            if (m_CurrentInteraction?.CurrentUtterance != null)
                 m_CurrentInteraction.CurrentUtterance = null;
         }
         protected virtual IEnumerator InteractionCoroutine()

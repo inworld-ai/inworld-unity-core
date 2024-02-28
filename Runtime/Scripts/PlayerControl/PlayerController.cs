@@ -18,11 +18,13 @@ namespace Inworld.Sample
     /// </summary>
     public class PlayerController : SingletonBehavior<PlayerController>
     {
+        [Header("Interacion Control")]
+        [SerializeField] public KeyCode skipKey = KeyCode.None;
+        [SerializeField] public KeyCode continueKey = KeyCode.None;
         [Header("Audio Capture")]
         [SerializeField] protected bool m_PushToTalk;
         [SerializeField] protected KeyCode m_PushToTalkKey = KeyCode.C;
         [Header("References")]
-
         [SerializeField] protected TMP_InputField m_InputField;
         [SerializeField] protected Button m_SendButton;
         [SerializeField] protected Button m_RecordButton;
