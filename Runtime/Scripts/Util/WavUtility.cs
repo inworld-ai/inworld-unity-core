@@ -14,6 +14,41 @@ namespace Inworld
 {
     public class WavUtility
     {
+        public static void ShortArrayToWavFile(short[] shortArray, string outputPath, int sampleRate = 16000)
+        {
+            using (var fileStream = new FileStream(outputPath, FileMode.Create))
+            using (var writer = new BinaryWriter(fileStream))
+            {
+                _WriteWavHeader(writer, shortArray.Length, sampleRate);
+                
+                foreach (var sample in shortArray)
+                {
+                    writer.Write((byte)(sample & 0xFF));
+                    writer.Write((byte)((sample >> 8) & 0xFF));
+                }
+            }
+            Debug.Log($"Saving to {outputPath} Completed");
+        }
+
+        static void _WriteWavHeader(BinaryWriter writer, int dataLength, int sampleRate)
+        {
+            writer.Write(new char[4] { 'R', 'I', 'F', 'F' });
+
+            writer.Write(36 + dataLength * 2); 
+
+            writer.Write(new char[4] { 'W', 'A', 'V', 'E' });
+            writer.Write(new char[4] { 'f', 'm', 't', ' ' });
+            writer.Write(16); 
+            writer.Write((short)1); 
+            writer.Write((short)1); 
+            writer.Write(sampleRate); 
+            writer.Write(sampleRate * 2); 
+            writer.Write((short)2); 
+            writer.Write((short)16); 
+
+            writer.Write(new char[4] { 'd', 'a', 't', 'a' });
+            writer.Write(dataLength * 2); 
+        }
         /// <summary>
         /// Gets the wave file from Unity's Resource folder.
         /// </summary>

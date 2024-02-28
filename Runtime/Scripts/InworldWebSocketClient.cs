@@ -264,6 +264,8 @@ namespace Inworld
         }
         public override void SendAudio(string charID, string base64)
         {
+            if (Status != InworldConnectionStatus.Connected)
+                return;
             if (string.IsNullOrEmpty(charID))
                 return;
             InworldPacket packet = new AudioPacket
@@ -284,6 +286,8 @@ namespace Inworld
         }
         public override void SendAudioTo(string base64, List<string> characters = null)
         {
+            if (Status != InworldConnectionStatus.Connected)
+                return;
             if (string.IsNullOrEmpty(base64))
                 return;
             Dictionary<string, string>  characterToReceive = _GetCharacterDataByFullName(characters);
@@ -416,6 +420,7 @@ namespace Inworld
             yield return null;
             SendUserConfig();
             yield return null;
+            
             SendHistory();
             yield return null;
             LoadScene(m_SceneFullName);
