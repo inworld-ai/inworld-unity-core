@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Inworld.Packet
@@ -13,6 +14,7 @@ namespace Inworld.Packet
     public class CancelResponse
     {
         public string interactionId;
+        public List<string> utteranceId;
     }
     [Serializable]
     public class MutationEvent

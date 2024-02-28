@@ -5,17 +5,20 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
-using AOT;
 using Inworld.Entities;
+using Inworld.Packet;
 using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 using System.Collections.Generic;
+using System.Linq;
 
+#if UNITY_WEBGL
+using AOT;
 using System.Linq;
 using System.Runtime.InteropServices;
-
+#endif
 
 
 namespace Inworld
@@ -37,7 +40,7 @@ namespace Inworld
         public UnityEvent OnPlayerStartSpeaking;
         public UnityEvent OnPlayerStopSpeaking;
         
-#region Variables & Properties
+#region Variables
         protected MicSampleMode m_LastSampleMode;
         protected const int k_SizeofInt16 = sizeof(short);
         protected const int k_SampleRate = 16000;
@@ -52,14 +55,18 @@ namespace Inworld
         // Size of audioclip used to collect information, need to be big enough to keep up with collect. 
         protected int m_BufferSize;
         protected readonly List<string> m_AudioToPush = new List<string>();
-        protected List<AudioDevice> m_Devices = new List<AudioDevice>();
+        protected readonly List<AudioDevice> m_Devices = new List<AudioDevice>();
         protected byte[] m_ByteBuffer;
         protected float[] m_InputBuffer;
-        protected static float[] s_WebGLBuffer;
-        // protected static IntPtr s_WebGLBufferAddr;
-        // protected static GCHandle s_WebGLHandle;
+        protected AudioSessionInfo m_CurrentAudioSession;
         static int m_nPosition;
+#if UNITY_WEBGL
+        protected static float[] s_WebGLBuffer;
         public static bool WebGLPermission { get; set; }
+#endif
+#endregion
+        
+#region Properties
         /// <summary>
         /// Signifies if audio is currently blocked from being captured.
         /// </summary>
@@ -270,6 +277,9 @@ namespace Inworld
         
         protected virtual void OnEnable()
         {
+            InworldController.Client.OnPacketSent += OnPacketSent;
+            InworldController.CharacterHandler.OnCharacterListJoined += OnCharacterJoined;
+            InworldController.CharacterHandler.OnCharacterListLeft += OnCharacterLeft;
 #if UNITY_WEBGL && !UNITY_EDITOR
             StartWebMicrophone();
 #else            
@@ -277,22 +287,14 @@ namespace Inworld
             StartCoroutine(m_AudioCoroutine);
 #endif
         }
-        protected virtual IEnumerator AudioCoroutine()
-        {
-            while (true)
-            {
-                yield return Calibrate();
-                if (!m_IsCapturing || IsBlocked)
-                {
-                    yield return null;
-                    continue;
-                }
-                yield return Collect();
-            }
-        }
-
         protected virtual void OnDisable()
         {
+            if (InworldController.Instance)
+            {
+                InworldController.Client.OnPacketSent -= OnPacketSent;
+                InworldController.CharacterHandler.OnCharacterListJoined -= OnCharacterJoined;
+                InworldController.CharacterHandler.OnCharacterListLeft -= OnCharacterLeft;
+            }
             StopCoroutine(m_AudioCoroutine);
             StopRecording();
             StopMicrophone(m_DeviceName);
@@ -313,6 +315,7 @@ namespace Inworld
 #region Protected Functions
         protected virtual void Init()
         {
+            m_CurrentAudioSession = new AudioSessionInfo();
             m_BufferSize = m_BufferSeconds * k_SampleRate;
             m_ByteBuffer = new byte[m_BufferSize * k_Channel * k_SizeofInt16];
             m_InputBuffer = new float[m_BufferSize * k_Channel];
@@ -322,7 +325,63 @@ namespace Inworld
             WebGLInit(OnWebGLInitialized);
 #endif
         }
-
+        protected virtual void OnPacketSent(InworldPacket packet)
+        {
+            if (packet is not ControlPacket controlPacket)
+                return;
+            switch (controlPacket.control.Action)
+            {
+                case ControlType.AUDIO_SESSION_START:
+                    m_IsCapturing = true;
+                    break;
+                case ControlType.AUDIO_SESSION_END:
+                    m_IsCapturing = false;
+                    break;
+            }
+        }
+        protected virtual void OnCharacterJoined(InworldCharacter character)
+        {
+            if (!InworldController.CharacterHandler.CurrentCharacter) // Group Chat Mode
+            {
+                m_CurrentAudioSession.StopAudio();
+                m_CurrentAudioSession.StartAudio(InworldController.CharacterHandler.CurrentCharacterNames);
+            }
+            character.Event.onCharacterSelected.AddListener(OnCharacterSelected);
+            character.Event.onCharacterDeselected.AddListener(OnCharacterDeselected);
+        }
+        protected virtual void OnCharacterLeft(InworldCharacter character)
+        {
+            if (!InworldController.CharacterHandler.CurrentCharacter) // Group Chat Mode
+            {
+                m_CurrentAudioSession.StopAudio();
+                m_CurrentAudioSession.StartAudio(InworldController.CharacterHandler.CurrentCharacterNames);
+            }
+            character.Event.onCharacterSelected.RemoveListener(OnCharacterSelected);
+            character.Event.onCharacterDeselected.RemoveListener(OnCharacterDeselected);
+        }
+        protected virtual void OnCharacterSelected(string brainName) 
+        {
+            if (!m_CurrentAudioSession.CharactersAreSame(new List<string>{brainName}))
+                m_CurrentAudioSession.StopAudio();
+            m_CurrentAudioSession.StartAudio(new List<string>{brainName});
+        }
+        protected virtual void OnCharacterDeselected(string brainName) 
+        {
+            m_CurrentAudioSession.StopAudio();
+        }
+        protected virtual IEnumerator AudioCoroutine()
+        {
+            while (true)
+            {
+                yield return Calibrate();
+                if (!m_IsCapturing || IsBlocked)
+                {
+                    yield return null;
+                    continue;
+                }
+                yield return Collect();
+            }
+        }
         protected virtual IEnumerator Collect()
         {
             if (m_SamplingMode == MicSampleMode.NO_MIC)
@@ -337,7 +396,7 @@ namespace Inworld
             IsPlayerSpeaking = CalculateAmplitude() > m_BackgroundNoise * m_PlayerVolumeThreshold;
             byte[] output = Output(nSize * m_Recording.channels);
             string audioData = Convert.ToBase64String(output);
-            if(AutoPush)
+            if (AutoPush)
                 InworldController.Instance.SendAudio(audioData);
             else
                 m_AudioToPush.Add(audioData);

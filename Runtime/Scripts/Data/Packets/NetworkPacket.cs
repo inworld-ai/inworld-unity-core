@@ -5,10 +5,8 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
-using Inworld.Entities;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 
 namespace Inworld.Packet
@@ -17,6 +15,14 @@ namespace Inworld.Packet
     public class NetworkPacketResponse
     {
         public InworldNetworkPacket result;
+        public InworldError error;
+    }
+    [Serializable]
+    public class InworldError
+    {
+        public int code;
+        public string message;
+        public List<string> details;
     }
     [Serializable]
     public class InworldNetworkPacket : InworldPacket
@@ -79,107 +85,6 @@ namespace Inworld.Packet
                     return PacketType.SESSION_RESPONSE;
                 return PacketType.UNKNOWN;
             }
-        }
-    }
-
-    [Serializable]
-    public class OutgoingPacketData
-    {
-        public string correlationID;
-        public Dictionary<string, string> charactersToReceive; // Key: BrainName. Val: AgentID.
-        public List<InworldPacket> outgoingPackets;
-        public bool hasSent = false;
-
-        public OutgoingPacketData(TextEvent txtToSend, Dictionary<string, string> characterTable = null)
-        {
-            correlationID = Guid.NewGuid().ToString();
-            charactersToReceive = characterTable;
-            outgoingPackets = new List<InworldPacket>();
-            InworldPacket packet = new TextPacket
-            {
-                routing = new Routing(charactersToReceive?.Values.ToList()),
-                text = txtToSend
-            };
-            outgoingPackets.Add(packet);
-        }
-        public OutgoingPacketData(MutationEvent mutationToSend, Dictionary<string, string> characterTable = null)
-        {
-            correlationID = Guid.NewGuid().ToString();
-            charactersToReceive = characterTable;
-            outgoingPackets = new List<InworldPacket>();
-            InworldPacket packet = new MutationPacket()
-            {
-                routing = new Routing(charactersToReceive?.Values.ToList()),
-                mutation = mutationToSend
-            };
-            outgoingPackets.Add(packet);
-        }
-        public OutgoingPacketData(CustomEvent triggerToSend, Dictionary<string, string> characterTable = null)
-        {
-            correlationID = Guid.NewGuid().ToString();
-            charactersToReceive = characterTable;
-            outgoingPackets = new List<InworldPacket>();
-            InworldPacket packet = new CustomPacket()
-            {
-                routing = new Routing(charactersToReceive?.Values.ToList()),
-                custom = triggerToSend
-            };
-            outgoingPackets.Add(packet);
-        }
-        public OutgoingPacketData(ControlEvent controlToSend, Dictionary<string, string> characterTable = null)
-        {
-            correlationID = Guid.NewGuid().ToString();
-            charactersToReceive = characterTable;
-            outgoingPackets = new List<InworldPacket>();
-            InworldPacket packet = new ControlPacket()
-            {
-                routing = new Routing(charactersToReceive?.Values.ToList()),
-                control = controlToSend
-            };
-            outgoingPackets.Add(packet);
-        }
-        public OutgoingPacketData(DataChunk chunkToSend, Dictionary<string, string> characterTable = null)
-        {
-            correlationID = Guid.NewGuid().ToString();
-            charactersToReceive = characterTable;
-            outgoingPackets = new List<InworldPacket>();
-            InworldPacket packet = new AudioPacket()
-            {
-                routing = new Routing(characterTable?.Values.ToList()),
-                dataChunk = chunkToSend
-            };
-            outgoingPackets.Add(packet);
-        }
-        public bool IsCharacterRegistered => !charactersToReceive.Values.Any(string.IsNullOrEmpty);
-
-        /// <summary>
-        /// Update the characters in this conversation with updated ID.
-        /// </summary>
-        /// <returns>The brain name of the characters not found in the current session.</returns>
-        public List<string> UpdateSessionInfo()
-        {
-            List<string> result = new List<string>();
-            foreach (string key in charactersToReceive.Keys.ToList())
-            {
-                if (InworldController.Client.LiveSessionData.TryGetValue(key, out InworldCharacterData value))
-                    charactersToReceive[key] = value.agentId;
-                else
-                    result.Add(key);
-            }
-            return result;
-        }
-
-        public List<InworldPacket> ComposePacket()
-        {
-            List<string> agentIDs = charactersToReceive.Values.Where(c => !string.IsNullOrEmpty(c)).ToList();
-            // if (agentIDs.Count == 0)
-            //     return null;
-            foreach (InworldPacket packet in outgoingPackets)
-            {
-                packet.packetId.correlationId = correlationID;
-                packet.routing = new Routing(agentIDs);
-            }
-            return outgoingPackets;
         }
     }
 }

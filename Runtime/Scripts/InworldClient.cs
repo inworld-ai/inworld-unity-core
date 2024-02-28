@@ -7,6 +7,7 @@
 
 using Inworld.Packet;
 using Inworld.Entities;
+using Inworld.Interactions;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -29,10 +30,13 @@ namespace Inworld
         [SerializeField] protected int m_MaxWaitingListSize = 100;
         public event Action<InworldConnectionStatus> OnStatusChanged;
         public event Action<InworldCharacterData> OnSessionUpdated;
+        public delegate void PacketDelegate(InworldPacket packet);
+
+        public PacketDelegate OnPacketSent;
         #if UNITY_INCLUDE_TESTS
-        public event Action<InworldPacket> OnPacketReceived;
+        public PacketDelegate OnPacketReceived;
         #else
-        internal event Action<InworldPacket> OnPacketReceived;
+        internal event PacketDelegate OnPacketReceived;
         #endif
         
         const string k_NotImplented = "No InworldClient found. Need at least one connection protocol";
@@ -40,7 +44,8 @@ namespace Inworld
         // key by character's live session ID.
         protected readonly Dictionary<string, InworldCharacterData> m_LiveSessionData = new Dictionary<string, InworldCharacterData>();
         
-        protected readonly ConcurrentQueue<OutgoingPacketData> m_OutgoingQueue = new ConcurrentQueue<OutgoingPacketData>();
+        protected readonly IndexQueue<OutgoingPacket> m_Prepared = new IndexQueue<OutgoingPacket>();
+        protected readonly IndexQueue<OutgoingPacket> m_Sent = new IndexQueue<OutgoingPacket>();
         protected Token m_Token;
         protected string m_SessionKey;
         protected IEnumerator m_OutgoingCoroutine;
@@ -48,35 +53,9 @@ namespace Inworld
         protected string m_Error;
 
         public Dictionary<string, InworldCharacterData> LiveSessionData => m_LiveSessionData;
-        /// <summary>
-        /// Get the InworldCharacterData by characters' full name.
-        /// </summary>
-        /// <param name="characterFullNames">the request characters' Brain ID.</param>
-        protected Dictionary<string, string> _GetCharacterDataByFullName(List<string> characterFullNames)
-        {
-            Dictionary<string, string> result = new Dictionary<string, string>();
-            if (characterFullNames == null || characterFullNames.Count == 0)
-                return result;
-            foreach (string brainID in characterFullNames)
-            {
-                if (m_LiveSessionData.TryGetValue(brainID, out InworldCharacterData value))
-                    result[brainID] = value.agentId;
-                else
-                    result[brainID] = "";
-            }
-            return result;
-        }
-        protected virtual void RegisterLiveSession(LoadSceneResponse loadSceneResponse)
-        {
-            m_LiveSessionData.Clear();
-            // YAN: Fetch all the characterData in the current session.
-            foreach (InworldCharacterData agent in loadSceneResponse.agents.Where(agent => !string.IsNullOrEmpty(agent.agentId) && !string.IsNullOrEmpty(agent.brainName)))
-            {
-                agent.NormalizeBrainName();        
-                m_LiveSessionData[agent.brainName] = agent;
-                OnSessionUpdated?.Invoke(agent);
-            }
-        }
+        public InworldCharacterData GetCharacterDataByID(string agentID) => 
+            LiveSessionData.Values.FirstOrDefault(c => !string.IsNullOrEmpty(agentID) && c.agentId == agentID);
+
         /// <summary>
         /// Get/Set the session history.
         /// Session History is a string
@@ -98,6 +77,7 @@ namespace Inworld
             get => m_Token;
             set => m_Token = value;
         }
+        public string CurrentScene => m_SceneFullName;
         /// <summary>
         /// Gets if the current token is valid.
         /// </summary>
@@ -193,7 +173,7 @@ namespace Inworld
         /// Send LoadScene request to Inworld Server.
         /// </summary>
         /// <param name="sceneFullName">the full string of the scene to load.</param>
-        public virtual void LoadScene(string sceneFullName) => Error = k_NotImplented;
+        public virtual void LoadScene(string sceneFullName = "") => Error = k_NotImplented;
         /// <summary>
         /// Gets when packet is received.
         /// </summary>
@@ -245,14 +225,16 @@ namespace Inworld
         ///       2. New method support broadcasting to multiple characters.
         /// </summary>
         /// <param name="interactionID">the handle of the dialog context that needs to be cancelled.</param>
+        /// <param name="utteranceID">the current utterance ID that needs to be cancelled.</param>
         /// <param name="characters">the live session ID of the characters in the scene.</param>
-        public virtual void SendCancelEventTo(string interactionID, List<string> characters = null) => Error = k_NotImplented;
+        public virtual void SendCancelEventTo(string interactionID, string utteranceID = "", List<string> characters = null) => Error = k_NotImplented;
         /// <summary>
         /// Legacy Send the CancelResponse Event to InworldServer to interrupt the character's speaking.
         /// </summary>
         /// <param name="characterID">the live session ID of the character to send</param>
+        /// <param name="utteranceID">the current utterance ID that needs to be cancelled.</param>
         /// <param name="interactionID">the handle of the dialog context that needs to be cancelled.</param>
-        public virtual void SendCancelEvent(string characterID, string interactionID) => Error = k_NotImplented;
+        public virtual void SendCancelEvent(string characterID, string interactionID, string utteranceID = "") => Error = k_NotImplented;
         /// <summary>
         /// New Send the trigger to an InworldCharacter in the current scene.
         /// NOTE: 1. New method uses brain ID (aka character's full name) instead of live session ID
@@ -316,16 +298,41 @@ namespace Inworld
         /// <param name="charID">the live session ID of the character to send.</param>
         /// <param name="base64">the base64 string of the wave data to send.</param>
         public virtual void SendAudio(string charID, string base64) => Error = k_NotImplented;
+        
+        /// <summary>
+        /// Get the InworldCharacterData by characters' full name.
+        /// </summary>
+        /// <param name="characterFullNames">the request characters' Brain ID.</param>
+        protected Dictionary<string, string> _GetCharacterDataByFullName(List<string> characterFullNames)
+        {
+            Dictionary<string, string> result = new Dictionary<string, string>();
+            if (characterFullNames == null || characterFullNames.Count == 0)
+                return result;
+            foreach (string brainID in characterFullNames)
+            {
+                if (m_LiveSessionData.TryGetValue(brainID, out InworldCharacterData value))
+                    result[brainID] = value.agentId;
+                else
+                    result[brainID] = "";
+            }
+            return result;
+        }
+        protected virtual void RegisterLiveSession(LoadSceneResponse loadSceneResponse)
+        {
+            m_LiveSessionData.Clear();
+            // YAN: Fetch all the characterData in the current session.
+            foreach (InworldCharacterData agent in loadSceneResponse.agents.Where(agent => !string.IsNullOrEmpty(agent.agentId) && !string.IsNullOrEmpty(agent.brainName)))
+            {
+                agent.NormalizeBrainName();        
+                m_LiveSessionData[agent.brainName] = agent;
+                OnSessionUpdated?.Invoke(agent);
+            }
+        }
         /// <summary>
         /// Change the current status of the Inworld client.
         /// </summary>
         /// <param name="status">the new status to change.</param>
         public void ChangeStatus(InworldConnectionStatus status) => OnStatusChanged?.Invoke(status);
-        /// <summary>
-        /// Dispatch the packet to Inworld server.
-        /// </summary>
-        /// <param name="packet">the packet to send.</param>
-        public void Dispatch(InworldPacket packet) => OnPacketReceived?.Invoke(packet);
         /// <summary>
         /// Copy the filling data from another Inworld client.
         /// </summary>

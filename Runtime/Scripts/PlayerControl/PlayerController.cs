@@ -50,14 +50,14 @@ namespace Inworld.Sample
         protected virtual void OnEnable()
         {
             InworldController.Client.OnStatusChanged += OnStatusChanged;
-            InworldController.CharacterHandler.OnCharacterChanged += OnCharacterChanged;
+            InworldController.CharacterHandler.OnCharacterListJoined += OnCharacterJoined;
         }
         protected virtual void OnDisable()
         {
             if (!InworldController.Instance)
                 return;
             InworldController.Client.OnStatusChanged -= OnStatusChanged;
-            InworldController.CharacterHandler.OnCharacterChanged -= OnCharacterChanged;
+            InworldController.CharacterHandler.OnCharacterListJoined -= OnCharacterJoined;
         }
         
         protected virtual void OnStatusChanged(InworldConnectionStatus newStatus)
@@ -75,7 +75,7 @@ namespace Inworld.Sample
 
         }
 
-        protected virtual void OnCharacterChanged(InworldCharacter oldChar, InworldCharacter newChar)
+        protected virtual void OnCharacterJoined(InworldCharacter newChar)
         {
             InworldAI.Log(newChar ? $"Now Talking to: {newChar.Name}" : $"Now broadcasting.");
 

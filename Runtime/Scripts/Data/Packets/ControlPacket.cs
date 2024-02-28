@@ -14,6 +14,8 @@ namespace Inworld.Packet
     {
         public string action;
         public string description;
+        
+        public ControlType Action => Enum.TryParse(action, true, out ControlType result) ? result : ControlType.UNKNOWN;
     }
     [Serializable]
     public class ControlPacket : InworldPacket

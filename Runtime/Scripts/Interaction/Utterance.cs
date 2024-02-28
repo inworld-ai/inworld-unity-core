@@ -14,11 +14,12 @@ using UnityEngine;
 
 namespace Inworld.Interactions
 {
+    
     public class Utterance : IContainable
     {
+        readonly Dictionary<string, InworldPacket> m_Packets;
         public string ID { get; set; }
         public DateTime RecentTime { get; set; }
-        public Dictionary<string, InworldPacket> m_Packets;
         public List<InworldPacket> Packets => m_Packets.Values.ToList();
         public bool IsEmpty => m_Packets == null || m_Packets.Count == 0;
         public bool Contains(InworldPacket packet) => ID == packet?.packetId?.utteranceId;

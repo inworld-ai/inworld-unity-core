@@ -4,14 +4,11 @@
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
-using System;
-using System.Collections.Generic;
 
 using UnityEngine;
 using Inworld.Packet;
 using System.Collections;
-using System.Linq;
-using UnityEngine.Serialization;
+
 using Random = UnityEngine.Random;
 
 namespace Inworld.Interactions
@@ -64,8 +61,8 @@ namespace Inworld.Interactions
                 return;
             if (isHardCancelling && m_CurrentInteraction != null)
             {
+                InworldController.Client.SendCancelEvent(m_Character.ID, m_CurrentInteraction.ID, m_CurrentInteraction.CurrentUtterance?.ID);
                 m_CurrentInteraction.Cancel();
-                InworldController.Client.SendCancelEvent(m_Character.ID, m_CurrentInteraction.ID);
             }
             m_Prepared.PourTo(m_Cancelled);
             m_CurrentInteraction = null;

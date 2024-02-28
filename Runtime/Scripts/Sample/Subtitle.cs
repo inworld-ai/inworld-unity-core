@@ -56,9 +56,9 @@ namespace Inworld.Sample
                     m_Subtitle.text = $"{InworldAI.User.Name}: {playerPacket.text.text}";
                     break;
                 case "AGENT":
-                    if (!InworldController.Client.LiveSessionData.TryGetValue(packet.routing.source.name, out InworldCharacterData character))
-                        return;
-                    m_Subtitle.text = $"{character.givenName}: {playerPacket.text.text}";
+                    InworldCharacterData charData = InworldController.Client.GetCharacterDataByID(packet.routing.source.name);
+                    if (charData != null)
+                        m_Subtitle.text = $"{charData.givenName}: {playerPacket.text.text}";
                     break;
             }
         }

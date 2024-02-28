@@ -35,6 +35,7 @@ namespace Inworld.Sample
         
         void OnEnable()
         {
+            InworldController.Client.OnPacketSent += OnInteraction;
             InworldController.CharacterHandler.OnCharacterListJoined += OnCharacterJoined;
             InworldController.CharacterHandler.OnCharacterListLeft += OnCharacterLeft;
         }
@@ -43,6 +44,7 @@ namespace Inworld.Sample
         {
             if (!InworldController.Instance)
                 return;
+            InworldController.Client.OnPacketSent -= OnInteraction;
             InworldController.CharacterHandler.OnCharacterListJoined -= OnCharacterJoined;
             InworldController.CharacterHandler.OnCharacterListLeft -= OnCharacterLeft;
         }
@@ -135,7 +137,8 @@ namespace Inworld.Sample
             {
                 case SourceType.AGENT:
                 {
-                    if (InworldController.Client.LiveSessionData.TryGetValue(textPacket.routing.source.name, out InworldCharacterData charData))
+                    InworldCharacterData charData = InworldController.Client.GetCharacterDataByID(textPacket.routing.source.name);
+                    if (charData != null)
                     {
                         key = m_ChatOptions.longBubbleMode ? textPacket.packetId.interactionId : textPacket.packetId.utteranceId;
                         string charName = charData.givenName ?? "Character";
@@ -157,7 +160,8 @@ namespace Inworld.Sample
         {
             if (!m_ChatOptions.narrativeAction || actionPacket.action == null || actionPacket.action.narratedAction == null || string.IsNullOrWhiteSpace(actionPacket.action.narratedAction.content) || !IsUIReady)
                 return;
-            if (!InworldController.Client.LiveSessionData.TryGetValue(actionPacket.routing.source.name, out InworldCharacterData charData))
+            InworldCharacterData charData = InworldController.Client.GetCharacterDataByID(actionPacket.routing.source.name);
+            if (charData == null)
                 return;
             string key = m_ChatOptions.longBubbleMode ? actionPacket.packetId.interactionId : actionPacket.packetId.utteranceId;
             string charName = charData.givenName ?? "Character";

@@ -25,26 +25,27 @@ namespace Inworld
     {
         [SerializeField] bool m_ManualAudioHandling;
         InworldCharacter m_CurrentCharacter;
-        InworldCharacter m_LastCharacter;
         
         public event Action<InworldCharacter> OnCharacterListJoined;
         public event Action<InworldCharacter> OnCharacterListLeft;
-        public event Action<InworldCharacter, InworldCharacter> OnCharacterChanged;   
-        // The Character List only lists the interactable characters.
+        
+        // The Character List only lists the interactable characters. 
         // Although InworldCharacter also has InworldCharacterData, its agentID won't be always updated. Please check m_LiveSession
         // and Call RegisterLiveSession if outdated.
         protected readonly List<InworldCharacter> m_CharacterList = new List<InworldCharacter>();
-        
+
         /// <summary>
         ///     Return if any character is speaking.
         /// </summary>
-        public virtual bool IsAnyCharacterSpeaking => CurrentCharacter.IsSpeaking;
+        public virtual bool IsAnyCharacterSpeaking => m_CharacterList.Any(c => c.IsSpeaking);
 
         public List<string> CurrentCharacterNames => m_CharacterList.Select(a => a.BrainName).ToList();
 
         /// <summary>
-        /// Gets/Sets the current interacting character.
-        /// If set, it'll also start audio sampling if `ManualAudioHandling` is false, and invoke the event OnCharacterChanged
+        /// Gets/Sets the current interacting character. Mainly for backwards compatibility.
+        /// Although you're allowed to talk to multiple characters, sometimes you need to nominate the character (And don't unregister others).
+        ///
+        /// This parameter will overwrite the group chat CurrentCharacters.
         /// </summary>
         public InworldCharacter CurrentCharacter
         {
@@ -55,14 +56,11 @@ namespace Inworld
                 string newBrainName = value ? value.BrainName : "";
                 if (oldBrainName == newBrainName)
                     return;
-                // TODO(Yan): Solve Audio later as it's blocked.
-                // if (!string.IsNullOrEmpty(oldBrainName))
-                //     InworldController.Instance.StopAudio();
-                m_LastCharacter = m_CurrentCharacter;
+                if (m_CurrentCharacter)
+                    m_CurrentCharacter.Event.onCharacterDeselected.Invoke(m_CurrentCharacter.BrainName);
                 m_CurrentCharacter = value;
-                // if(!ManualAudioHandling && !string.IsNullOrEmpty(newBrainName))
-                //     InworldController.Instance.StartAudio();
-                OnCharacterChanged?.Invoke(m_LastCharacter, m_CurrentCharacter);
+                if (m_CurrentCharacter)
+                    m_CurrentCharacter.Event.onCharacterSelected.Invoke(m_CurrentCharacter.BrainName);
             }
         }
         /// <summary>
@@ -99,17 +97,8 @@ namespace Inworld
         /// </summary>
         public virtual void ChangeSelectingMethod() {}
 
+        public virtual InworldCharacter GetCharacterByBrainName(string brainName) => CurrentCharacters.FirstOrDefault(c => c.BrainName == brainName);
 
-        protected virtual void OnEnable()
-        {
-            InworldController.Client.OnStatusChanged += OnStatusChanged;
-        }
-
-        protected virtual void OnDisable()
-        {
-            if (InworldController.Instance)
-                InworldController.Client.OnStatusChanged -= OnStatusChanged;
-        }
         IEnumerator UpdateThumbnail(InworldCharacterData agent)
         {
             if (agent.thumbnail)
@@ -125,22 +114,14 @@ namespace Inworld
                 agent.thumbnail = (uwr.downloadHandler as DownloadHandlerTexture)?.texture;
             }
         }
-        protected virtual void OnStatusChanged(InworldConnectionStatus newStatus)
-        {
-            if (newStatus == InworldConnectionStatus.Idle) // Completely disconnected.
-            {
-                CurrentCharacter = null;
-            }
-        }
         public virtual void Register(InworldCharacter character)
         {
-            if (!m_CharacterList.Contains(character))
-            {
-                m_CharacterList.Add(character);
-                if (m_CharacterList.Count == 1)
-                    CurrentCharacter = character;
-                OnCharacterListJoined?.Invoke(character);
-            }
+            if (m_CharacterList.Contains(character))
+                return;
+            m_CharacterList.Add(character);
+            OnCharacterListJoined?.Invoke(character); // Happens AFTER char List added.
+            if (m_CharacterList.Count == 1)
+                CurrentCharacter = character;
         }
         /// <summary>
         /// Remove the character from the character list.
@@ -151,17 +132,13 @@ namespace Inworld
         {
             if (character == null || !InworldController.Instance)
                 return;
-            if (m_CharacterList.Contains(character))
-            {
-                m_CharacterList.Remove(character);
-                OnCharacterListLeft?.Invoke(character);
-            }
-            if (character != CurrentCharacter) // TODO(Yan): Process if the character is also in the group chat.
+            OnCharacterListLeft?.Invoke(character); // Happens BEFORE char List removed.
+            if (character == CurrentCharacter) 
+                CurrentCharacter = null;
+            if (!m_CharacterList.Contains(character))
                 return;
-            InworldController.Instance.StopAudio();
-            m_LastCharacter = null;
-            m_CurrentCharacter = null;
-            OnCharacterChanged?.Invoke(m_LastCharacter, m_CurrentCharacter);
+            m_CharacterList.Remove(character);
+            
         }
     }
 }

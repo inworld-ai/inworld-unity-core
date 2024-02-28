@@ -4,8 +4,10 @@
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
+using GluonGui.Dialog;
 using Inworld.Packet;
 using Inworld.Entities;
+using Inworld.Interactions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -30,23 +32,11 @@ namespace Inworld
         
         public override void SendPackets()
         {
-            OutgoingPacketData rawData = m_OutgoingQueue.FirstOrDefault(r => !r.hasSent);
+            OutgoingPacket rawData = m_Prepared.Dequeue(true);
             if (rawData == null)
                 return;
-            List<string> unsupportedCharacters = rawData.UpdateSessionInfo();
-            List<InworldPacket> packets = rawData.ComposePacket();
-            if (packets.Count > 0)
-            {
-                foreach (InworldPacket packet in packets)
-                {
-                    m_Socket.SendAsync(packet.ToJson);
-                }
-                rawData.hasSent = true;
-            }
-            foreach (string character in unsupportedCharacters)
-            {
-                InworldAI.LogWarning($"{character} not registered in the current scene.");
-            }
+            m_Socket.SendAsync(rawData.RawPacket.ToJson);
+            m_Sent.Enqueue(rawData);
         }
         public override void SendCapabilities()
         {
@@ -91,10 +81,35 @@ namespace Inworld
             InworldAI.Log($"Send previous history... {jsonToSend}");
             m_Socket.SendAsync(jsonToSend);
         }
-        public override void LoadScene(string sceneFullName)
+        public override void LoadScene(string sceneFullName = "")
         {
-            string jsonToSend = JsonUtility.ToJson(new LoadScenePacket(sceneFullName));
-            m_Socket.SendAsync(jsonToSend);
+            InworldAI.LogEvent("Login_Runtime");
+            if (!string.IsNullOrEmpty(sceneFullName))
+            {
+                InworldAI.Log($"Load Scene: {sceneFullName}");
+                m_SceneFullName = sceneFullName;
+                m_Socket.SendAsync(new LoadScenePacket(m_SceneFullName).ToJson);
+            }
+            else
+            {
+                List<string> result = _GetSceneNameByCharacter();
+                if (result == null || result.Count == 0)
+                {
+                    InworldAI.LogException("Characters not found in the workspace");
+                    return;
+                }
+                if (result.Count == 1 && result[0].Split("/scenes/").Length > 0)
+                {
+                    m_SceneFullName = result[0];
+                    InworldAI.Log($"Load Scene: {m_SceneFullName}");
+                    m_Socket.SendAsync(new LoadScenePacket(m_SceneFullName).ToJson);
+                }
+                else
+                {
+                    InworldAI.Log($"Load Characters directly.");
+                    m_Socket.SendAsync(new LoadCharactersPacket(result).ToJson);
+                }
+            }
         }
         public override void SendText(string characterID, string textToSend)
         {
@@ -109,7 +124,7 @@ namespace Inworld
                 text = new TextEvent(textToSend)
             };
             string jsonToSend = JsonUtility.ToJson(packet);
-            Dispatch(packet);
+            OnPacketSent?.Invoke(packet);
             m_Socket.SendAsync(jsonToSend);
         }
         public override void SendTextTo(string textToSend, List<string> characters = null)
@@ -119,10 +134,11 @@ namespace Inworld
             Dictionary<string, string> characterToReceive = _GetCharacterDataByFullName(characters);
             if (characterToReceive.Count == 0)
                 return;
-            m_OutgoingQueue.Enqueue(new OutgoingPacketData(new TextEvent(textToSend), characterToReceive));
-            // TODO(Yan): Remember to Send Immediately
+            OutgoingPacket rawData = new OutgoingPacket(new TextEvent(textToSend), characterToReceive);
+            m_Prepared.Enqueue(rawData);
+            OnPacketSent?.Invoke(rawData.RawPacket); 
         }
-        public override void SendCancelEventTo(string interactionID, List<string> characters = null)
+        public override void SendCancelEventTo(string interactionID,  string utteranceID = "", List<string> characters = null)
         {
             if (string.IsNullOrEmpty(interactionID))
                 return;
@@ -133,12 +149,13 @@ namespace Inworld
             {
                 cancelResponses = new CancelResponse
                 {
-                    interactionId = interactionID
+                    interactionId = interactionID,
+                    utteranceId = new List<string> {utteranceID}
                 }
             };
-            m_OutgoingQueue.Enqueue(new OutgoingPacketData(mutation, characterToReceive));
+            m_Prepared.Enqueue(new OutgoingPacket(mutation, characterToReceive));
         }
-        public override void SendCancelEvent(string characterID, string interactionID)
+        public override void SendCancelEvent(string characterID, string interactionID, string utteranceID = "")
         {
             if (string.IsNullOrEmpty(characterID))
                 return;
@@ -153,7 +170,8 @@ namespace Inworld
             {
                 cancelResponses = new CancelResponse
                 {
-                    interactionId = interactionID
+                    interactionId = interactionID,
+                    utteranceId = new List<string> { utteranceID }
                 }
             };
             m_Socket.SendAsync(JsonUtility.ToJson(cancelPacket));
@@ -181,7 +199,7 @@ namespace Inworld
             Dictionary<string, string>  characterToReceive = _GetCharacterDataByFullName(characters);
             // if (characterToReceive.Count == 0)
             //     return;
-            m_OutgoingQueue.Enqueue(new OutgoingPacketData(new CustomEvent(triggerName, parameters), characterToReceive));
+            m_Prepared.Enqueue(new OutgoingPacket(new CustomEvent(triggerName, parameters), characterToReceive));
         }
         public override void StartAudio(string charID)
         {
@@ -196,7 +214,7 @@ namespace Inworld
                 routing = new Routing(charID),
                 control = new ControlEvent
                 {
-                    action = "AUDIO_SESSION_START"
+                    action = ControlType.AUDIO_SESSION_START.ToString()
                 }
             };
             string jsonToSend = JsonUtility.ToJson(packet);
@@ -209,9 +227,11 @@ namespace Inworld
                 return;
             ControlEvent control = new ControlEvent
             {
-                action = "AUDIO_SESSION_START"
+                action = ControlType.AUDIO_SESSION_START.ToString()
             };
-            m_OutgoingQueue.Enqueue(new OutgoingPacketData(control, characterToReceive));
+            OutgoingPacket rawData = new OutgoingPacket(control, characterToReceive);
+            m_Prepared.Enqueue(rawData);
+            OnPacketSent?.Invoke(rawData.RawPacket);
         }
         public override void StopAudio(string charID)
         {
@@ -225,7 +245,7 @@ namespace Inworld
                 routing = new Routing(charID),
                 control = new ControlEvent
                 {
-                    action = "AUDIO_SESSION_END"
+                    action = ControlType.AUDIO_SESSION_END.ToString()
                 }
             };
             string jsonToSend = JsonUtility.ToJson(packet);
@@ -238,9 +258,9 @@ namespace Inworld
                 return;
             ControlEvent control = new ControlEvent
             {
-                action = "AUDIO_SESSION_END"
+                action = ControlType.AUDIO_SESSION_END.ToString()
             };
-            m_OutgoingQueue.Enqueue(new OutgoingPacketData(control, characterToReceive));
+            m_Prepared.Enqueue(new OutgoingPacket(control, characterToReceive));
         }
         public override void SendAudio(string charID, string base64)
         {
@@ -259,7 +279,7 @@ namespace Inworld
                 }
             };
             string jsonToSend = JsonUtility.ToJson(packet);
-            Dispatch(packet);
+            OnPacketSent?.Invoke(packet);
             m_Socket.SendAsync(jsonToSend);
         }
         public override void SendAudioTo(string base64, List<string> characters = null)
@@ -274,7 +294,9 @@ namespace Inworld
                 type = "AUDIO",
                 chunk = base64
             };
-            m_OutgoingQueue.Enqueue(new OutgoingPacketData(dataChunk, characterToReceive));
+            OutgoingPacket output = new OutgoingPacket(dataChunk, characterToReceive);
+            output.OnDequeue();
+            m_Socket.SendAsync(output.RawPacket.ToJson); // Do not enqueue dataChunk, They can be discarded.
         }
         protected IEnumerator _GetAccessToken(string workspaceFullName = "")
         {
@@ -412,6 +434,11 @@ namespace Inworld
                 InworldAI.LogError($"Error Processing packets {e.Data}");
                 return;
             }
+            if (response.error != null && response.error.code != 0 && !string.IsNullOrEmpty(response.error.message))
+            {
+                InworldAI.LogError(e.Data);
+                return;
+            }
             InworldNetworkPacket packetReceived = response.result;
             if (packetReceived.Type == PacketType.SESSION_RESPONSE)
             {
@@ -434,20 +461,9 @@ namespace Inworld
             }
             if (packetReceived.Type == PacketType.UNKNOWN)
             {
-                if (e.Data.Contains("error"))
-                {
-                    InworldAI.LogError(e.Data);
-                    // if (e.Data.Contains("inactivity")) 
-                    //     Status = InworldConnectionStatus.LostConnect;
-                    // else
-                    //     Error = e.Data;
-                }
-                else
-                {
-                    InworldAI.LogWarning($"Received Unknown {e.Data}");
-                }
+                InworldAI.LogWarning($"Received Unknown {e.Data}");
             }
-            Dispatch(packetReceived.Packet);
+            OnPacketReceived?.Invoke(packetReceived.Packet);
         }
         void OnSocketClosed(object sender, CloseEventArgs e)
         {
@@ -461,11 +477,28 @@ namespace Inworld
             if (e.Message != k_DisconnectMsg)
                 Error = e.Message;
         }
+        protected List<string> _GetSceneNameByCharacter()
+        {
+            if (m_Prepared.Count == 0)
+                return null;
+            List<string> characterFullNames = m_Prepared[0].Targets.Keys.ToList();
+            List<string> result = new List<string>();
+            foreach (InworldWorkspaceData wsData in InworldAI.User.Workspace)
+            {
+                string output = wsData.GetSceneNameByCharacters(characterFullNames);
+                if (!string.IsNullOrEmpty(output))
+                {
+                    result.Add(output); // Currently, we can only support loading 1 scene per session.
+                    return result;
+                }
+            }
+            return characterFullNames;
+        }
         protected override IEnumerator OutgoingCoroutine()
         {
             while (true)
             {
-                if (m_OutgoingQueue.Count > 0)
+                if (m_Prepared.Count > 0)
                 {
                     if (Status == InworldConnectionStatus.Connected)
                     {
@@ -480,7 +513,6 @@ namespace Inworld
                         StartSession();
                     }
                 }
-
                 yield return new WaitForSecondsRealtime(0.1f);
             }
         }

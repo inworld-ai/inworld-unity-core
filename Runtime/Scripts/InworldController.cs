@@ -5,13 +5,11 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
-using Codice.CM.SEIDInfo;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-
-using System.Collections;
 using UnityEditor;
+
 
 namespace Inworld
 {
@@ -26,9 +24,9 @@ namespace Inworld
         [SerializeField] protected InworldGameData m_GameData;
         [SerializeField] protected string m_SceneFullName;
         
-        InworldClient m_Client;
-        AudioCapture m_AudioCapture;
-        CharacterHandler m_CharacterHandler;
+        protected InworldClient m_Client;
+        protected AudioCapture m_AudioCapture;
+        protected CharacterHandler m_CharacterHandler;
         
         /// <summary>
         /// Gets the AudioCapture of the InworldController.
@@ -92,7 +90,7 @@ namespace Inworld
         /// <summary>
         /// Gets the current connection status.
         /// </summary>
-        public static InworldConnectionStatus Status => Instance.m_Client.Status;
+        public static InworldConnectionStatus Status => Client.Status;
         /// <summary>
         /// Gets the current workspace's full name.
         /// </summary>
@@ -107,17 +105,26 @@ namespace Inworld
         /// <summary>
         /// Gets the current InworldScene's full name.
         /// </summary>
-        public string CurrentScene => m_SceneFullName;
+        public string CurrentScene => Client ? Client.CurrentScene : m_SceneFullName;
         /// <summary>
         /// Gets/Sets the current interacting character.
         /// </summary>
         public static InworldCharacter CurrentCharacter
         {
-            get => Instance ? Instance.m_CharacterHandler ? Instance.m_CharacterHandler.CurrentCharacter : null : null;
+            get
+            {
+                if (CharacterHandler && CharacterHandler.CurrentCharacter)
+                    return CharacterHandler.CurrentCharacter;
+                return CharacterHandler.CurrentCharacters.Count > 0 ? CharacterHandler.CurrentCharacters[0] : null;
+            }
+
             set
             {
-                if (Instance && Instance.m_CharacterHandler)
-                    Instance.m_CharacterHandler.CurrentCharacter = value;
+                if (!CharacterHandler)
+                    return;
+                if (!CharacterHandler.CurrentCharacters.Contains(value))
+                    CharacterHandler.Register(value);
+                CharacterHandler.CurrentCharacter = value;
             }
         }
         /// <summary>
@@ -205,9 +212,10 @@ namespace Inworld
         /// Send the CancelResponse Event to InworldServer to interrupt the character's speaking.
         /// </summary>
         /// <param name="interactionID">the handle of the dialog context that needs to be cancelled.</param>
-        public void SendCancelEvent(string interactionID)
+        /// <param name="utteranceID">the handle of the current utterance that needs to be cancelled.</param>
+        public void SendCancelEvent(string interactionID, string utteranceID = "")
         {
-            m_Client.SendCancelEventTo(interactionID, CharacterHandler.CurrentCharacterNames);
+            m_Client.SendCancelEventTo(interactionID, utteranceID, CharacterHandler.CurrentCharacterNames);
         } 
         /// <summary>
         /// Legacy Send the trigger to an InworldCharacter in the current scene.

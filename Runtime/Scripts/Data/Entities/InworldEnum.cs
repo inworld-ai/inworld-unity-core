@@ -34,6 +34,12 @@ namespace Inworld
         GoAway,
         IncompleteInteraction
     }
+    public enum ControlType
+    {
+        UNKNOWN,
+        AUDIO_SESSION_START,
+        AUDIO_SESSION_END
+    }
     public enum SourceType
     {
         NONE,

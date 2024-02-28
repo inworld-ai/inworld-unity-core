@@ -8,6 +8,7 @@ using Inworld.Interactions;
 using Inworld.Packet;
 using Inworld.Entities;
 using Inworld.Sample;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -58,13 +59,13 @@ namespace Inworld
                 {
                     if (m_VerboseLog)
                         InworldAI.Log($"{Name} Starts Speaking");
-                    m_CharacterEvents.onBeginSpeaking.Invoke();
+                    m_CharacterEvents.onBeginSpeaking.Invoke(BrainName);
                 }
                 else
                 {
                     if (m_VerboseLog)
                         InworldAI.Log($"{Name} Ends Speaking");
-                    m_CharacterEvents.onEndSpeaking.Invoke();
+                    m_CharacterEvents.onEndSpeaking.Invoke(BrainName);
                 }
             }
         }
@@ -81,7 +82,7 @@ namespace Inworld
                 if (m_VerboseLog)
                     InworldAI.Log($"{Name}: {m_CurrentRelation.GetUpdate(value)}");
                 m_CurrentRelation = value;
-                m_CharacterEvents.onRelationUpdated.Invoke();
+                m_CharacterEvents.onRelationUpdated.Invoke(BrainName);
             }
         }
         /// <summary>
@@ -120,8 +121,7 @@ namespace Inworld
             GetLiveSessionID();
             if (m_VerboseLog)
                 InworldAI.Log($"{Data.givenName} Registered: {Data.agentId}");
-            if (!string.IsNullOrEmpty(Data.agentId))
-                m_CharacterEvents.onCharacterRegistered.Invoke();
+            m_CharacterEvents.onCharacterRegistered.Invoke(BrainName);
         }
         /// <summary>
         /// Register the character in the character list.
@@ -187,9 +187,7 @@ namespace Inworld
 
         protected virtual void OnEnable()
         {
-            InworldController.CharacterHandler.Register(this);
             InworldController.Client.OnSessionUpdated += OnSessionUpdated;
-            InworldController.CharacterHandler.OnCharacterChanged += OnCharChanged;
             InworldController.Client.OnStatusChanged += OnStatusChanged;
         }
         protected virtual void OnDisable()
@@ -198,7 +196,6 @@ namespace Inworld
                 return;
             InworldController.CharacterHandler.Unregister(this);
             InworldController.Client.OnSessionUpdated -= OnSessionUpdated;
-            InworldController.CharacterHandler.OnCharacterChanged -= OnCharChanged;
             InworldController.Client.OnStatusChanged -= OnStatusChanged;
         }
         protected virtual void OnDestroy()
@@ -206,17 +203,9 @@ namespace Inworld
             if (!InworldController.Instance)
                 return;
             InworldController.CharacterHandler.Unregister(this);
-            m_CharacterEvents.onCharacterDestroyed?.Invoke();
+            m_CharacterEvents.onCharacterDestroyed?.Invoke(BrainName);
         }
-        protected virtual void OnCharChanged(InworldCharacter lastCharacter, InworldCharacter currentCharacter)
-        {
-            if (string.IsNullOrEmpty(BrainName))
-                return;
-            if (lastCharacter && lastCharacter.BrainName == BrainName)
-                Event.onCharacterDeselected.Invoke();
-            if (currentCharacter && currentCharacter.BrainName == BrainName)
-                Event.onCharacterSelected.Invoke();
-        }
+
         protected virtual void OnSessionUpdated(InworldCharacterData charData)
         {
             if (charData.brainName == Data.brainName)
@@ -294,7 +283,7 @@ namespace Inworld
                 IsSpeaking = true;
                 if (m_VerboseLog)
                     InworldAI.Log($"{Name}: {packet.text.text}");
-                Event.onCharacterSpeaks.Invoke(packet.routing.source.name, packet.text.text);
+                Event.onCharacterSpeaks.Invoke(BrainName, packet.text.text);
             }
             else
             {
@@ -307,7 +296,7 @@ namespace Inworld
                 return;
             if (m_VerboseLog)
                 InworldAI.Log($"{Name}: {packet.emotion.behavior} {packet.emotion.strength}");
-            m_CharacterEvents.onEmotionChanged.Invoke(packet.emotion.strength, packet.emotion.behavior);
+            m_CharacterEvents.onEmotionChanged.Invoke(BrainName, packet.emotion.ToString());
         }
         protected virtual void HandleTrigger(CustomPacket customPacket)
         {
@@ -324,7 +313,7 @@ namespace Inworld
                 output = customPacket.custom.parameters.Aggregate(output, (current, param) => current + $" With {param.name}: {param.value}");
                 InworldAI.Log(output);
             }
-            m_CharacterEvents.onGoalCompleted.Invoke(customPacket.TriggerName);
+            m_CharacterEvents.onGoalCompleted.Invoke(BrainName, customPacket.TriggerName);
         }
         protected virtual void HandleAction(ActionPacket actionPacket)
         {

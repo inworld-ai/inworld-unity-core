@@ -13,16 +13,32 @@ namespace Inworld.Entities
 	[Serializable]
 	public class CharacterEvents
 	{
-		public UnityEvent onCharacterRegistered;			
-		public UnityEvent onCharacterSelected;				
-		public UnityEvent onCharacterDeselected;			
-		public UnityEvent onCharacterDestroyed;
-		public UnityEvent onBeginSpeaking; 
-		public UnityEvent onEndSpeaking; 
+		// The first string are the character's Brain Name
+		public UnityEvent<string> onCharacterRegistered;			
+		public UnityEvent<string> onCharacterSelected;				
+		public UnityEvent<string> onCharacterDeselected;			
+		public UnityEvent<string> onCharacterDestroyed;
+		public UnityEvent<string> onBeginSpeaking; 
+		public UnityEvent<string> onEndSpeaking; 
 		public UnityEvent<InworldPacket> onPacketReceived; 
-		public UnityEvent<string ,string> onCharacterSpeaks;
+		public UnityEvent<string, string> onCharacterSpeaks;
 		public UnityEvent<string, string> onEmotionChanged;
-		public UnityEvent<string> onGoalCompleted;
-		public UnityEvent onRelationUpdated;
+		public UnityEvent<string, string> onGoalCompleted;
+		public UnityEvent<string> onRelationUpdated;
+
+		public void RemoveAllEvents()
+		{
+			onCharacterRegistered.RemoveAllListeners();
+			onCharacterSelected.RemoveAllListeners();
+			onCharacterDeselected.RemoveAllListeners();
+			onCharacterDestroyed.RemoveAllListeners();
+			onBeginSpeaking.RemoveAllListeners();
+			onEndSpeaking.RemoveAllListeners();
+			onPacketReceived.RemoveAllListeners();
+			onCharacterSpeaks.RemoveAllListeners();
+			onEmotionChanged.RemoveAllListeners();
+			onGoalCompleted.RemoveAllListeners();
+			onRelationUpdated.RemoveAllListeners();
+		}
 	}
 }
