@@ -247,11 +247,11 @@ namespace Inworld
             m_AudioToPush.Clear();
         }
         /// <summary>
-        ///     Aync to Calculate the background noise (including bg music, etc)
+        ///     Recalculate the background noise (including bg music, etc)
         ///     Please call it whenever audio environment changed in your game.
         /// </summary>
-        /// <returns></returns>
-        public IEnumerator Calibrate()
+        public virtual void Calibrate() => m_BackgroundNoise = 0;
+        protected IEnumerator _Calibrate()
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
             if (WebGLIsRecording() == 0)
@@ -373,7 +373,7 @@ namespace Inworld
         {
             while (true)
             {
-                yield return Calibrate();
+                yield return _Calibrate();
                 if (!m_IsCapturing || IsBlocked)
                 {
                     yield return null;
