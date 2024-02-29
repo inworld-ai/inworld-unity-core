@@ -23,6 +23,7 @@ namespace Inworld.Sample
         string m_CurrentContent;
         void OnEnable()
         {
+            InworldController.Client.OnPacketSent += OnInteraction;
             InworldController.CharacterHandler.OnCharacterListJoined += OnCharacterJoined;
             InworldController.CharacterHandler.OnCharacterListLeft += OnCharacterLeft;
         }
@@ -30,6 +31,7 @@ namespace Inworld.Sample
         {
             if (!InworldController.Instance)
                 return;
+            InworldController.Client.OnPacketSent -= OnInteraction;
             InworldController.CharacterHandler.OnCharacterListJoined -= OnCharacterJoined;
             InworldController.CharacterHandler.OnCharacterListLeft -= OnCharacterLeft;
         }

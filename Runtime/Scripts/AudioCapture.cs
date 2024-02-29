@@ -329,7 +329,7 @@ namespace Inworld
         {
             if (packet is not ControlPacket controlPacket)
                 return;
-            switch (controlPacket.control.Action)
+            switch (controlPacket.Action)
             {
                 case ControlType.AUDIO_SESSION_START:
                     m_IsCapturing = true;

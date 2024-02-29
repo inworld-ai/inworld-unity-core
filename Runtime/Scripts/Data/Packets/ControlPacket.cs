@@ -14,8 +14,6 @@ namespace Inworld.Packet
     {
         public string action;
         public string description;
-        
-        public ControlType Action => Enum.TryParse(action, true, out ControlType result) ? result : ControlType.UNKNOWN;
     }
     [Serializable]
     public class ControlPacket : InworldPacket
@@ -32,6 +30,7 @@ namespace Inworld.Packet
             type = "CONTROL";
             control = evt;
         }
+        public ControlType Action => Enum.TryParse(control.action, true, out ControlType result) ? result : ControlType.UNKNOWN;
         public override string ToJson => JsonUtility.ToJson(this); 
     }
 }

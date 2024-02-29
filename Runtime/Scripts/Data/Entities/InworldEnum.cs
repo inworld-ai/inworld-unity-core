@@ -38,7 +38,9 @@ namespace Inworld
     {
         UNKNOWN,
         AUDIO_SESSION_START,
-        AUDIO_SESSION_END
+        AUDIO_SESSION_END,
+        INTERACTION_END,
+        WARNING,
     }
     public enum SourceType
     {

@@ -4,7 +4,7 @@
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
-using GluonGui.Dialog;
+
 using Inworld.Packet;
 using Inworld.Entities;
 using Inworld.Interactions;
@@ -25,7 +25,20 @@ namespace Inworld
         protected WebSocket m_Socket;
         protected LoadSceneResponse m_CurrentSceneData;
         protected const string k_DisconnectMsg = "The remote party closed the WebSocket connection without completing the close handshake.";
-        
+
+        public void FinishInteraction(string correlationID)
+        {
+            List<OutgoingPacket> toRemove = new List<OutgoingPacket>();
+            for (int i = 0; i < m_Sent.Count; i++)
+            {
+                if (m_Sent[i].ID == correlationID)
+                    toRemove.Add(m_Sent[i]);
+            }
+            foreach (OutgoingPacket packet in toRemove)
+            {
+                m_Sent.Remove(packet);
+            }
+        }
         public override void GetAccessToken() => StartCoroutine(_GetAccessToken(m_PublicWorkspace));
         public override void StartSession() => StartCoroutine(_StartSession());
         public override void Disconnect() => StartCoroutine(_DisconnectAsync());
@@ -460,10 +473,20 @@ namespace Inworld
                 }
                 return;
             }
-            if (packetReceived.Type == PacketType.CONTROL && packetReceived.control.action == "WARNING")
+            if (packetReceived.Type == PacketType.CONTROL)
             {
-                InworldAI.LogWarning(packetReceived.control.description);
-                return;
+                if (packetReceived.Packet is ControlPacket controlPacket)
+                {
+                    switch (controlPacket.Action)
+                    {
+                        case ControlType.WARNING:
+                            InworldAI.LogWarning(packetReceived.control.description);
+                            return;
+                        case ControlType.INTERACTION_END:
+                            FinishInteraction(controlPacket.packetId.correlationId);
+                            break;
+                    }
+                }
             }
             if (packetReceived.Type == PacketType.UNKNOWN)
             {
@@ -519,6 +542,8 @@ namespace Inworld
                         StartSession();
                     }
                 }
+                if (m_Sent.Count > m_MaxWaitingListSize)
+                    m_Sent.Dequeue();
                 yield return new WaitForSecondsRealtime(0.1f);
             }
         }
