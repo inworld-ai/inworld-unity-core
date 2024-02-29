@@ -10,7 +10,6 @@ using Inworld.Entities;
 using Inworld.Interactions;
 using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -35,13 +34,11 @@ namespace Inworld
         public delegate void PacketDelegate(InworldPacket packet);
 
         public PacketDelegate OnPacketSent;
-        #if UNITY_INCLUDE_TESTS
+        public PacketDelegate OnGlobalPacketReceived;
         public PacketDelegate OnPacketReceived;
-        #else
-        internal event PacketDelegate OnPacketReceived;
-        #endif
+
         
-        const string k_NotImplented = "No InworldClient found. Need at least one connection protocol";
+        const string k_NotImplemented = "No InworldClient found. Need at least one connection protocol";
         // These data will always be updated once session is refreshed and character ID is fetched. 
         // key by character's live session ID.
         protected readonly Dictionary<string, InworldCharacterData> m_LiveSessionData = new Dictionary<string, InworldCharacterData>();
@@ -121,14 +118,14 @@ namespace Inworld
                 InworldAI.LogError(m_Error);
             }
         }
-        public virtual void GetHistoryAsync(string sceneFullName) => Error = k_NotImplented;
-        public virtual void SendPackets() => Error = k_NotImplented; 
+        public virtual void GetHistoryAsync(string sceneFullName) => Error = k_NotImplemented;
+        public virtual void SendPackets() => Error = k_NotImplemented; 
         /// <summary>
         /// Gets the access token. Would be implemented by child class.
         /// </summary>
         public virtual void GetAccessToken()
         {
-            Error = k_NotImplented;
+            Error = k_NotImplemented;
         }
         /// <summary>
         /// Reconnect session or start a new session if the current session is invalid.
@@ -146,7 +143,7 @@ namespace Inworld
         /// </summary>
         public virtual LoadSceneResponse GetLiveSessionInfo()
         {
-            Error = k_NotImplented;
+            Error = k_NotImplemented;
             return null;
         }
         /// <summary>
@@ -168,11 +165,11 @@ namespace Inworld
         /// <summary>
         /// Start the session by the session ID.
         /// </summary>
-        public virtual void StartSession() => Error = k_NotImplented;
+        public virtual void StartSession() => Error = k_NotImplemented;
         /// <summary>
         /// Disconnect Inworld Server.
         /// </summary>
-        public virtual void Disconnect() => Error = k_NotImplented;
+        public virtual void Disconnect() => Error = k_NotImplemented;
         // /// <summary>
         // /// Send LoadScene request to Inworld Server.
         // /// </summary>
@@ -183,38 +180,38 @@ namespace Inworld
         /// Send LoadScene request to Inworld Server.
         /// </summary>
         /// <param name="sceneFullName">the full string of the scene to load.</param>
-        public virtual void LoadScene(string sceneFullName = "") => Error = k_NotImplented;
+        public virtual void LoadScene(string sceneFullName = "") => Error = k_NotImplemented;
         /// <summary>
         /// Gets when packet is received.
         /// </summary>
         /// <param name="packet">incoming packet</param>
-        public virtual void Enqueue(InworldPacket packet) => Error = k_NotImplented;
+        public virtual void Enqueue(InworldPacket packet) => Error = k_NotImplemented;
         /// <summary>
         /// Send Capabilities to Inworld Server.
         /// It should be sent immediately after session started to enable all the conversations. 
         /// </summary>
-        public virtual void SendCapabilities() => Error = k_NotImplented;
+        public virtual void SendCapabilities() => Error = k_NotImplemented;
         /// <summary>
         /// Send Session Config to Inworld Server.
         /// It should be sent right after sending Capabilities. 
         /// </summary>
-        public virtual void SendSessionConfig() => Error = k_NotImplented;
+        public virtual void SendSessionConfig() => Error = k_NotImplemented;
         /// <summary>
         /// Send Client Config to Inworld Server.
         /// It should be sent right after sending Session Config. 
         /// </summary>
-        public virtual void SendClientConfig() => Error = k_NotImplented;
+        public virtual void SendClientConfig() => Error = k_NotImplemented;
         /// <summary>
         /// Send User Config to Inworld Server.
         /// It should be sent right after sending Client Config. 
         /// </summary>
-        public virtual void SendUserConfig() => Error = k_NotImplented;
+        public virtual void SendUserConfig() => Error = k_NotImplemented;
         /// <summary>
         /// Send the previous dialog (New version) to specific scene.
         /// Can be supported by either previous state (base64) or previous dialog (actor: text)
         /// </summary>
         /// <param name="sceneFullName">target scene to send</param>
-        public virtual void SendHistory() => Error = k_NotImplented;
+        public virtual void SendHistory() => Error = k_NotImplemented;
         /// <summary>
         /// New Send messages to an InworldCharacter in this current scene.
         /// NOTE: 1. New method uses brain ID (aka character's full name) instead of live session ID
@@ -222,13 +219,13 @@ namespace Inworld
         /// </summary>
         /// <param name="textToSend">the message to send.</param>
         /// <param name="characters">the list of the characters full name.</param>
-        public virtual void SendTextTo(string textToSend, List<string> characters = null) => Error = k_NotImplented;
+        public virtual void SendTextTo(string textToSend, List<string> characters = null) => Error = k_NotImplemented;
         /// <summary>
         /// Legacy Send messages to an InworldCharacter in this current scene.
         /// </summary>
         /// <param name="characterID">the live session ID of the single character to send</param>
         /// <param name="textToSend">the message to send.</param>
-        public virtual void SendText(string characterID, string textToSend) => Error = k_NotImplented;
+        public virtual void SendText(string characterID, string textToSend) => Error = k_NotImplemented;
         /// <summary>
         /// New Send the CancelResponse Event to InworldServer to interrupt the character's speaking.
         /// NOTE: 1. New method uses brain ID (aka character's full name) instead of live session ID
@@ -237,14 +234,14 @@ namespace Inworld
         /// <param name="interactionID">the handle of the dialog context that needs to be cancelled.</param>
         /// <param name="utteranceID">the current utterance ID that needs to be cancelled.</param>
         /// <param name="characters">the live session ID of the characters in the scene.</param>
-        public virtual void SendCancelEventTo(string interactionID, string utteranceID = "", List<string> characters = null) => Error = k_NotImplented;
+        public virtual void SendCancelEventTo(string interactionID, string utteranceID = "", List<string> characters = null) => Error = k_NotImplemented;
         /// <summary>
         /// Legacy Send the CancelResponse Event to InworldServer to interrupt the character's speaking.
         /// </summary>
         /// <param name="characterID">the live session ID of the character to send</param>
         /// <param name="utteranceID">the current utterance ID that needs to be cancelled.</param>
         /// <param name="interactionID">the handle of the dialog context that needs to be cancelled.</param>
-        public virtual void SendCancelEvent(string characterID, string interactionID, string utteranceID = "") => Error = k_NotImplented;
+        public virtual void SendCancelEvent(string characterID, string interactionID, string utteranceID = "") => Error = k_NotImplemented;
         /// <summary>
         /// New Send the trigger to an InworldCharacter in the current scene.
         /// NOTE: 1. New method uses brain ID (aka character's full name) instead of live session ID
@@ -253,40 +250,40 @@ namespace Inworld
         /// <param name="triggerName">the name of the trigger to send.</param>
         /// <param name="parameters">the parameters and their values for the triggers.</param>
         /// <param name="characters">the live session ID of the characters in the scene.</param>
-        public virtual void SendTriggerTo(string triggerName, Dictionary<string, string> parameters = null, List<string> characters = null) => Error = k_NotImplented;
+        public virtual void SendTriggerTo(string triggerName, Dictionary<string, string> parameters = null, List<string> characters = null) => Error = k_NotImplemented;
         /// <summary>
         /// Legacy Send the trigger to an InworldCharacter in the current scene.
         /// </summary>
         /// <param name="charID">the live session ID of the character to send.</param>
         /// <param name="triggerName">the name of the trigger to send.</param>
         /// <param name="parameters">the parameters and their values for the triggers.</param>
-        public virtual void SendTrigger(string charID, string triggerName, Dictionary<string, string> parameters = null) => Error = k_NotImplented;
+        public virtual void SendTrigger(string charID, string triggerName, Dictionary<string, string> parameters = null) => Error = k_NotImplemented;
         /// <summary>
         /// New Send AUDIO_SESSION_START control events to server.
         /// NOTE: 1. New method uses brain ID (aka character's full name) instead of live session ID
         ///       2. New method support broadcasting to multiple characters.
         /// </summary>
         /// <param name="characters">the live session ID of the characters to send.</param>
-        public virtual void StartAudioTo(List<string> characters = null) => Error = k_NotImplented;
+        public virtual void StartAudioTo(List<string> characters = null) => Error = k_NotImplemented;
         /// <summary>
         /// Legacy Send AUDIO_SESSION_START control events to server.
         /// Without sending this message, all the audio data would be discarded by server.
         /// However, if you send this event twice in a row, without sending `StopAudio()`, Inworld server will also through exceptions and terminate the session.
         /// </summary>
         /// <param name="charID">the live session ID of the character to send.</param>
-        public virtual void StartAudio(string charID) => Error = k_NotImplented;
+        public virtual void StartAudio(string charID) => Error = k_NotImplemented;
         /// <summary>
         /// New Send AUDIO_SESSION_END control events to server to.
         /// NOTE: 1. New method uses brain ID (aka character's full name) instead of live session ID
         ///       2. New method support broadcasting to multiple characters.
         /// </summary>
         /// <param name="characters">the live session ID of the character to send.</param>
-        public virtual void StopAudioTo(List<string> characters = null) => Error = k_NotImplented;
+        public virtual void StopAudioTo(List<string> characters = null) => Error = k_NotImplemented;
         /// <summary>
         /// Legacy Send AUDIO_SESSION_END control events to server to.
         /// </summary>
         /// <param name="charID">the live session ID of the character to send.</param>
-        public virtual void StopAudio(string charID) => Error = k_NotImplented;
+        public virtual void StopAudio(string charID) => Error = k_NotImplemented;
         /// <summary>
         /// New Send the wav data to server to a specific character.
         /// Need to make sure that AUDIO_SESSION_START control event has been sent to server.
@@ -297,7 +294,7 @@ namespace Inworld
         /// </summary>
         /// <param name="base64">the base64 string of the wave data to send.</param>
         /// <param name="characters">the live session ID of the character to send.</param>
-        public virtual void SendAudioTo(string base64, List<string> characters = null) => Error = k_NotImplented;
+        public virtual void SendAudioTo(string base64, List<string> characters = null) => Error = k_NotImplemented;
         /// <summary>
         /// Legacy Send the wav data to server to a specific character.
         /// Need to make sure that AUDIO_SESSION_START control event has been sent to server.
@@ -307,7 +304,7 @@ namespace Inworld
         /// </summary>
         /// <param name="charID">the live session ID of the character to send.</param>
         /// <param name="base64">the base64 string of the wave data to send.</param>
-        public virtual void SendAudio(string charID, string base64) => Error = k_NotImplented;
+        public virtual void SendAudio(string charID, string base64) => Error = k_NotImplemented;
         
         /// <summary>
         /// Get the InworldCharacterData by characters' full name.

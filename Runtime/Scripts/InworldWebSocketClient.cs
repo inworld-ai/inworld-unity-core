@@ -488,6 +488,8 @@ namespace Inworld
                     }
                 }
             }
+            if (packetReceived.Packet.Source == SourceType.WORLD && packetReceived.Packet.Target == SourceType.PLAYER)
+                OnGlobalPacketReceived?.Invoke(packetReceived.Packet);
             if (packetReceived.Type == PacketType.UNKNOWN)
             {
                 InworldAI.LogWarning($"Received Unknown {e.Data}");
