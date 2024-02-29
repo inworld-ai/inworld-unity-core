@@ -116,7 +116,7 @@ namespace Inworld
         /// <summary>
         /// Register live session. Get the live session ID for this character, and also assign it to this character's components.
         /// </summary>
-        public virtual void RegisterLiveSession()
+        [Obsolete] public virtual void RegisterLiveSession()
         {
             GetLiveSessionID();
             if (m_VerboseLog)
@@ -208,8 +208,7 @@ namespace Inworld
 
         protected virtual void OnSessionUpdated(InworldCharacterData charData)
         {
-            if (charData.brainName == Data.brainName)
-                RegisterLiveSession();
+
         }
         protected virtual void OnStatusChanged(InworldConnectionStatus newStatus)
         {
