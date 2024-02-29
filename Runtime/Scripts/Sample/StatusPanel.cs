@@ -14,13 +14,14 @@ namespace Inworld.Sample
 	{
 		[SerializeField] GameObject m_Board;
 		[SerializeField] TMP_Text m_Indicator;
+		[SerializeField] TMP_Text m_Error;
 		
-		void OnEnable()
+		protected virtual void OnEnable()
 		{
 			InworldController.Client.OnStatusChanged += OnStatusChanged;
 		}
 
-		void OnDisable()
+		protected virtual void OnDisable()
 		{
 			if (!InworldController.Instance)
 				return;
@@ -29,7 +30,10 @@ namespace Inworld.Sample
 		void OnStatusChanged(InworldConnectionStatus incomingStatus)
 		{
 			m_Board.SetActive(incomingStatus != InworldConnectionStatus.Idle && incomingStatus != InworldConnectionStatus.Connected);
-			m_Indicator.text = incomingStatus.ToString();
+			if (m_Indicator)
+				m_Indicator.text = incomingStatus.ToString();
+			if (m_Error && incomingStatus == InworldConnectionStatus.Error)
+				m_Error.text = InworldController.Client.Error;
 		}
 	}
 }

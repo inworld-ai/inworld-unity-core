@@ -30,7 +30,7 @@ namespace Inworld
         [SerializeField] Texture2D m_DefaultThumbnail;
         [SerializeField] InworldUserSetting m_DefaultUserSetting;
         [SerializeField] InworldController m_ControllerPrefab;
-        [SerializeField] SplashScreen m_SplashScreen;
+        
         [Space(10)]
         [SerializeField] bool m_Initialized;
         [SerializeField] string m_Version;
@@ -82,10 +82,7 @@ namespace Inworld
             version = Version,
             description = $"{Protocol}; {Version}; {Application.unityVersion}; {SystemInfo.operatingSystem}; {Application.productName}"
         };
-        /// <summary>
-        /// Gets the Splash Screen prefab. Could be set in the `InworldAI.asset`.
-        /// </summary>
-        public static SplashScreen SplashScreen => Instance.m_SplashScreen;
+
         /// <summary>
         /// Gets the controller prefab to instantiate. Usually used in Editor scripts.
         /// </summary>

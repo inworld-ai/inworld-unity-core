@@ -18,7 +18,6 @@ namespace Inworld.Test
         public void InworldAITest()
         {
             Assert.NotNull(InworldAI.Instance);
-            Assert.NotNull(InworldAI.SplashScreen);
             Assert.NotNull(InworldAI.ControllerPrefab);
             Assert.NotNull(InworldAI.DefaultThumbnail);
         }

@@ -15,20 +15,22 @@ namespace Inworld.Sample
     /// <summary>
     /// A simple sample for only displaying subtitle
     /// </summary>
-    public class Subtitle : MonoBehaviour
+    public class Subtitle : StatusPanel
     {
         [SerializeField] TMP_Text m_Subtitle;
         
         string m_CurrentEmotion;
         string m_CurrentContent;
-        void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
             InworldController.Client.OnPacketSent += OnInteraction;
             InworldController.CharacterHandler.OnCharacterListJoined += OnCharacterJoined;
             InworldController.CharacterHandler.OnCharacterListLeft += OnCharacterLeft;
         }
-        void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
             if (!InworldController.Instance)
                 return;
             InworldController.Client.OnPacketSent -= OnInteraction;
