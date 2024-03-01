@@ -177,7 +177,8 @@ namespace Inworld.Interactions
         {
             if (!IsRelated(incomingPacket))
                 return;
-            
+            if (incomingPacket is CustomPacket || incomingPacket is EmotionPacket)
+                m_Character.ProcessPacket(incomingPacket);
             if (incomingPacket.Source == SourceType.PLAYER && (incomingPacket.IsBroadCast || incomingPacket.IsTarget(m_Character.ID)))
             {
                 if (!(incomingPacket is AudioPacket))
