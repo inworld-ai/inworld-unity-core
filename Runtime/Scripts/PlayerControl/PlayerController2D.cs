@@ -5,41 +5,34 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
-
-using Inworld.Entities;
-
-
-
+using UnityEngine;
+using UnityEngine.UI;
 namespace Inworld.Sample
 {
     public class PlayerController2D : PlayerController
     {
+        [SerializeField] Button m_SendButton;
+        [SerializeField] Button m_RecordButton;
+        
         protected override void Start()
         {
-            if (m_PushToTalk)
-            {
-                InworldController.CharacterHandler.ManualAudioHandling = true;
-                InworldController.Audio.AutoPush = false;
-            }
-        }
-        
-        protected override void OnEnable()
-        {
-            base.OnEnable();
-            InworldController.Client.OnSessionUpdated += SessionUpdated;
-        }
-
-        protected override void OnDisable()
-        {
-            base.OnDisable();
-            if (!InworldController.Instance)
+            m_SendButton.interactable = false;
+            m_RecordButton.interactable = false;
+            
+            if (!m_PushToTalk)
                 return;
-            InworldController.Client.OnSessionUpdated -= SessionUpdated;
+            InworldController.CharacterHandler.ManualAudioHandling = true;
+            InworldController.Audio.AutoPush = false;
         }
-        
-        protected virtual void SessionUpdated(InworldCharacterData charData)
+        protected override void OnCharacterJoined(InworldCharacter newChar)
         {
-
+            m_SendButton.interactable = true;
+            m_RecordButton.interactable = true;
+        }
+        protected override void OnCharacterLeft(InworldCharacter newChar)
+        {
+            m_SendButton.interactable = InworldController.CurrentCharacter;
+            m_RecordButton.interactable = InworldController.CurrentCharacter;
         }
     }
 }

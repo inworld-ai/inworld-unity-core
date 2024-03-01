@@ -14,7 +14,6 @@ namespace Inworld.Entities
 	public class CharacterEvents
 	{
 		// The first string are the character's Brain Name
-		public UnityEvent<string> onCharacterRegistered;			
 		public UnityEvent<string> onCharacterSelected;				
 		public UnityEvent<string> onCharacterDeselected;			
 		public UnityEvent<string> onCharacterDestroyed;
@@ -28,7 +27,6 @@ namespace Inworld.Entities
 
 		public void RemoveAllEvents()
 		{
-			onCharacterRegistered.RemoveAllListeners();
 			onCharacterSelected.RemoveAllListeners();
 			onCharacterDeselected.RemoveAllListeners();
 			onCharacterDestroyed.RemoveAllListeners();

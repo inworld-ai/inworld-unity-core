@@ -33,6 +33,7 @@ namespace Inworld.Entities
                 return;
             if (CharactersAreSame(characterBrainNames))
                 return;
+            StopAudio();
             InworldController.Client.StartAudioTo(characterBrainNames);
             currentBrainNames = characterBrainNames;
         }

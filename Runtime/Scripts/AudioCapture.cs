@@ -12,7 +12,6 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 using System.Collections.Generic;
-using System.Linq;
 
 #if UNITY_WEBGL
 using AOT;
@@ -246,6 +245,20 @@ namespace Inworld
             }
             m_AudioToPush.Clear();
         }
+        public virtual void StopAudio() => m_CurrentAudioSession.StopAudio();
+        public virtual void StartAudio(List<string> characters = null)
+        {
+            if (characters == null || characters.Count == 0)
+            {
+                if (InworldController.CharacterHandler.CurrentCharacter)
+                    m_CurrentAudioSession.StartAudio(new List<string>{InworldController.CurrentCharacter.BrainName});
+                else if (InworldController.CharacterHandler.CurrentCharacterNames.Count != 0)
+                    m_CurrentAudioSession.StartAudio(InworldController.CharacterHandler.CurrentCharacterNames);
+            }
+            else
+                m_CurrentAudioSession.StartAudio(characters);
+        }
+
         /// <summary>
         ///     Recalculate the background noise (including bg music, etc)
         ///     Please call it whenever audio environment changed in your game.
@@ -343,7 +356,7 @@ namespace Inworld
         {
             if (!InworldController.CharacterHandler.CurrentCharacter) // Group Chat Mode
             {
-                m_CurrentAudioSession.StopAudio();
+                //m_CurrentAudioSession.StopAudio();
                 m_CurrentAudioSession.StartAudio(InworldController.CharacterHandler.CurrentCharacterNames);
             }
             character.Event.onCharacterSelected.AddListener(OnCharacterSelected);
@@ -353,22 +366,15 @@ namespace Inworld
         {
             if (!InworldController.CharacterHandler.CurrentCharacter) // Group Chat Mode
             {
-                m_CurrentAudioSession.StopAudio();
                 m_CurrentAudioSession.StartAudio(InworldController.CharacterHandler.CurrentCharacterNames);
             }
             character.Event.onCharacterSelected.RemoveListener(OnCharacterSelected);
             character.Event.onCharacterDeselected.RemoveListener(OnCharacterDeselected);
         }
-        protected virtual void OnCharacterSelected(string brainName) 
-        {
-            if (!m_CurrentAudioSession.CharactersAreSame(new List<string>{brainName}))
-                m_CurrentAudioSession.StopAudio();
-            m_CurrentAudioSession.StartAudio(new List<string>{brainName});
-        }
-        protected virtual void OnCharacterDeselected(string brainName) 
-        {
-            m_CurrentAudioSession.StopAudio();
-        }
+        protected virtual void OnCharacterSelected(string brainName) => StartAudio();
+
+        protected virtual void OnCharacterDeselected(string brainName) => StopAudio();
+
         protected virtual IEnumerator AudioCoroutine()
         {
             while (true)

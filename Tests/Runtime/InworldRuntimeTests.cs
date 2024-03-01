@@ -36,7 +36,6 @@ namespace Inworld.Test
 			m_LiveSessionAgentInfo = new LoadSceneResponse();
 			InworldController.Client.OnStatusChanged += OnClientStatusChanged;
 			InworldController.Client.OnPacketReceived += OnPacketReceived;
-			InworldController.Client.OnSessionUpdated += SessionUpdated;
 		}
 		[OneTimeTearDown]
 		public void CleanupEnv()
@@ -46,7 +45,6 @@ namespace Inworld.Test
 			{
 				InworldController.Client.OnStatusChanged -= OnClientStatusChanged;
 				InworldController.Client.OnPacketReceived -= OnPacketReceived;
-				InworldController.Client.OnSessionUpdated -= SessionUpdated;
 				Object.DestroyImmediate(InworldController.Instance);
 			}
 			Assert.IsNull(InworldController.Instance);
@@ -100,10 +98,7 @@ namespace Inworld.Test
 			if (packet.routing.source.type.ToUpper() == "AGENT")
 				m_Conversation.Add(packet);
 		}
-		void SessionUpdated(InworldCharacterData charData)
-		{
-			m_LiveSessionAgentInfo.agents.Add(charData);
-		}
+
 		[UnityTest]
 		public IEnumerator InworldRuntimeTest_Init()
 		{

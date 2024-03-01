@@ -26,8 +26,6 @@ namespace Inworld.Sample
         [SerializeField] protected KeyCode m_PushToTalkKey = KeyCode.C;
         [Header("References")]
         [SerializeField] protected TMP_InputField m_InputField;
-        [SerializeField] protected Button m_SendButton;
-        [SerializeField] protected Button m_RecordButton;
         
         public UnityEvent<string> onPlayerSpeaks;
 
@@ -53,6 +51,7 @@ namespace Inworld.Sample
         {
             InworldController.Client.OnStatusChanged += OnStatusChanged;
             InworldController.CharacterHandler.OnCharacterListJoined += OnCharacterJoined;
+            InworldController.CharacterHandler.OnCharacterListLeft += OnCharacterLeft;
         }
         protected virtual void OnDisable()
         {
@@ -60,6 +59,7 @@ namespace Inworld.Sample
                 return;
             InworldController.Client.OnStatusChanged -= OnStatusChanged;
             InworldController.CharacterHandler.OnCharacterListJoined -= OnCharacterJoined;
+            InworldController.CharacterHandler.OnCharacterListLeft -= OnCharacterLeft;
         }
         
         protected virtual void OnStatusChanged(InworldConnectionStatus newStatus)
@@ -79,10 +79,15 @@ namespace Inworld.Sample
 
         protected virtual void OnCharacterJoined(InworldCharacter newChar)
         {
-            InworldAI.Log(newChar ? $"Now Talking to: {newChar.Name}" : $"Now broadcasting.");
+            InworldAI.Log($"Now Talking to: {newChar.Name}");
 
             if (m_PushToTalk && m_PTTKeyPressed && !m_BlockAudioHandling)
                 InworldController.Instance.StartAudio();
+        }
+        
+        protected virtual void OnCharacterLeft(InworldCharacter newChar)
+        {
+            InworldAI.Log(InworldController.CharacterHandler.CurrentCharacter ? $"Now Talking to: {InworldController.CharacterHandler.CurrentCharacter.Name}" : $"Now broadcasting.");
         }
         
         protected virtual void Update()

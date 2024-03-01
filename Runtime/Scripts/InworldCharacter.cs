@@ -114,16 +114,6 @@ namespace Inworld
         /// </summary>
         public float Priority { get; set; }
         /// <summary>
-        /// Register live session. Get the live session ID for this character, and also assign it to this character's components.
-        /// </summary>
-        [Obsolete] public virtual void RegisterLiveSession()
-        {
-            GetLiveSessionID();
-            if (m_VerboseLog)
-                InworldAI.Log($"{Data.givenName} Registered: {Data.agentId}");
-            m_CharacterEvents.onCharacterRegistered.Invoke(BrainName);
-        }
-        /// <summary>
         /// Register the character in the character list.
         /// Get the live session ID for an Inworld character.
         /// </summary>
@@ -187,7 +177,6 @@ namespace Inworld
 
         protected virtual void OnEnable()
         {
-            InworldController.Client.OnSessionUpdated += OnSessionUpdated;
             InworldController.Client.OnStatusChanged += OnStatusChanged;
         }
         protected virtual void OnDisable()
@@ -195,7 +184,6 @@ namespace Inworld
             if (!InworldController.Instance)
                 return;
             InworldController.CharacterHandler.Unregister(this);
-            InworldController.Client.OnSessionUpdated -= OnSessionUpdated;
             InworldController.Client.OnStatusChanged -= OnStatusChanged;
         }
         protected virtual void OnDestroy()
@@ -206,10 +194,6 @@ namespace Inworld
             m_CharacterEvents.onCharacterDestroyed?.Invoke(BrainName);
         }
 
-        protected virtual void OnSessionUpdated(InworldCharacterData charData)
-        {
-
-        }
         protected virtual void OnStatusChanged(InworldConnectionStatus newStatus)
         {
             if (newStatus == InworldConnectionStatus.Idle)

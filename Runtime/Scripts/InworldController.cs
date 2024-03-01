@@ -149,6 +149,12 @@ namespace Inworld
         /// <param name="gameData">the InworldGameData to load</param>
         public void LoadData(InworldGameData gameData)
         {
+            if (gameData == null)
+            {
+                if (string.IsNullOrEmpty(Client.SceneFullName) && !string.IsNullOrEmpty(m_SceneFullName))
+                    Client.SceneFullName = m_SceneFullName;
+                return;
+            }
             if (!string.IsNullOrEmpty(gameData.apiKey))
                 m_Client.APIKey = gameData.apiKey;
             if (!string.IsNullOrEmpty(gameData.apiSecret))
@@ -176,6 +182,7 @@ namespace Inworld
         public void Init() => m_Client.GetAccessToken();
         /// <summary>
         /// Send LoadScene request to Inworld Server.
+        /// In ver 3.3 or further, the session must be connected first.
         /// </summary>
         /// <param name="sceneFullName">the full string of the scene to load.</param>
         public void LoadScene(string sceneFullName = "")
@@ -255,41 +262,14 @@ namespace Inworld
                 InworldAI.LogException($"Tried to start audio, but not connected to server.");
             if (CharacterHandler.CurrentCharacterNames.Count <= 0)
                 InworldAI.LogException($"No characters in the session.");
-            string charID = CurrentCharacter && !string.IsNullOrEmpty(CurrentCharacter.ID) ? "Broadcast" : CurrentCharacter.ID;
-            if (InworldAI.IsDebugMode)
-            {
-                InworldAI.Log($"Start Audio Event {charID}");
-            }
-            m_AudioCapture.StartRecording();
-            if (charID == "Broadcast")
-            {
-                m_Client.StartAudioTo(CharacterHandler.CurrentCharacterNames);
-            }
-            else
-            {
-                m_Client.StartAudio(charID); // TODO(Yan): Check if charID is registered 
-            }
+            Audio.StartAudio();
         }
         /// <summary>
         /// Send AUDIO_SESSION_END control events to server.
         /// </summary>
         public virtual void StopAudio()
         {
-            string charID = CurrentCharacter && !string.IsNullOrEmpty(CurrentCharacter.ID) ? "Broadcast" : CurrentCharacter.ID;
-            if (InworldAI.IsDebugMode)
-            {
-                InworldAI.Log($"Stop Audio Event {charID}");
-            }
-            ResetAudio();
-
-            if (Client.Status != InworldConnectionStatus.Connected)
-                return;
-            if (charID == "Broadcast")
-                m_Client.StopAudioTo(CharacterHandler.CurrentCharacterNames);
-            else
-            {
-                m_Client.StopAudio(charID); // TODO(Yan): Check if charID is registered 
-            }
+            Audio.StopAudio();
         }
         /// <summary>
         /// Send the wav data to the current character.
@@ -323,19 +303,12 @@ namespace Inworld
 #endregion
 #endregion
 
-
-
-
-
-
-        protected virtual void ResetAudio()
-        {
-            if (InworldAI.IsDebugMode)
-                InworldAI.Log($"Audio Reset");
-            m_AudioCapture.StopRecording();
-        }
-        
-
+        // protected virtual void ResetAudio()
+        // {
+        //     if (InworldAI.IsDebugMode)
+        //         InworldAI.Log($"Audio Reset");
+        //     m_AudioCapture.StopRecording();
+        // }
         protected virtual void Awake()
         {
             _Setup();
@@ -346,13 +319,8 @@ namespace Inworld
             _Setup();
         }
 
-        protected virtual void Start()
-        {
-            if (m_GameData)
-                LoadData(m_GameData);
-            // if (m_AutoStart)
-            //     Init();
-        }
+        protected virtual void Start() => LoadData(m_GameData);
+
         protected void _Setup()
         {
             if (!m_Client)
@@ -362,30 +330,5 @@ namespace Inworld
             if (!m_CharacterHandler)
                 m_CharacterHandler = GetComponent<CharacterHandler>();
         }
-        // protected virtual void OnStatusChanged(InworldConnectionStatus incomingStatus)
-        // {
-        //     switch (incomingStatus)
-        //     {
-        //         case InworldConnectionStatus.Initialized:
-        //             _StartSession();
-        //             break;
-        //         case InworldConnectionStatus.Connected:
-        //             PrepareSession();
-        //             break;
-        //         case InworldConnectionStatus.LostConnect:
-        //             ResetAudio();
-        //             // if (m_AutoStart)
-        //             //     Reconnect();
-        //             break;
-        //         case InworldConnectionStatus.Error:
-        //         case InworldConnectionStatus.Idle:
-        //             ResetAudio();
-        //             break;
-        //     }
-        // }
-
-        protected void _StartSession() => m_Client.StartSession();
-
-
     }
 }

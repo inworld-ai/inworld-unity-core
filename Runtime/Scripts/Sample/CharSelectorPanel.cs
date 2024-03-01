@@ -13,30 +13,32 @@ namespace Inworld.Sample
 {
     public class CharSelectorPanel : BubblePanel
     {
-
         [SerializeField] CharacterButton m_CharSelectorPrefab;
 
-        public override bool IsUIReady => base.IsUIReady  && m_CharSelectorPrefab;
+        public override bool IsUIReady => base.IsUIReady && m_CharSelectorPrefab;
         void OnEnable()
         {
-            InworldController.Client.OnSessionUpdated += SessionUpdated;
+            InworldController.Client.OnStatusChanged += StatusChanged;
         }
 
         void OnDisable()
         {
             if (!InworldController.Instance)
                 return;
-            InworldController.Client.OnSessionUpdated -= SessionUpdated;
+            InworldController.Client.OnStatusChanged -= StatusChanged;
         }
 
-
-
-        void SessionUpdated(InworldCharacterData charData)
+        void StatusChanged(InworldConnectionStatus incomingStatus)
         {
             if (!IsUIReady)
                 return;
-            InsertBubble(charData.brainName, m_CharSelectorPrefab, charData.givenName);
-            StartCoroutine((m_Bubbles[charData.brainName] as CharacterButton)?.SetData(charData));
+            if (incomingStatus != InworldConnectionStatus.Connected)
+                return;
+            foreach (InworldCharacterData charData in InworldController.Client.LiveSessionData.Values)
+            {
+                InsertBubble(charData.brainName, m_CharSelectorPrefab, charData.givenName);
+                StartCoroutine((m_Bubbles[charData.brainName] as CharacterButton)?.SetData(charData));
+            }
         }
     }
 }

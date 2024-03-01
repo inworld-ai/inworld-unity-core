@@ -30,7 +30,6 @@ namespace Inworld
         [SerializeField] protected Continuation m_Continuation;
         [SerializeField] protected int m_MaxWaitingListSize = 100;
         public event Action<InworldConnectionStatus> OnStatusChanged;
-        public event Action<InworldCharacterData> OnSessionUpdated;
         public delegate void PacketDelegate(InworldPacket packet);
 
         public PacketDelegate OnPacketSent;
@@ -40,18 +39,26 @@ namespace Inworld
         
         const string k_NotImplemented = "No InworldClient found. Need at least one connection protocol";
         // These data will always be updated once session is refreshed and character ID is fetched. 
-        // key by character's live session ID.
+        // key by character's brain ID. Value contains its live session ID.
         protected readonly Dictionary<string, InworldCharacterData> m_LiveSessionData = new Dictionary<string, InworldCharacterData>();
         
         protected readonly IndexQueue<OutgoingPacket> m_Prepared = new IndexQueue<OutgoingPacket>();
         protected readonly IndexQueue<OutgoingPacket> m_Sent = new IndexQueue<OutgoingPacket>();
         protected Token m_Token;
-        protected string m_SessionKey;
         protected IEnumerator m_OutgoingCoroutine;
         InworldConnectionStatus m_Status;
         protected string m_Error;
 
+        /// <summary>
+        /// Gets the live session data.
+        /// key by character's full name (aka brainName) value by its agent ID.
+        /// </summary>
         public Dictionary<string, InworldCharacterData> LiveSessionData => m_LiveSessionData;
+        
+        /// <summary>
+        /// Gets the InworldCharacterData by the given agentID.
+        /// Usually used when processing packets, but don't know it's sender/receiver of characters.
+        /// </summary>
         public InworldCharacterData GetCharacterDataByID(string agentID) => 
             LiveSessionData.Values.FirstOrDefault(c => !string.IsNullOrEmpty(agentID) && c.agentId == agentID);
 
@@ -233,7 +240,7 @@ namespace Inworld
         /// </summary>
         /// <param name="interactionID">the handle of the dialog context that needs to be cancelled.</param>
         /// <param name="utteranceID">the current utterance ID that needs to be cancelled.</param>
-        /// <param name="characters">the live session ID of the characters in the scene.</param>
+        /// <param name="characters">the full name of the characters in the scene.</param>
         public virtual void SendCancelEventTo(string interactionID, string utteranceID = "", List<string> characters = null) => Error = k_NotImplemented;
         /// <summary>
         /// Legacy Send the CancelResponse Event to InworldServer to interrupt the character's speaking.
@@ -249,7 +256,7 @@ namespace Inworld
         /// </summary>
         /// <param name="triggerName">the name of the trigger to send.</param>
         /// <param name="parameters">the parameters and their values for the triggers.</param>
-        /// <param name="characters">the live session ID of the characters in the scene.</param>
+        /// <param name="characters">the full name of the characters in the scene.</param>
         public virtual void SendTriggerTo(string triggerName, Dictionary<string, string> parameters = null, List<string> characters = null) => Error = k_NotImplemented;
         /// <summary>
         /// Legacy Send the trigger to an InworldCharacter in the current scene.
@@ -263,7 +270,7 @@ namespace Inworld
         /// NOTE: 1. New method uses brain ID (aka character's full name) instead of live session ID
         ///       2. New method support broadcasting to multiple characters.
         /// </summary>
-        /// <param name="characters">the live session ID of the characters to send.</param>
+        /// <param name="characters">the full name of the characters to send.</param>
         public virtual void StartAudioTo(List<string> characters = null) => Error = k_NotImplemented;
         /// <summary>
         /// Legacy Send AUDIO_SESSION_START control events to server.
@@ -277,7 +284,7 @@ namespace Inworld
         /// NOTE: 1. New method uses brain ID (aka character's full name) instead of live session ID
         ///       2. New method support broadcasting to multiple characters.
         /// </summary>
-        /// <param name="characters">the live session ID of the character to send.</param>
+        /// <param name="characters">the full name of the character to send.</param>
         public virtual void StopAudioTo(List<string> characters = null) => Error = k_NotImplemented;
         /// <summary>
         /// Legacy Send AUDIO_SESSION_END control events to server to.
@@ -293,7 +300,7 @@ namespace Inworld
         /// Additionally, the sample rate of the wave data has to be 16000, mono channel.
         /// </summary>
         /// <param name="base64">the base64 string of the wave data to send.</param>
-        /// <param name="characters">the live session ID of the character to send.</param>
+        /// <param name="characters">the full name of the character to send.</param>
         public virtual void SendAudioTo(string base64, List<string> characters = null) => Error = k_NotImplemented;
         /// <summary>
         /// Legacy Send the wav data to server to a specific character.
@@ -332,7 +339,6 @@ namespace Inworld
             {
                 agent.NormalizeBrainName();        
                 m_LiveSessionData[agent.brainName] = agent;
-                OnSessionUpdated?.Invoke(agent);
             }
         }
         /// <summary>
