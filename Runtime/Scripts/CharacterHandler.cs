@@ -58,8 +58,8 @@ namespace Inworld
                 _StopAudio();
                 m_LastCharacter = m_CurrentCharacter;
                 m_CurrentCharacter = value;
-                if(!ManualAudioHandling)
-                    _StartAudio();
+                if (!ManualAudioHandling)
+                    _StartAudio(); 
                 OnCharacterChanged?.Invoke(m_LastCharacter, m_CurrentCharacter);
             }
         }

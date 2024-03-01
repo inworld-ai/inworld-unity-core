@@ -227,7 +227,7 @@ namespace Inworld
                 else
                     throw new ArgumentException("Character ID is empty.");
             }
-            if (m_CurrentAudioID == charID)
+            if (m_CurrentAudioID == charID) 
                 return;
             if (InworldAI.IsDebugMode)
                 InworldAI.Log($"Start Audio Event {charID}");
