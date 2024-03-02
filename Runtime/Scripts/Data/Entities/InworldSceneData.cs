@@ -17,6 +17,8 @@ namespace Inworld.Entities
         public string name; // Full name
         public string displayName;
         public string description;
+        public List<string> sceneTriggers;
+        public List<string> commonKnowledges;
         public List<CharacterReference> characterReferences;
         public float Progress => characterReferences.Count == 0 ? 1 : characterReferences.Sum(cr => cr.Progress) / characterReferences.Count;
     }

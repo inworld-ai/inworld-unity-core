@@ -19,6 +19,7 @@ namespace Inworld.Entities
         public string givenName;
         public CharacterAssets characterAssets;
         public Texture2D thumbnail;
+        public List<string> commonKnowledges;
 
         public InworldCharacterData(){}
         public InworldCharacterData(CharacterReference charRef)
@@ -130,6 +131,7 @@ namespace Inworld.Entities
         public string name; //brain name
         public CharacterAssets defaultCharacterAssets;
         public InworldCharacterData defaultCharacterDescription;
+        public List<string> commonKnowledges;
     }
     [Serializable]
     public class ListCharacterResponse
@@ -141,7 +143,8 @@ namespace Inworld.Entities
         {
             brainName = character.name,
             givenName = character.defaultCharacterDescription.givenName,
-            characterAssets = character.defaultCharacterAssets
+            characterAssets = character.defaultCharacterAssets,
+            commonKnowledges = character.commonKnowledges
         })
         .ToList();
 

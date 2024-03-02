@@ -26,6 +26,7 @@ namespace Inworld.Entities
         public List<InworldSceneData> scenes;
         public List<InworldCharacterData> characters;
         public List<InworldKeySecret> keySecrets;
+        public List<InworldCommonKnowledge> commonKnowledges;
         public InworldKeySecret DefaultKey => keySecrets.Count > 0 ? keySecrets[0] : null;
         public float Progress => scenes.Count == 0 ? 0 : scenes.Average(s => s.Progress);
     }
