@@ -22,7 +22,32 @@ namespace Inworld.Packet
     {
         public int code;
         public string message;
-        public List<string> details;
+        public List<InworldErrorData> details;
+
+        public InworldError(string data)
+        {
+            code = -1;
+            message = data;
+            details = new List<InworldErrorData>
+            {
+                new InworldErrorData
+                {
+                    errorType = ErrorType.CLIENT_ERROR.ToString(),
+                    reconnectType = ReconnectionType.UNDEFINED.ToString(),
+                    reconnectTime = "",
+                    maxRetries = 0
+                }
+            };
+        }
+        public bool IsValid => !string.IsNullOrEmpty(message);
+    }
+    [Serializable]
+    public class InworldErrorData
+    {
+        public string errorType;
+        public string reconnectType;
+        public string reconnectTime;
+        public int maxRetries;
     }
     [Serializable]
     public class InworldNetworkPacket : InworldPacket
