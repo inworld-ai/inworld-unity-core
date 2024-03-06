@@ -33,6 +33,7 @@ namespace Inworld
     }
     public enum ErrorType
     {
+        UNDEFINED = -2,
         CLIENT_ERROR = -1,
         SESSION_TOKEN_EXPIRED = 0,
         // Session token is completely invalid

@@ -33,7 +33,16 @@ namespace Inworld.Packet
 			type = "SESSION_RESPONSE";
 			sessionControlResponse = evt;
 		}
-		public override string ToJson => JsonUtility.ToJson(this); 
+		public override string ToJson => JsonUtility.ToJson(this);
+
+		public int GetCharacterCount()
+		{
+			if (sessionControlResponse == null)
+				return 0;
+			int nCharacter = sessionControlResponse.loadedCharacters?.agents?.Count ?? 0;
+			int nSceneCount = sessionControlResponse.loadedScene?.agents?.Count ?? 0;
+			return nCharacter + nSceneCount;
+		}
 	}
 }
 

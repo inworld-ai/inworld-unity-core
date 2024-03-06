@@ -6,6 +6,7 @@
  *************************************************************************************************/
 
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -29,13 +30,13 @@ namespace Inworld.UI
         {
             LayoutRebuilder.ForceRebuildLayoutImmediate(m_ContentAnchor);
         }
-
-        protected virtual void InsertBubble(string key, InworldUIElement bubble, string title, bool isAttachMode = false, string content = null, Texture2D thumbnail = null)
+        
+        protected virtual void InsertBubble(string key, string interactionID, InworldUIElement bubble, string title, bool isAttachMode = false, string content = null, Texture2D thumbnail = null)
         {
             if (!m_Bubbles.ContainsKey(key))
             {
                 m_Bubbles[key] = Instantiate(bubble, m_ContentAnchor);
-                m_Bubbles[key].SetBubble(title, thumbnail, content);
+                m_Bubbles[key].SetBubble(title, interactionID, thumbnail, content);
             }
             else if (isAttachMode)
             {
@@ -43,7 +44,7 @@ namespace Inworld.UI
             }
             else
             {
-                m_Bubbles[key].SetBubble(title, thumbnail, content);
+                m_Bubbles[key].SetBubble(title, interactionID, thumbnail, content);
             }
             UpdateContent();
         }

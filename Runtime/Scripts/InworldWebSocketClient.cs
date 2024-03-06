@@ -461,7 +461,7 @@ namespace Inworld
             InworldNetworkPacket packetReceived = response.result;
             if (packetReceived.Type == PacketType.SESSION_RESPONSE)
             {
-                if (packetReceived.Packet is SessionResponsePacket sessionResponse)
+                if (packetReceived.Packet is SessionResponsePacket sessionResponse && sessionResponse.GetCharacterCount() != 0)
                 {
                     m_CurrentSceneData = new LoadSceneResponse();
                     if (sessionResponse.sessionControlResponse?.loadedScene?.agents?.Count > 0)
@@ -500,8 +500,8 @@ namespace Inworld
         void OnSocketClosed(object sender, CloseEventArgs e)
         {
             InworldAI.Log($"Closed: StatusCode: {e.StatusCode}, Reason: {e.Reason}");
-            // Status = e.StatusCode == CloseStatusCode.Normal ? InworldConnectionStatus.Idle : InworldConnectionStatus.LostConnect;
-            Status = InworldConnectionStatus.Idle;
+            if (Status != InworldConnectionStatus.Error)
+                Status = InworldConnectionStatus.Idle;
         }
 
         void OnSocketError(object sender, ErrorEventArgs e)

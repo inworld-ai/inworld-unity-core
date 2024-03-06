@@ -12,7 +12,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace Inworld
 {
@@ -44,7 +46,8 @@ namespace Inworld
         // These data will always be updated once session is refreshed and character ID is fetched. 
         // key by character's brain ID. Value contains its live session ID.
         protected readonly Dictionary<string, InworldCharacterData> m_LiveSessionData = new Dictionary<string, InworldCharacterData>();
-        
+        // The history feedback, key by interaction ID.
+        protected readonly Dictionary<string, Feedback> m_Feedbacks = new Dictionary<string, Feedback>();
         protected readonly IndexQueue<OutgoingPacket> m_Prepared = new IndexQueue<OutgoingPacket>();
         protected readonly IndexQueue<OutgoingPacket> m_Sent = new IndexQueue<OutgoingPacket>();
         protected Token m_Token;
@@ -145,7 +148,55 @@ namespace Inworld
                 }
                 InworldAI.LogError(m_Error.message);
                 OnErrorReceived?.Invoke(m_Error);
+                if (m_Error.RetryType == ReconnectionType.NO_RETRY)
+                    Status = InworldConnectionStatus.Error; 
             }
+        }
+        // Send Feedback data to server.
+        // Implemented directly in parent class as it does not go through GRPC.
+        public virtual void SendFeedbackAsync(string charFullName, Feedback feedback)
+        {
+            StartCoroutine(_SendFeedBack(charFullName, feedback));
+        }
+        IEnumerator _SendFeedBack(string charFullName, Feedback feedback)
+        {
+            if (string.IsNullOrEmpty(feedback.InteractionID))
+            {
+                InworldAI.LogError("No interaction ID for feedback");
+                yield break;
+            }
+
+            if (m_Feedbacks.ContainsKey(feedback.InteractionID))
+                yield return PatchFeedback(charFullName, feedback); // Patch
+            else
+                yield return PostFeedback(charFullName, feedback);
+            
+        }
+        IEnumerator PostFeedback(string charFullName, Feedback feedback)
+        {
+            Debug.LogError(m_ServerConfig.FeedbackURL(m_Token.sessionId, charFullName, feedback.InteractionID));
+            UnityWebRequest uwr = new UnityWebRequest(m_ServerConfig.FeedbackURL(m_Token.sessionId,charFullName, feedback.InteractionID), "POST");
+            uwr.SetRequestHeader("Grpc-Metadata-session-id", m_Token.sessionId);
+            uwr.SetRequestHeader("Authorization", $"Bearer {m_Token.token}");
+            uwr.SetRequestHeader("Content-Type", "application/json");
+            
+            string json = JsonUtility.ToJson(feedback);
+            Debug.LogError(json);
+            byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
+            uwr.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            uwr.downloadHandler = new DownloadHandlerBuffer();
+            yield return uwr.SendWebRequest();
+            if (uwr.result != UnityWebRequest.Result.Success)
+            {
+                ErrorMessage = $"Error Posting feedbacks {uwr.downloadHandler.text} Error: {uwr.error}";
+                yield break;
+            }
+            string responseJson = uwr.downloadHandler.text;
+            Debug.Log($"Post Feedback: {responseJson}");
+        }
+        IEnumerator PatchFeedback(string charFullName, Feedback feedback) 
+        {
+            yield return PostFeedback(charFullName, feedback); //TODO(Yan): Use Patch instead of Post for detailed json.
         }
 
         public virtual void GetHistoryAsync(string sceneFullName) => ErrorMessage = k_NotImplemented;

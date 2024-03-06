@@ -4,8 +4,10 @@
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
+
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Inworld.UI
@@ -14,6 +16,7 @@ namespace Inworld.UI
     {    
         [SerializeField] protected RawImage m_Icon;
         [SerializeField] protected TMP_Text m_Title;
+        protected string m_InteractionID;
         /// <summary>
         ///     Get the bubble's height.
         /// </summary>
@@ -39,10 +42,12 @@ namespace Inworld.UI
         ///     Set the bubble's property.
         /// </summary>
         /// <param name="charName">The bubble's owner's name</param>
+        /// <param name="interactionID">The bubble's interactionID</param>>
         /// <param name="thumbnail">The bubble's owner's thumbnail</param>
         /// <param name="text">The bubble's content</param>
-        public virtual void SetBubble(string charName, Texture2D thumbnail = null, string text = null)
+        public virtual void SetBubble(string charName, string interactionID, Texture2D thumbnail = null, string text = null)
         {
+            m_InteractionID = interactionID;
             if (m_Title)
                 m_Title.text = charName;
             if (m_Icon && thumbnail)
@@ -52,5 +57,7 @@ namespace Inworld.UI
         {
             
         }
+
+
     }
 }

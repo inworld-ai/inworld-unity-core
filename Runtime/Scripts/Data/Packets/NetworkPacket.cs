@@ -40,6 +40,8 @@ namespace Inworld.Packet
             };
         }
         public bool IsValid => !string.IsNullOrEmpty(message);
+        public ReconnectionType RetryType  => details != null && details.Count != 0 && Enum.TryParse(details[0].reconnectType, true, out ReconnectionType result) ? result : ReconnectionType.UNDEFINED;
+        public ErrorType ErrorType => details != null && details.Count != 0 && Enum.TryParse(details[0].errorType, true, out ErrorType result) ? result : ErrorType.UNDEFINED;
     }
     [Serializable]
     public class InworldErrorData

@@ -36,7 +36,7 @@ namespace Inworld.Sample
                 return;
             foreach (InworldCharacterData charData in InworldController.Client.LiveSessionData.Values)
             {
-                InsertBubble(charData.brainName, m_CharSelectorPrefab, charData.givenName);
+                InsertBubble(charData.brainName, "", m_CharSelectorPrefab, charData.givenName);
                 StartCoroutine((m_Bubbles[charData.brainName] as CharacterButton)?.SetData(charData));
             }
         }
