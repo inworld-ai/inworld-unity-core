@@ -136,7 +136,7 @@ namespace Inworld
             // 1. Interrupt current speaking.
             CancelResponse();
             // 2. Send Text.
-            InworldController.Client.SendText(ID, text);
+            InworldController.Client.SendTextTo(text, new List<string>{BrainName});
         }
         /// <summary>
         /// Send the trigger to this character.
@@ -151,7 +151,7 @@ namespace Inworld
             if (needCancelResponse)
                 CancelResponse();
             // 2. Send Text. YAN: Now all trigger has to be lower cases.
-            InworldController.Instance.SendTrigger(trigger.ToLower(), ID, parameters);
+            InworldController.Client.SendTriggerTo(trigger.ToLower(), parameters, new List<string>{BrainName});
         }
         /// <summary>
         /// Enable target goal of this character.

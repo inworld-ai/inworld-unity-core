@@ -48,9 +48,9 @@ namespace Inworld.Entities
 		public static InworldMessage ProcessPacket(CustomPacket packet) => 
 			(from data in s_Message where packet.custom.name.StartsWith(data.Key) select data.Value).FirstOrDefault();
 
-		public static void EnableGoal(string goalName, string agentID) => InworldController.Instance.SendTrigger($"{k_GoalEnable}.{goalName}", agentID);
+		public static void EnableGoal(string goalName, string brainName) => InworldController.Client.SendTriggerTo($"{k_GoalEnable}.{goalName}", null, new List<string>{brainName});
 		
-		public static void DisableGoal(string goalName, string agentID) => InworldController.Instance.SendTrigger($"{k_GoalDisable}.{goalName}", agentID);
+		public static void DisableGoal(string goalName, string brainName) => InworldController.Client.SendTriggerTo($"{k_GoalDisable}.{goalName}", null, new List<string>{brainName});
 
 		public static void DebugSendError() => InworldController.Instance.SendTrigger(k_Error);
 		

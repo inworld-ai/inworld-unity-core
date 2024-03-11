@@ -16,8 +16,10 @@ namespace Inworld.Sample
         
         protected override void Start()
         {
-            m_SendButton.interactable = false;
-            m_RecordButton.interactable = false;
+            if (m_SendButton)
+                m_SendButton.interactable = false;
+            if (m_RecordButton)
+                m_RecordButton.interactable = false;
             
             if (!m_PushToTalk)
                 return;
@@ -26,13 +28,17 @@ namespace Inworld.Sample
         }
         protected override void OnCharacterJoined(InworldCharacter newChar)
         {
-            m_SendButton.interactable = true;
-            m_RecordButton.interactable = true;
+            if (m_SendButton)
+                m_SendButton.interactable = true;
+            if (m_RecordButton)
+                m_RecordButton.interactable = true;
         }
         protected override void OnCharacterLeft(InworldCharacter newChar)
         {
-            m_SendButton.interactable = InworldController.CurrentCharacter;
-            m_RecordButton.interactable = InworldController.CurrentCharacter;
+            if (m_SendButton)
+                m_SendButton.interactable = InworldController.CurrentCharacter;
+            if (m_RecordButton)
+                m_RecordButton.interactable = InworldController.CurrentCharacter;
         }
     }
 }
