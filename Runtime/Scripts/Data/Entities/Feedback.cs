@@ -8,26 +8,30 @@
 using System;
 using System.Collections.Generic;
 
-
 namespace Inworld.Entities
 {
-	[Serializable]
-	public class FeedbackRequest
-	{
-		public string parent;
-		public FeedbackData feedback;
-	}
+
 	[Serializable]
 	public class Feedback
 	{
-		public FeedbackData feedback;
+		public FeedbackData interactionFeedback;
 		public string InteractionID { get; set; }
+		
+		public string CorrelationID { get; set; }
 
-		public Feedback(bool like, string interaction, string comment, List<string> dislikes = null)
+		public Feedback(bool like, string interaction, string correlation, string commentText, List<string> dislikes = null)
 		{
 			InteractionID = interaction;
-			feedback = new FeedbackData(like, comment, dislikes);
+			CorrelationID = correlation;
+			interactionFeedback = new FeedbackData(like, commentText, dislikes);
 		}
+		public void SetCallbackReference(string callbackRef)
+		{
+			if (interactionFeedback == null)
+				return;
+			interactionFeedback.name = callbackRef;
+		}
+		
 	}
 	[Serializable]
 	public class FeedbackData
@@ -35,6 +39,7 @@ namespace Inworld.Entities
 		public bool isLike;
 		public List<string> type;
 		public string comment;
+		public string name;
 
 		public FeedbackData(bool like, string text, List<string> dislikes = null)
 		{

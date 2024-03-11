@@ -387,11 +387,7 @@ namespace Inworld
             SessionHistory = response.state;
             InworldAI.Log($"Get Previous Content Encrypted: {SessionHistory}");
         }
-        string _GetSessionFullName(string sceneFullName)
-        {
-            string[] data = sceneFullName.Split('/');
-            return data.Length != 4 ? "" : $"workspaces/{data[1]}/sessions/{m_Token.sessionId}";
-        }
+
         string _GetSessionGUID()
         {
             if (!string.IsNullOrEmpty(m_Continuation?.externallySavedState) && m_Continuation?.externallySavedState.Length >= 8)

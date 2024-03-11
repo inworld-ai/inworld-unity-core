@@ -167,23 +167,19 @@ namespace Inworld
             }
 
             if (m_Feedbacks.ContainsKey(feedback.InteractionID))
-                yield return PatchFeedback(charFullName, feedback); // Patch
+                yield return PatchFeedback(feedback); // Patch
             else
-                yield return PostFeedback(charFullName, feedback);
+                yield return PostFeedback(feedback);
             
         }
-        IEnumerator PostFeedback(string charFullName, Feedback feedback)
+        IEnumerator PostFeedback(Feedback feedback)
         {
-            Debug.LogError(m_ServerConfig.FeedbackURL(m_Token.sessionId, charFullName, feedback.InteractionID));
-            UnityWebRequest uwr = new UnityWebRequest(m_ServerConfig.FeedbackURL(m_Token.sessionId,charFullName, feedback.InteractionID), "POST");
+            string sessionFullName = _GetSessionFullName(m_SceneFullName);
+            string callbackRef = _GetCallbackReference(sessionFullName, feedback.InteractionID, feedback.CorrelationID);
+            UnityWebRequest uwr = new UnityWebRequest(m_ServerConfig.FeedbackURL(callbackRef), "POST");
             uwr.SetRequestHeader("Grpc-Metadata-session-id", m_Token.sessionId);
             uwr.SetRequestHeader("Authorization", $"Bearer {m_Token.token}");
             uwr.SetRequestHeader("Content-Type", "application/json");
-            
-            string json = JsonUtility.ToJson(feedback);
-            Debug.LogError(json);
-            byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
-            uwr.uploadHandler = new UploadHandlerRaw(bodyRaw);
             uwr.downloadHandler = new DownloadHandlerBuffer();
             yield return uwr.SendWebRequest();
             if (uwr.result != UnityWebRequest.Result.Success)
@@ -192,11 +188,30 @@ namespace Inworld
                 yield break;
             }
             string responseJson = uwr.downloadHandler.text;
-            Debug.Log($"Post Feedback: {responseJson}");
+            FeedbackData feedbackData = JsonUtility.FromJson<FeedbackData>(responseJson);
+            InworldAI.Log($"Post Feedback: {feedbackData.name}");
+            feedback.SetCallbackReference(feedbackData.name);
+            string json = JsonUtility.ToJson(feedback);
+            InworldAI.Log(json);
+            UnityWebRequest uwr2 = new UnityWebRequest(m_ServerConfig.FeedbackURL(callbackRef), "POST");
+            uwr2.SetRequestHeader("Grpc-Metadata-session-id", m_Token.sessionId);
+            uwr2.SetRequestHeader("Authorization", $"Bearer {m_Token.token}");
+            uwr2.SetRequestHeader("Content-Type", "application/json");
+            byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
+            uwr2.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            uwr2.downloadHandler = new DownloadHandlerBuffer();
+            yield return uwr2.SendWebRequest();
+            if (uwr2.result != UnityWebRequest.Result.Success)
+            {
+                ErrorMessage = $"Error Posting feedbacks {uwr2.downloadHandler.text} Error: {uwr2.error}";
+                yield break;
+            }
+            string newResponseJson = uwr2.downloadHandler.text;
+            InworldAI.Log($"Updated Feedback: {newResponseJson}");
         }
-        IEnumerator PatchFeedback(string charFullName, Feedback feedback) 
+        IEnumerator PatchFeedback(Feedback feedback) 
         {
-            yield return PostFeedback(charFullName, feedback); //TODO(Yan): Use Patch instead of Post for detailed json.
+            yield return PostFeedback(feedback); //TODO(Yan): Use Patch instead of Post for detailed json.
         }
 
         public virtual void GetHistoryAsync(string sceneFullName) => ErrorMessage = k_NotImplemented;
@@ -464,6 +479,15 @@ namespace Inworld
         protected virtual IEnumerator OutgoingCoroutine()
         {
             yield break;
+        }
+        protected string _GetSessionFullName(string sceneFullName)
+        {
+            string[] data = sceneFullName.Split('/');
+            return data.Length != 4 ? "" : $"workspaces/{data[1]}/sessions/{m_Token.sessionId}";
+        }
+        protected string _GetCallbackReference(string sessionFullName, string interactionID, string correlationID)
+        {
+            return $"{sessionFullName}/interactions/{interactionID}/groups/{correlationID}";
         }
     }
 }

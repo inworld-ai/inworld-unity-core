@@ -5,6 +5,7 @@
 * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
 *************************************************************************************************/
 using Inworld.Entities;
+using Inworld.Packet;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -18,7 +19,9 @@ namespace Inworld.UI
     public class ChatBubble : InworldUIElement, IPointerUpHandler, IPointerDownHandler
     {
         [SerializeField] TMP_Text m_TextField;
-
+        string m_InteractionID;
+        string m_CorrelationID;
+        
     #region Properties
         /// <summary>
         ///     Get/Set the bubble's main content.
@@ -33,12 +36,27 @@ namespace Inworld.UI
         ///     Set the bubble's property.
         /// </summary>
         /// <param name="charName">The bubble's owner's name</param>
-        /// <param name="interactionID" The bubble's interactionID></param>>
         /// <param name="thumbnail">The bubble's owner's thumbnail</param>
         /// <param name="text">The bubble's content</param>
-        public override void SetBubble(string charName, string interactionID, Texture2D thumbnail = null, string text = null)
+        public override void SetBubble(string charName, Texture2D thumbnail = null, string text = null)
         {
-            base.SetBubble(charName, interactionID, thumbnail, text);
+            base.SetBubble(charName, thumbnail, text);
+            if (m_TextField && !string.IsNullOrEmpty(text))
+                m_TextField.text = text;
+        }
+        /// <summary>
+        ///     Set the bubble's property.
+        /// </summary>
+        /// <param name="charName">The bubble's owner's name</param>
+        /// <param name="interactionID">The bubble's interaction ID</param>
+        /// <param name="correlationID">The bubble's correlation ID</param>
+        /// <param name="thumbnail">The bubble's owner's thumbnail</param>
+        /// <param name="text">The bubble's content</param>
+        public override void SetBubbleWithPacketInfo(string charName, string interactionID, string correlationID, Texture2D thumbnail = null, string text = null)
+        {
+            base.SetBubbleWithPacketInfo(charName, interactionID, correlationID, thumbnail, text);
+            m_InteractionID = interactionID;
+            m_CorrelationID = correlationID;
             if (m_TextField && !string.IsNullOrEmpty(text))
                 m_TextField.text = text;
         }
@@ -53,7 +71,7 @@ namespace Inworld.UI
         }
         void CreateFeedbackDlg()
         {
-
+            // TODO(Yan): Create UI dialog to post feedback.
         }
         public void MockSendFeedback()
         {
@@ -62,7 +80,7 @@ namespace Inworld.UI
             var data = InworldController.Client.LiveSessionData.FirstOrDefault(c => c.Value.givenName == m_Title.text);
             if (data.Value == null || data.Value.givenName != m_Title.text)
                 return;
-            Feedback feedback = new Feedback(true, m_InteractionID, "good");
+            Feedback feedback = new Feedback(true, m_InteractionID, m_CorrelationID, "good");
             InworldController.Client.SendFeedbackAsync(data.Value.agentId, feedback);
         }
         public void OnPointerDown(PointerEventData eventData)
