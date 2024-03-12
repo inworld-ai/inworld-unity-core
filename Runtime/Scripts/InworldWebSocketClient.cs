@@ -324,12 +324,12 @@ namespace Inworld
             {
                 if (string.IsNullOrEmpty(m_APIKey))
                 {
-                    Error = "Please fill API Key!";
+                    ErrorMessage = "Please fill API Key!";
                     yield break;
                 }
                 if (string.IsNullOrEmpty(m_APISecret))
                 {
-                    Error = "Please fill API Secret!";
+                    ErrorMessage = "Please fill API Secret!";
                     yield break;
                 }
                 string header = InworldAuth.GetHeader(m_ServerConfig.runtime, m_APIKey, m_APISecret);
@@ -352,7 +352,7 @@ namespace Inworld
 
                 if (uwr.result != UnityWebRequest.Result.Success)
                 {
-                    Error = $"Error Get Token: {uwr.error}";
+                    ErrorMessage = $"Error Get Token: {uwr.error}";
                 }
                 uwr.uploadHandler.Dispose();
                 responseJson = uwr.downloadHandler.text;
@@ -360,7 +360,7 @@ namespace Inworld
             m_Token = JsonUtility.FromJson<Token>(responseJson);
             if (!IsTokenValid)
             {
-                Error = "Get Token Failed";
+                ErrorMessage = "Get Token Failed";
                 yield break;
             }
             Status = InworldConnectionStatus.Initialized;
@@ -378,7 +378,7 @@ namespace Inworld
             yield return uwr.SendWebRequest();
             if (uwr.result != UnityWebRequest.Result.Success)
             {
-                Error = $"Error loading scene {m_Token.sessionId}: {uwr.error} {uwr.downloadHandler.text}";
+                ErrorMessage = $"Error loading scene {m_Token.sessionId}: {uwr.error} {uwr.downloadHandler.text}";
                 uwr.uploadHandler.Dispose();
                 yield break;
             }
@@ -386,11 +386,6 @@ namespace Inworld
             PreviousSessionResponse response = JsonUtility.FromJson<PreviousSessionResponse>(responseJson);
             SessionHistory = response.state;
             InworldAI.Log($"Get Previous Content Encrypted: {SessionHistory}");
-        }
-        string _GetSessionFullName(string sceneFullName)
-        {
-            string[] data = sceneFullName.Split('/');
-            return data.Length != 4 ? "" : $"workspaces/{data[1]}/sessions/{m_Token.sessionId}";
         }
         string _GetSessionGUID()
         {
@@ -450,12 +445,13 @@ namespace Inworld
             NetworkPacketResponse response = JsonUtility.FromJson<NetworkPacketResponse>(e.Data);
             if (response == null || response.result == null)
             {
-                InworldAI.LogError($"Error Processing packets {e.Data}");
+                ErrorMessage = e.Data;
                 return;
             }
-            if (response.error != null && response.error.code != 0 && !string.IsNullOrEmpty(response.error.message))
+
+            if (response.error != null && !string.IsNullOrEmpty(response.error.message))
             {
-                InworldAI.LogError(e.Data);
+                Error = response.error;
                 return;
             }
             InworldNetworkPacket packetReceived = response.result;
@@ -506,7 +502,7 @@ namespace Inworld
         void OnSocketError(object sender, ErrorEventArgs e)
         {
             if (e.Message != k_DisconnectMsg)
-                Error = e.Message;
+                ErrorMessage = e.Message;
         }
         protected List<string> _GetSceneNameByCharacter()
         {

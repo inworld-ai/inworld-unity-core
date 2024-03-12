@@ -28,6 +28,7 @@ namespace Inworld
         protected AudioCapture m_AudioCapture;
         protected CharacterHandler m_CharacterHandler;
         
+        public static bool HasError => Client.Error?.IsValid ?? false;
         /// <summary>
         /// Gets the AudioCapture of the InworldController.
         /// </summary>
