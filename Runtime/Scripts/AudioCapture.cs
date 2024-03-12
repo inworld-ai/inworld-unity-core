@@ -54,7 +54,7 @@ namespace Inworld
         // Size of audioclip used to collect information, need to be big enough to keep up with collect. 
         protected int m_BufferSize;
         protected readonly List<string> m_AudioToPush = new List<string>();
-        protected readonly List<AudioDevice> m_Devices = new List<AudioDevice>();
+        protected List<AudioDevice> m_Devices = new List<AudioDevice>();
         protected byte[] m_ByteBuffer;
         protected float[] m_InputBuffer;
         protected AudioSessionInfo m_CurrentAudioSession;
