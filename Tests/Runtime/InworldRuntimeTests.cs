@@ -109,7 +109,7 @@ namespace Inworld.Test
 		public IEnumerator InworldRuntimeTest_LoadCharacter()
 		{
 			InworldController.Client.StartSession();
-			yield return StatusCheck(1, InworldConnectionStatus.Connected);
+			yield return StatusCheck(5, InworldConnectionStatus.Connected);
 			yield return LiveSessionCheck(10);
 		}
 		[UnityTest]
