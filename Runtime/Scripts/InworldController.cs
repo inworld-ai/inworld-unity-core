@@ -213,7 +213,20 @@ namespace Inworld
         /// <param name="text">the message to send.</param>
         public void SendText(string text)
         {
+            CancelResponses();
             m_Client.SendTextTo(text, CharacterHandler.CurrentCharacterNames);
+        }
+        /// <summary>
+        /// Cancel all the current character's generating responses.
+        /// Automatically used when sending Text.
+        /// For other sending data, such as sending trigger, please consider to use according to your scenario.
+        /// </summary>
+        public void CancelResponses()
+        {
+            if (CharacterHandler.CurrentCharacter)
+                CharacterHandler.CurrentCharacter.CancelResponse();
+            else if (CharacterHandler.CurrentCharacters.Count > 0)
+                CharacterHandler.CurrentCharacters.ForEach(c => c.CancelResponse());
         }
         /// <summary>
         /// Send the CancelResponse Event to InworldServer to interrupt the character's speaking.

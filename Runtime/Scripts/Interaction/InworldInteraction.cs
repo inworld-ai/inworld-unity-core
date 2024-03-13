@@ -49,7 +49,7 @@ namespace Inworld.Interactions
         /// </summary>
         /// <param name="packet">the target packet.</param>
         public bool IsRelated(InworldPacket packet) => packet.IsRelated(m_Character.ID);
-
+        
         /// <summary>
         /// Interrupt this character by cancelling its incoming sentences.
         /// Hard cancelling means even cancel and interrupt the current interaction.

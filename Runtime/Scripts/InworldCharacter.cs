@@ -234,10 +234,18 @@ namespace Inworld
                 case CustomPacket customPacket:
                     HandleTrigger(customPacket);
                     break;
+                case MutationPacket mutationPacket:
+                    HandleCancelResponse(mutationPacket);
+                    break;
                 default:
                     Debug.LogError($"Received Unknown {incomingPacket}");
                     break;
             }
+        }
+        protected virtual void HandleCancelResponse(MutationPacket mutationPacket)
+        {
+            // Server will not send CancelResponsePacket to client.
+            // For the client side's request, it's solved already.
         }
         protected virtual void HandleRelation(CustomPacket relationPacket)
         {
@@ -256,6 +264,7 @@ namespace Inworld
             
             if (packet.Source == SourceType.PLAYER)
             {
+                CancelResponse();
                 if (m_VerboseLog)
                     InworldAI.Log($"{InworldAI.User.Name}: {packet.text.text}");
                 if (PlayerController.Instance)

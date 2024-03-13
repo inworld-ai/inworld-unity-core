@@ -77,6 +77,9 @@ namespace Inworld.Sample
                 case CustomPacket customPacket:
                     HandleTrigger(customPacket);
                     break;
+                case MutationPacket mutationPacket:
+                    RemoveBubbles(mutationPacket);
+                    break;
                 case AudioPacket audioPacket: 
                     HandleAudio(audioPacket);
                     break;
@@ -87,6 +90,18 @@ namespace Inworld.Sample
                     InworldAI.LogWarning($"Received unknown {incomingPacket.type}");
                     break;
             }
+        }
+        protected virtual void RemoveBubbles(MutationPacket mutationPacket)
+        {
+            CancelResponse bubbleToRemove = mutationPacket?.mutation?.cancelResponses;
+            if (bubbleToRemove == null)
+                return;
+            if (m_ChatOptions.longBubbleMode)
+            {
+                RemoveBubble(bubbleToRemove.interactionId);
+            }
+            else
+                bubbleToRemove.utteranceId.ForEach(RemoveBubble);
         }
         protected virtual void HandleAudio(AudioPacket audioPacket)
         {

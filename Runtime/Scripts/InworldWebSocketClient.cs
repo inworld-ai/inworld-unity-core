@@ -188,6 +188,7 @@ namespace Inworld
                     utteranceId = new List<string> { utteranceID }
                 }
             };
+            OnPacketSent?.Invoke(cancelPacket); 
             m_Socket.SendAsync(JsonUtility.ToJson(cancelPacket));
         }
         public override void SendTrigger(string charID, string triggerName, Dictionary<string, string> parameters = null)

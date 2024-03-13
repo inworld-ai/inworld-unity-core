@@ -54,7 +54,7 @@ namespace Inworld.UI
             InworldUIElement elementToDestroy = m_Bubbles[key];
             float height = elementToDestroy.Height;
             m_Bubbles.Remove(key);
-            Destroy(elementToDestroy);
+            DestroyImmediate(elementToDestroy);
             UpdateContent();
         }
         protected virtual void Clear()
