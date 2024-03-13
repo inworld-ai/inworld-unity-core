@@ -151,28 +151,26 @@ namespace Inworld
         }
         // Send Feedback data to server.
         // Implemented directly in parent class as it does not go through GRPC.
-        public virtual void SendFeedbackAsync(string charFullName, Feedback feedback)
+        public virtual void SendFeedbackAsync(string interactionID, string correlationID, Feedback feedback)
         {
-            StartCoroutine(_SendFeedBack(charFullName, feedback));
+            StartCoroutine(_SendFeedBack( interactionID, correlationID, feedback));
         }
-        IEnumerator _SendFeedBack(string charFullName, Feedback feedback)
+        IEnumerator _SendFeedBack(string interactionID, string correlationID, Feedback feedback)
         {
-            if (string.IsNullOrEmpty(feedback.InteractionID))
+            if (string.IsNullOrEmpty(interactionID))
             {
                 InworldAI.LogError("No interaction ID for feedback");
                 yield break;
             }
-
-            if (m_Feedbacks.ContainsKey(feedback.InteractionID))
-                yield return PatchFeedback(feedback); // Patch
+            if (m_Feedbacks.ContainsKey(interactionID))
+                yield return PatchFeedback(interactionID, correlationID, feedback); // Patch
             else
-                yield return PostFeedback(feedback);
-            
+                yield return PostFeedback(interactionID, correlationID, feedback);
         }
-                IEnumerator PostFeedback(Feedback feedback)
+        IEnumerator PostFeedback(string interactionID, string correlationID, Feedback feedback)
         {
             string sessionFullName = _GetSessionFullName(m_SceneFullName);
-            string callbackRef = _GetCallbackReference(sessionFullName, feedback.InteractionID, feedback.CorrelationID);
+            string callbackRef = _GetCallbackReference(sessionFullName, interactionID, correlationID);
             UnityWebRequest uwr = new UnityWebRequest(m_ServerConfig.FeedbackURL(callbackRef), "POST");
             uwr.SetRequestHeader("Grpc-Metadata-session-id", m_Token.sessionId);
             uwr.SetRequestHeader("Authorization", $"Bearer {m_Token.token}");
@@ -191,30 +189,11 @@ namespace Inworld
                 yield break;
             }
             string responseJson = uwr.downloadHandler.text;
-            FeedbackData feedbackData = JsonUtility.FromJson<FeedbackData>(responseJson);
             InworldAI.Log($"Received: {responseJson}");
-            // feedback.SetCallbackReference(feedbackData.name);
-            // // string json = JsonUtility.ToJson(feedback);
-            // InworldAI.Log(json);
-            // UnityWebRequest uwr2 = new UnityWebRequest(m_ServerConfig.FeedbackURL(callbackRef), "POST");
-            // uwr2.SetRequestHeader("Grpc-Metadata-session-id", m_Token.sessionId);
-            // uwr2.SetRequestHeader("Authorization", $"Bearer {m_Token.token}");
-            // uwr2.SetRequestHeader("Content-Type", "application/json");
-            // //byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
-            // uwr2.uploadHandler = new UploadHandlerRaw(bodyRaw);
-            // uwr2.downloadHandler = new DownloadHandlerBuffer();
-            // yield return uwr2.SendWebRequest();
-            // if (uwr2.result != UnityWebRequest.Result.Success)
-            // {
-            //     ErrorMessage = $"Error Posting feedbacks {uwr2.downloadHandler.text} Error: {uwr2.error}";
-            //     yield break;
-            // }
-            // string newResponseJson = uwr2.downloadHandler.text;
-            // InworldAI.Log($"Updated Feedback: {newResponseJson}");
         }
-        IEnumerator PatchFeedback(Feedback feedback) 
+        IEnumerator PatchFeedback(string interactionID, string correlationID, Feedback feedback)
         {
-            yield return PostFeedback(feedback); //TODO(Yan): Use Patch instead of Post for detailed json.
+            yield return PostFeedback(interactionID, correlationID, feedback); //TODO(Yan): Use Patch instead of Post for detailed json.
         }
         public virtual void GetHistoryAsync(string sceneFullName) => ErrorMessage = k_NotImplemented;
         public virtual void SendPackets() => ErrorMessage = k_NotImplemented; 

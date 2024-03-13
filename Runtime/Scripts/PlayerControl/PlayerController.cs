@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -94,6 +95,7 @@ namespace Inworld.Sample
         {
             if(m_PushToTalk && !m_BlockAudioHandling)
                 HandlePTT();
+            HandleCanvas();
             HandleInput();
         }
         
@@ -110,7 +112,11 @@ namespace Inworld.Sample
                 InworldController.Instance.PushAudio();
             }
         }
-
+        public virtual void OpenFeedback(string interactionID, string correlationID)
+        {
+            
+        }
+        protected virtual void HandleCanvas() {}
         protected virtual void HandleInput()
         {
             if (Input.GetKeyUp(KeyCode.Return) || Input.GetKeyUp(KeyCode.KeypadEnter))

@@ -61,6 +61,24 @@ namespace Inworld
         // Client can try to reconnect after given period, specified in InworldStatus.reconnect_time
         TIMEOUT = 3
     }
+    public enum FeedbackType
+    {
+        INTERACTION_DISLIKE_TYPE_UNSPECIFIED = 0,
+        // The content is irrelevant
+        INTERACTION_DISLIKE_TYPE_IRRELEVANT = 1,
+        // The content is unsafe
+        INTERACTION_DISLIKE_TYPE_UNSAFE = 2,
+        // The content is untrue
+        INTERACTION_DISLIKE_TYPE_UNTRUE = 3,
+        // The content uses knowledge incorrectly
+        INTERACTION_DISLIKE_TYPE_INCORRECT_USE_KNOWLEDGE = 4,
+        // The content contains unexpected action
+        INTERACTION_DISLIKE_TYPE_UNEXPECTED_ACTION = 5,
+        // The content contains unexpected goal behaviour
+        INTERACTION_DISLIKE_TYPE_UNEXPECTED_GOAL_BEHAVIOR = 6,
+        // The content contains repetition issue
+        INTERACTION_DISLIKE_TYPE_REPETITION = 7
+    }
     public enum ControlType
     {
         UNKNOWN,

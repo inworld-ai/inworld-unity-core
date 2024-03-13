@@ -5,6 +5,8 @@
 * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
 *************************************************************************************************/
 using Inworld.Entities;
+using Inworld.Sample;
+using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -68,22 +70,15 @@ namespace Inworld.UI
     #endregion
         public void OnPointerUp(PointerEventData eventData)
         {
-            CreateFeedbackDlg();
-        }
-        void CreateFeedbackDlg()
-        {
-            MockSendFeedback();  // TODO(Yan): Create UI dialog to post feedback.
-        }
-        public void MockSendFeedback()
-        {
             if (m_Title.text == InworldAI.User.Name) // Send by player.
                 return;
-            var data = InworldController.Client.LiveSessionData.FirstOrDefault(c => c.Value.givenName == m_Title.text);
-            if (data.Value == null || data.Value.givenName != m_Title.text)
-                return;
-            Feedback feedback = new Feedback(true, m_InteractionID, m_CorrelationID, "good");
-            InworldController.Client.SendFeedbackAsync(data.Value.agentId, feedback);
+            CreateFeedbackDlg( m_InteractionID, m_CorrelationID);
         }
+        void CreateFeedbackDlg(string interactionID, string correlationID)
+        {
+            PlayerController.Instance.OpenFeedback(interactionID, correlationID);
+        }
+
         public void OnPointerDown(PointerEventData eventData)
         {
             // To make PointerUp working, PointerDown is required.
