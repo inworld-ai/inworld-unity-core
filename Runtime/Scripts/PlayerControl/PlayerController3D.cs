@@ -36,6 +36,8 @@ namespace Inworld.Sample
         }
         protected virtual void OnCharSelected(string newCharBrainName)
         {
+            if (!m_Dropdown)
+                return;
             string givenName = InworldController.CharacterHandler.GetCharacterByBrainName(newCharBrainName)?.Name;
             if (string.IsNullOrEmpty(givenName))
             {
@@ -53,6 +55,8 @@ namespace Inworld.Sample
         }
         protected virtual void OnCharDeselected(string newCharBrainName)
         {
+            if (!m_Dropdown)
+                return;
             m_Dropdown.value = 0;
             m_Dropdown.RefreshShownValue();
         }

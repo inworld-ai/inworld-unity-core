@@ -237,9 +237,6 @@ namespace Inworld
                 case MutationPacket mutationPacket:
                     HandleCancelResponse(mutationPacket);
                     break;
-                case RelationPacket relationPacket:
-                    // Compatible with legacy NDK packets.
-                    break;
                 default:
                     Debug.LogError($"Received Unknown {incomingPacket}");
                     break;
