@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
+using Inworld.Packet;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -44,6 +45,23 @@ namespace Inworld.UI
             else
             {
                 m_Bubbles[key].SetBubble(title, thumbnail, content);
+            }
+            UpdateContent();
+        }
+        protected virtual void InsertBubbleWithPacketInfo(string key, PacketId packetId, InworldUIElement bubble, string title, bool isAttachMode = false, string content = null, Texture2D thumbnail = null)
+        {
+            if (!m_Bubbles.ContainsKey(key))
+            {
+                m_Bubbles[key] = Instantiate(bubble, m_ContentAnchor);
+                m_Bubbles[key].SetBubbleWithPacketInfo(title, packetId.interactionId, packetId.correlationId, thumbnail, content);
+            }
+            else if (isAttachMode)
+            {
+                m_Bubbles[key].AttachBubble(content);
+            }
+            else
+            {
+                m_Bubbles[key].SetBubbleWithPacketInfo(title, packetId.interactionId, packetId.correlationId, thumbnail, content);
             }
             UpdateContent();
         }

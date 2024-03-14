@@ -121,7 +121,7 @@ namespace Inworld.Sample
             string charName = charData.givenName ?? "Character";
             Texture2D thumbnail = charData.thumbnail ? charData.thumbnail : InworldAI.DefaultThumbnail;
             string content = relationPacket.custom.parameters.Aggregate(" ", (current, param) => current + $"{param.name}: {param.value} ");
-            InsertBubble(key, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
+            InsertBubbleWithPacketInfo(key, relationPacket.packetId, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
         }
         protected virtual void HandleTrigger(CustomPacket customPacket)
         {
@@ -137,7 +137,7 @@ namespace Inworld.Sample
             if (string.IsNullOrEmpty(customPacket.TriggerName))
                 return;
             string content = $"(Received: {customPacket.Trigger})";
-            InsertBubble(key, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
+            InsertBubbleWithPacketInfo(key, customPacket.packetId, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
         }
         protected virtual void HandleEmotion(EmotionPacket emotionPacket)
         {
@@ -159,7 +159,7 @@ namespace Inworld.Sample
                         string charName = charData.givenName ?? "Character";
                         Texture2D thumbnail = charData.thumbnail ? charData.thumbnail : InworldAI.DefaultThumbnail;
                         string content = textPacket.text.text;
-                        InsertBubble(key, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
+                        InsertBubbleWithPacketInfo(key, textPacket.packetId, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
                     }
                     break;
                 }
@@ -167,7 +167,7 @@ namespace Inworld.Sample
                     // YAN: Player Input does not apply longBubbleMode.
                     //      And Key is always utteranceID.
                     key = textPacket.packetId.utteranceId;
-                    InsertBubble(key, m_BubbleRight, InworldAI.User.Name, false, textPacket.text.text, InworldAI.DefaultThumbnail);
+                    InsertBubbleWithPacketInfo(key, textPacket.packetId, m_BubbleRight, InworldAI.User.Name, false, textPacket.text.text, InworldAI.DefaultThumbnail);
                     break;
             }
         }
@@ -182,7 +182,7 @@ namespace Inworld.Sample
             string charName = charData.givenName ?? "Character";
             Texture2D thumbnail = charData.thumbnail ? charData.thumbnail : InworldAI.DefaultThumbnail;
             string content = $"<i><color=#AAAAAA>{actionPacket.action.narratedAction.content}</color></i>";
-            InsertBubble(key, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
+            InsertBubbleWithPacketInfo(key, actionPacket.packetId, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
         }
     }
 }

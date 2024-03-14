@@ -13,6 +13,8 @@ namespace Inworld.Sample
     public class PlayerController3D : PlayerController
     {
         [SerializeField] protected GameObject m_ChatCanvas;
+        [SerializeField] protected GameObject m_StatusCanvas;
+        [SerializeField] protected GameObject m_FeedbackCanvas;
         [SerializeField] protected BubblePanel m_BubblePanel;
         
         protected override void HandleInput()

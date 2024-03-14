@@ -35,5 +35,6 @@ namespace Inworld
         ///     Format should be workspaces/{workspaceName}/sessions/{sessionID}
         /// </param>
         public string LoadSessionURL(string sessionFullName) => $"https://{web}/v1/{sessionFullName}/state?name={sessionFullName}";
+        public string FeedbackURL(string callbackReference) => $"https://{web}/v1/feedback/{callbackReference}/feedbacks";
     }
 }
