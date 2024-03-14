@@ -68,7 +68,7 @@ namespace Inworld.UI
         public override void AttachBubble(string text) => m_TextField.text = $"{m_TextField.text.Trim()} {text.Trim()}";
 
     #endregion
-        public void OnPointerUp(PointerEventData eventData)
+        public virtual void OnPointerUp(PointerEventData eventData)
         {
             if (m_Title.text == InworldAI.User.Name) // Send by player.
                 return;

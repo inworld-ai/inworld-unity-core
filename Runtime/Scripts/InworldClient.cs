@@ -727,7 +727,6 @@ namespace Inworld
             // YAN: Fetch all the characterData in the current session.
             foreach (InworldCharacterData agent in loadSceneResponse.agents.Where(agent => !string.IsNullOrEmpty(agent.agentId) && !string.IsNullOrEmpty(agent.brainName)))
             {
-                agent.NormalizeBrainName();        
                 m_LiveSessionData[agent.brainName] = agent;
             }
         }

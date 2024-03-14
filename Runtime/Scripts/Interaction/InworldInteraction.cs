@@ -151,7 +151,7 @@ namespace Inworld.Interactions
                 }
                 if (m_CurrentInteraction != null && m_CurrentInteraction.CurrentUtterance != null)
                 {
-                    if (InworldController.Audio.SampleMode != MicSampleMode.TURN_BASED || !InworldController.Audio.CurrentPlayingPlayer || !InworldController.Audio.CurrentPlayingPlayer.isPlaying)
+                    if (InworldController.Audio.SampleMode != MicSampleMode.TURN_BASED || !InworldController.Audio.CurrentPlayingAudioSource || !InworldController.Audio.CurrentPlayingAudioSource.isPlaying)
                         yield return PlayNextUtterance();
                 }
                 else if (m_Character)
