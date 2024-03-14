@@ -214,8 +214,13 @@ namespace Inworld
         /// <param name="text">the message to send.</param>
         public void SendText(string text)
         {
-            CancelResponses();
-            m_Client.SendTextTo(text, CharacterHandler.CurrentCharacterNames);
+            if (CharacterHandler.CurrentCharacter)
+                CharacterHandler.CurrentCharacter.SendText(text);
+            else
+            {
+                CancelResponses();
+                m_Client.SendTextTo(text, CharacterHandler.CurrentCharacterNames);
+            }
         }
         /// <summary>
         /// Cancel all the current character's generating responses.

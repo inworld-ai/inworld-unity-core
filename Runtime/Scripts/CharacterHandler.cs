@@ -90,15 +90,16 @@ namespace Inworld
         /// <summary>
         ///     Get the current Character Selecting Method. By default it's manual.
         /// </summary>
-        public virtual CharSelectingMethod SelectingMethod => CharSelectingMethod.Manual;
+        public virtual CharSelectingMethod SelectingMethod { get; set; } = CharSelectingMethod.Manual;
 
         /// <summary>
         ///     Change the method of how to select character.
         /// </summary>
         public virtual void ChangeSelectingMethod() {}
-
+        
         public virtual InworldCharacter GetCharacterByBrainName(string brainName) => CurrentCharacters.FirstOrDefault(c => c.BrainName == brainName);
 
+        public virtual InworldCharacter GetCharacterByGivenName(string givenName) => CurrentCharacters.FirstOrDefault(c => c.Name == givenName);
         IEnumerator UpdateThumbnail(InworldCharacterData agent)
         {
             if (agent.thumbnail)
