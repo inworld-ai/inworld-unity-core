@@ -5,11 +5,18 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
-namespace Inworld
+using System;
+using System.Collections.Generic;
+
+namespace Inworld.Entities
 {
-    public class InworldWebSocketClient : InworldClient
-    {
 
-
-    }
+	[Serializable]
+	public class Feedback
+	{
+		public bool isLike;
+		public List<string> type;
+		public string comment;
+		public string name;
+	}
 }

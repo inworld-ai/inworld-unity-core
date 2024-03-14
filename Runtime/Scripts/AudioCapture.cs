@@ -33,7 +33,7 @@ namespace Inworld
         [SerializeField] protected int m_BufferSeconds = 1;
         [SerializeField] protected string m_DeviceName;
 
-        public AudioSource CurrentPlayingPlayer { get; set; }
+        public AudioSource CurrentPlayingAudioSource { get; set; }
         public UnityEvent OnRecordingStart;
         public UnityEvent OnRecordingEnd;
         public UnityEvent OnPlayerStartSpeaking;
@@ -345,10 +345,10 @@ namespace Inworld
             switch (controlPacket.Action)
             {
                 case ControlType.AUDIO_SESSION_START:
-                    m_IsCapturing = true;
+                    StartRecording();
                     break;
                 case ControlType.AUDIO_SESSION_END:
-                    m_IsCapturing = false;
+                    StopRecording();
                     break;
             }
         }

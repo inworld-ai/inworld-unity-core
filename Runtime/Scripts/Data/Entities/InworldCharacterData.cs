@@ -34,18 +34,6 @@ namespace Inworld.Entities
                 return data.Length < 4 ? brainName : $"{data[3]}_{data[1]}";
             }
         }
-        /// <summary>
-        /// This function is used to rename to fullName. Somehow the current result from new method is naming like aaa__bbb
-        /// </summary>
-        public void NormalizeBrainName()
-        {
-            if (string.IsNullOrEmpty(brainName))
-                return;
-            string[] data = brainName.Split("__");
-            if (data.Length < 2)
-                return;
-            brainName = $"workspaces/{data[0]}/characters/{data[1]}";
-        }
     }
     [Serializable]
     public class CharacterAssets

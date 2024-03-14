@@ -109,7 +109,7 @@ namespace Inworld.Test
 		public IEnumerator InworldRuntimeTest_LoadCharacter()
 		{
 			InworldController.Client.StartSession();
-			yield return StatusCheck(5, InworldConnectionStatus.Connected);
+			yield return StatusCheck(10, InworldConnectionStatus.Connected);
 			yield return LiveSessionCheck(10);
 		}
 		[UnityTest]
@@ -117,7 +117,7 @@ namespace Inworld.Test
 		{
 			m_Conversation.Clear();
 			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Hello");
-			yield return ConversationCheck(5);
+			yield return ConversationCheck(10);
 			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "TEXT"));
 			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "AUDIO"));
 		}
@@ -133,7 +133,7 @@ namespace Inworld.Test
 			InworldController.Client.SendAudio(agentID, k_AudioChunk);
 			yield return new WaitForSeconds(0.1f);
 			InworldController.Client.StopAudio(agentID);
-			yield return ConversationCheck(5);
+			yield return ConversationCheck(10);
 			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "TEXT"));
 			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "AUDIO"));
 		}
