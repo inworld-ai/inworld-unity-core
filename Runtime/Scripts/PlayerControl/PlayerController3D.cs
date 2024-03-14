@@ -52,6 +52,7 @@ namespace Inworld.Sample
                 m_Dropdown.value = value;
                 m_Dropdown.RefreshShownValue();
             }
+            RefreshUIInteractive(true);
         }
         protected virtual void OnCharDeselected(string newCharBrainName)
         {
@@ -59,6 +60,16 @@ namespace Inworld.Sample
                 return;
             m_Dropdown.value = 0;
             m_Dropdown.RefreshShownValue();
+            RefreshUIInteractive(false);
+        }
+        protected virtual void RefreshUIInteractive(bool isON)
+        {
+            if (m_InputField)
+                m_InputField.interactable = isON;
+            if (m_SendButton)
+                m_SendButton.interactable = isON;
+            if (m_RecordButton)
+                m_RecordButton.interactable = isON;
         }
         protected override void HandleInput()
         {
@@ -74,7 +85,7 @@ namespace Inworld.Sample
                 {
                     InworldController.CharacterHandler.SelectingMethod = m_PrevSelectingMethod;
                 }
-                if(m_BubblePanel)
+                if (m_BubblePanel)
                     m_BubblePanel.UpdateContent();
                 m_BlockAudioHandling = m_ChatCanvas.activeSelf;
                 if (m_PushToTalk)

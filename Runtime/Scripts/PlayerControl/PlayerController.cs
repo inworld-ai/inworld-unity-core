@@ -29,6 +29,8 @@ namespace Inworld.Sample
         [Header("References")]
         [SerializeField] protected TMP_InputField m_InputField;
         [SerializeField] protected TMP_Dropdown m_Dropdown;
+        [SerializeField] protected Button m_SendButton;
+        [SerializeField] protected Button m_RecordButton;
         public UnityEvent<string> onPlayerSpeaks;
 
         protected bool m_PTTKeyPressed;
@@ -54,6 +56,11 @@ namespace Inworld.Sample
                 return;
             if (nIndex < 0 || nIndex > m_Dropdown.options.Count)
                 return;
+            if (nIndex == 0) // NONE
+            {
+                InworldController.CharacterHandler.CurrentCharacter = null;
+                return;
+            }
             InworldCharacter character = InworldController.CharacterHandler.GetCharacterByGivenName(m_Dropdown.options[nIndex].text);
             if (!character || character == InworldController.CharacterHandler.CurrentCharacter)
                 return;
