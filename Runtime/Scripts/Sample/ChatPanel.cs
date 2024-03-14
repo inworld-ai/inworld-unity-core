@@ -86,6 +86,9 @@ namespace Inworld.Sample
                 case ControlPacket controlEvent:
                     HandleControl(controlEvent);
                     break;
+                case RelationPacket relationPacket: 
+                    // Compatible to legacy NDK.
+                    break;
                 default:
                     InworldAI.LogWarning($"Received unknown {incomingPacket.type}");
                     break;
