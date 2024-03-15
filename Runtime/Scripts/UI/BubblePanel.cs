@@ -70,9 +70,8 @@ namespace Inworld.UI
             if (!m_Bubbles.ContainsKey(key))
                 return;
             InworldUIElement elementToDestroy = m_Bubbles[key];
-            float height = elementToDestroy.Height;
             m_Bubbles.Remove(key);
-            Destroy(elementToDestroy);
+            Destroy(elementToDestroy.gameObject);
             UpdateContent();
         }
         protected virtual void Clear()
