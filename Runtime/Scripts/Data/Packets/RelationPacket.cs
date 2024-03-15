@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 using System;
+using UnityEngine;
 
 namespace Inworld.Packet
 {
@@ -16,7 +17,15 @@ namespace Inworld.Packet
         public int familiar;
         public int flirtatious;
         public int attraction;
-        
+
+        public bool IsEqualTo(RelationState rhs)
+        {
+            return rhs.trust == trust && rhs.respect == respect && rhs.familiar == familiar && rhs.flirtatious == flirtatious && rhs.attraction == attraction;
+        }
+        public override string ToString()
+        {
+            return $"Trust: {trust}, Respect: {respect}, Familiar: {familiar}, Flirtatious: {flirtatious}, Attraction {attraction}";
+        }
         public string GetUpdate(RelationState rhs) => $"{_GetDiff("Trust", trust, rhs.trust)} {_GetDiff("Respect", respect, rhs.respect)} {_GetDiff("Familiar", familiar, rhs.familiar)} {_GetDiff("Flirtatious", flirtatious, rhs.flirtatious)} {_GetDiff("Attraction", attraction, rhs.attraction)}";
         
         string _GetDiff(string name, int nCurrent, int nUpdate)
@@ -76,6 +85,7 @@ namespace Inworld.Packet
             type = "RELATION";
             debugInfo = evt;
         }
+        public override string ToJson => JsonUtility.ToJson(this); 
         public string Relation => debugInfo.relation.relationState.GetUpdate(debugInfo.relation.relationUpdate);
     }
 }

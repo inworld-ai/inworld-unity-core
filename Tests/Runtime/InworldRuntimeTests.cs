@@ -20,7 +20,6 @@ namespace Inworld.Test
 	public class InworldRuntimeTests
 	{
 		InworldConnectionStatus m_CurrentStatus;
-		LoadSceneResponse m_LiveSessionAgentInfo;
 		List<InworldPacket> m_Conversation;
 
 		const string k_AudioChunk =
@@ -62,6 +61,19 @@ namespace Inworld.Test
 			}
 			Assert.AreEqual(condition, m_CurrentStatus);
 		}
+		IEnumerator LiveSessionCheck(float timeout)
+		{
+			while (timeout > 0)
+			{
+				if (InworldController.Client.LiveSessionData.Count > 0)
+				{
+					yield break;
+				}
+				timeout -= Time.fixedDeltaTime;
+				yield return new WaitForFixedUpdate();
+			}
+			Assert.Greater(InworldController.Client.LiveSessionData.Count, 0);
+		}
 		IEnumerator ConversationCheck(float timeout)
 		{
 			while (timeout > 0)
@@ -81,10 +93,10 @@ namespace Inworld.Test
 		}
 		void OnPacketReceived(InworldPacket packet)
 		{
-			if (packet.routing.source.type.ToUpper() == "AGENT")
+			if (packet.Source == SourceType.AGENT)
 				m_Conversation.Add(packet);
 		}
-		
+
 		[UnityTest]
 		public IEnumerator InworldRuntimeTest_Init()
 		{
@@ -94,20 +106,18 @@ namespace Inworld.Test
 			Assert.IsTrue(InworldController.Client.Token.IsValid);
 		}
 		[UnityTest]
-		public IEnumerator InworldRuntimeTest_LoadScene()
+		public IEnumerator InworldRuntimeTest_LoadCharacter()
 		{
-			InworldController.Instance.LoadScene();
-			yield return StatusCheck(1, InworldConnectionStatus.LoadingScene);
+			InworldController.Client.StartSession();
 			yield return StatusCheck(10, InworldConnectionStatus.Connected);
-			m_LiveSessionAgentInfo = InworldController.Client.GetLiveSessionInfo();
-			Assert.Greater(m_LiveSessionAgentInfo.agents.Count, 0);
+			yield return LiveSessionCheck(10);
 		}
 		[UnityTest]
 		public IEnumerator InworldRuntimeTest_SendText()
 		{
 			m_Conversation.Clear();
-			InworldController.Instance.SendText(m_LiveSessionAgentInfo.agents[0].agentId, "Hello");
-			yield return ConversationCheck(5);
+			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Hello");
+			yield return ConversationCheck(10);
 			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "TEXT"));
 			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "AUDIO"));
 		}
@@ -116,14 +126,14 @@ namespace Inworld.Test
 		public IEnumerator InworldRuntimeTest_SendAudio()
 		{
 			m_Conversation.Clear();
-			string agentID = m_LiveSessionAgentInfo.agents[0].agentId;
+			string agentID = InworldController.Client.LiveSessionData.Values.First().agentId;
 			InworldController.Client.StartAudio(agentID); ;
 			yield return new WaitForSeconds(0.1f);
 			InworldController.Audio.IsPlayerSpeaking = true;
 			InworldController.Client.SendAudio(agentID, k_AudioChunk);
 			yield return new WaitForSeconds(0.1f);
 			InworldController.Client.StopAudio(agentID);
-			yield return ConversationCheck(5);
+			yield return ConversationCheck(10);
 			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "TEXT"));
 			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "AUDIO"));
 		}

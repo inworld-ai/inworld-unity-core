@@ -21,16 +21,28 @@ namespace Inworld.Sample
         float m_ServerTime;
         void OnEnable()
         {
-            InworldController.Instance.OnCharacterInteraction += OnInteraction;
+            InworldController.CharacterHandler.OnCharacterListJoined += OnCharacterJoined;
+            InworldController.CharacterHandler.OnCharacterListLeft += OnCharacterLeft;
         }
 
         void OnDisable()
         {
             if (!InworldController.Instance)
                 return;
-            InworldController.Instance.OnCharacterInteraction -= OnInteraction;
+            InworldController.CharacterHandler.OnCharacterListJoined -= OnCharacterJoined;
+            InworldController.CharacterHandler.OnCharacterListLeft -= OnCharacterLeft;
+        }
+        protected virtual void OnCharacterJoined(InworldCharacter character)
+        {
+            // YAN: Clear existing event listener to avoid adding multiple times.
+            character.Event.onPacketReceived.RemoveListener(OnInteraction); 
+            character.Event.onPacketReceived.AddListener(OnInteraction);
         }
 
+        protected virtual void OnCharacterLeft(InworldCharacter character)
+        {
+            character.Event.onPacketReceived.RemoveListener(OnInteraction); 
+        }
         void OnInteraction(InworldPacket incomingPacket)
         {
             if (incomingPacket.type.ToUpper() == m_PacketType && IsFromPlayer(incomingPacket))

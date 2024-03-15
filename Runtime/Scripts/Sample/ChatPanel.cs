@@ -9,6 +9,7 @@ using Inworld.Entities;
 using Inworld.Packet;
 using Inworld.UI;
 using System;
+using System.Linq;
 using UnityEngine;
 
 
@@ -34,14 +35,30 @@ namespace Inworld.Sample
         
         void OnEnable()
         {
-            InworldController.Instance.OnCharacterInteraction += OnInteraction;
+            InworldController.Client.OnPacketSent += OnInteraction;
+            InworldController.CharacterHandler.OnCharacterListJoined += OnCharacterJoined;
+            InworldController.CharacterHandler.OnCharacterListLeft += OnCharacterLeft;
         }
 
         void OnDisable()
         {
             if (!InworldController.Instance)
                 return;
-            InworldController.Instance.OnCharacterInteraction -= OnInteraction;
+            InworldController.Client.OnPacketSent -= OnInteraction;
+            InworldController.CharacterHandler.OnCharacterListJoined -= OnCharacterJoined;
+            InworldController.CharacterHandler.OnCharacterListLeft -= OnCharacterLeft;
+        }
+
+        protected virtual void OnCharacterJoined(InworldCharacter character)
+        {
+            // YAN: Clear existing event listener to avoid adding multiple times.
+            character.Event.onPacketReceived.RemoveListener(OnInteraction); 
+            character.Event.onPacketReceived.AddListener(OnInteraction);
+        }
+
+        protected virtual void OnCharacterLeft(InworldCharacter character)
+        {
+            character.Event.onPacketReceived.RemoveListener(OnInteraction); 
         }
         
         protected virtual void OnInteraction(InworldPacket incomingPacket)
@@ -60,19 +77,31 @@ namespace Inworld.Sample
                 case CustomPacket customPacket:
                     HandleTrigger(customPacket);
                     break;
+                case MutationPacket mutationPacket:
+                    RemoveBubbles(mutationPacket);
+                    break;
                 case AudioPacket audioPacket: 
                     HandleAudio(audioPacket);
                     break;
                 case ControlPacket controlEvent:
                     HandleControl(controlEvent);
                     break;
-                case RelationPacket relationPacket: 
-                    // Compatible to legacy NDK.
-                    break;
                 default:
                     InworldAI.LogWarning($"Received unknown {incomingPacket.type}");
                     break;
             }
+        }
+        protected virtual void RemoveBubbles(MutationPacket mutationPacket)
+        {
+            CancelResponse bubbleToRemove = mutationPacket?.mutation?.cancelResponses;
+            if (bubbleToRemove == null)
+                return;
+            if (m_ChatOptions.longBubbleMode)
+            {
+                RemoveBubble(bubbleToRemove.interactionId);
+            }
+            else
+                bubbleToRemove.utteranceId.ForEach(RemoveBubble);
         }
         protected virtual void HandleAudio(AudioPacket audioPacket)
         {
@@ -86,18 +115,13 @@ namespace Inworld.Sample
         {
             if (!m_ChatOptions.relation || !IsUIReady)
                 return;
-            InworldCharacterData charData = InworldController.CharacterHandler.GetCharacterDataByID(relationPacket.routing.source.name);
-            if (charData == null)
+            if (!InworldController.Client.LiveSessionData.TryGetValue(relationPacket.routing.source.name, out InworldCharacterData charData))
                 return;
             string key = m_ChatOptions.longBubbleMode ? relationPacket.packetId.interactionId : relationPacket.packetId.utteranceId;
             string charName = charData.givenName ?? "Character";
             Texture2D thumbnail = charData.thumbnail ? charData.thumbnail : InworldAI.DefaultThumbnail;
-            string content = " ";
-            foreach (var param in relationPacket.custom.parameters)
-            {
-                content += $"{param.name}: {param.value} ";
-            }
-            InsertBubble(key, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
+            string content = relationPacket.custom.parameters.Aggregate(" ", (current, param) => current + $"{param.name}: {param.value} ");
+            InsertBubbleWithPacketInfo(key, relationPacket.packetId, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
         }
         protected virtual void HandleTrigger(CustomPacket customPacket)
         {
@@ -105,8 +129,7 @@ namespace Inworld.Sample
                 HandleRelation(customPacket);
             if (!m_ChatOptions.trigger || customPacket.custom == null || !IsUIReady)
                 return;
-            InworldCharacterData charData = InworldController.CharacterHandler.GetCharacterDataByID(customPacket.routing.source.name);
-            if (charData == null)
+            if (!InworldController.Client.LiveSessionData.TryGetValue(customPacket.routing.source.name, out InworldCharacterData charData))
                 return;
             string key = m_ChatOptions.longBubbleMode ? customPacket.packetId.interactionId : customPacket.packetId.utteranceId;
             string charName = charData.givenName ?? "Character";
@@ -114,7 +137,7 @@ namespace Inworld.Sample
             if (string.IsNullOrEmpty(customPacket.TriggerName))
                 return;
             string content = $"(Received: {customPacket.Trigger})";
-            InsertBubble(key, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
+            InsertBubbleWithPacketInfo(key, customPacket.packetId, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
         }
         protected virtual void HandleEmotion(EmotionPacket emotionPacket)
         {
@@ -125,24 +148,26 @@ namespace Inworld.Sample
             if (!m_ChatOptions.text || textPacket.text == null || string.IsNullOrWhiteSpace(textPacket.text.text) || !IsUIReady)
                 return;
             string key = "";
-            switch (textPacket.routing.source.type.ToUpper())
+            switch (textPacket.Source)
             {
-                case "AGENT":
-                    InworldCharacterData charData = InworldController.CharacterHandler.GetCharacterDataByID(textPacket.routing.source.name);
+                case SourceType.AGENT:
+                {
+                    InworldCharacterData charData = InworldController.Client.GetCharacterDataByID(textPacket.routing.source.name);
                     if (charData != null)
                     {
                         key = m_ChatOptions.longBubbleMode ? textPacket.packetId.interactionId : textPacket.packetId.utteranceId;
                         string charName = charData.givenName ?? "Character";
                         Texture2D thumbnail = charData.thumbnail ? charData.thumbnail : InworldAI.DefaultThumbnail;
                         string content = textPacket.text.text;
-                        InsertBubble(key, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
+                        InsertBubbleWithPacketInfo(key, textPacket.packetId, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
                     }
                     break;
-                case "PLAYER":
+                }
+                case SourceType.PLAYER:
                     // YAN: Player Input does not apply longBubbleMode.
                     //      And Key is always utteranceID.
                     key = textPacket.packetId.utteranceId;
-                    InsertBubble(key, m_BubbleRight, InworldAI.User.Name, false, textPacket.text.text, InworldAI.DefaultThumbnail);
+                    InsertBubbleWithPacketInfo(key, textPacket.packetId, m_BubbleRight, InworldAI.User.Name, false, textPacket.text.text, InworldAI.DefaultThumbnail);
                     break;
             }
         }
@@ -150,14 +175,14 @@ namespace Inworld.Sample
         {
             if (!m_ChatOptions.narrativeAction || actionPacket.action == null || actionPacket.action.narratedAction == null || string.IsNullOrWhiteSpace(actionPacket.action.narratedAction.content) || !IsUIReady)
                 return;
-            InworldCharacterData charData = InworldController.CharacterHandler.GetCharacterDataByID(actionPacket.routing.source.name);
+            InworldCharacterData charData = InworldController.Client.GetCharacterDataByID(actionPacket.routing.source.name);
             if (charData == null)
                 return;
             string key = m_ChatOptions.longBubbleMode ? actionPacket.packetId.interactionId : actionPacket.packetId.utteranceId;
             string charName = charData.givenName ?? "Character";
             Texture2D thumbnail = charData.thumbnail ? charData.thumbnail : InworldAI.DefaultThumbnail;
             string content = $"<i><color=#AAAAAA>{actionPacket.action.narratedAction.content}</color></i>";
-            InsertBubble(key, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
+            InsertBubbleWithPacketInfo(key, actionPacket.packetId, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
         }
     }
 }

@@ -34,5 +34,6 @@ namespace Inworld.Packet
             type = "EMOTION";
             emotion = evt;
         }
+        public override string ToJson => JsonUtility.ToJson(this); 
     }
 }

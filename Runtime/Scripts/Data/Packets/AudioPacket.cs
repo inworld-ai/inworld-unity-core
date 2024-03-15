@@ -53,5 +53,6 @@ namespace Inworld.Packet
                 }
             }
         }
+        public override string ToJson => JsonUtility.ToJson(this); 
     }
 }

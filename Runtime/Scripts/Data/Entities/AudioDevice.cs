@@ -7,10 +7,41 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine.Scripting;
+
 
 namespace Inworld.Entities
 {
+    [Serializable]
+    public class AudioSessionInfo
+    {
+        public string audioSessionID;
+        public List<string> currentBrainNames = new List<string>();
+        public List<string> lastBrainNames = new List<string>();
+        public bool IsLive => currentBrainNames.Count > 0;
+
+        public void StopAudio()
+        {
+            InworldController.Client.StopAudioTo(currentBrainNames);
+            lastBrainNames = currentBrainNames;
+            currentBrainNames.Clear();
+        }
+        public void StartAudio(List<string> characterBrainNames)
+        {
+            if (characterBrainNames.Count == 0)
+                return;
+            if (CharactersAreSame(characterBrainNames))
+                return;
+            StopAudio();
+            InworldController.Client.StartAudioTo(characterBrainNames);
+            currentBrainNames = characterBrainNames;
+        }
+        public bool CharactersAreSame(List<string> characterBrainNames)
+        {
+            return currentBrainNames.Count == characterBrainNames.Count && currentBrainNames.All(characterBrainNames.Contains);
+        }
+    }
     [Serializable]
     public class AudioDevice
     {

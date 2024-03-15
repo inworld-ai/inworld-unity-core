@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 using System;
+using UnityEngine;
 
 namespace Inworld.Packet
 {
@@ -29,5 +30,7 @@ namespace Inworld.Packet
             type = "CONTROL";
             control = evt;
         }
+        public ControlType Action => Enum.TryParse(control.action, true, out ControlType result) ? result : ControlType.UNKNOWN;
+        public override string ToJson => JsonUtility.ToJson(this); 
     }
 }

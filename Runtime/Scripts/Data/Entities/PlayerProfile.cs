@@ -5,8 +5,10 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
+using Inworld.Packet;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Inworld.Entities
@@ -17,6 +19,26 @@ namespace Inworld.Entities
     {
         public string name;
         public string id;
+        public UserSetting userSettings;
+
+        public UserConfigPacket ToPacket => new UserConfigPacket()
+        {
+            timestamp = InworldDateTime.UtcNow,
+            type = "SESSION_CONTROL",
+            packetId = new PacketId(),
+            routing = new Routing(),
+            sessionControl = new UserConfigEvent
+            {
+                userConfiguration = this
+            }
+        };
+        public override string ToString()
+        {
+            string result = $"{name}: {id}";
+            return userSettings?.playerProfile?.fields?.Count > 0
+                ? userSettings.playerProfile.fields.Aggregate(result, (current, field) => current + $" {field.fieldId}: {field.fieldValue}")
+                : result;
+        }
     }
 
     [Serializable]
@@ -44,5 +66,18 @@ namespace Inworld.Entities
     {
         public string fieldId;
         public string fieldValue;
+    }
+    [Serializable]
+    public class UserConfigEvent
+    {
+        public UserRequest userConfiguration;
+    }
+    
+    [Serializable]
+    public class UserConfigPacket : InworldPacket
+    {
+        public UserConfigEvent sessionControl;
+
+        public override string ToJson => JsonUtility.ToJson(this);
     }
 }

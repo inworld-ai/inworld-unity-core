@@ -66,7 +66,11 @@ namespace Inworld.Interactions
             m_Elements.Remove(result);
             return result;
         }
-
+        public void Remove(T target)
+        {
+            if (m_Elements.Contains(target))
+                m_Elements.Remove(target);
+        }
         public void PourTo(IndexQueue<T> rhs)
         {
             while (m_Elements.Count > 0)

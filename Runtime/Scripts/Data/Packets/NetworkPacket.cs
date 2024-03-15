@@ -4,7 +4,9 @@
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
+
 using System;
+using System.Collections.Generic;
 
 
 namespace Inworld.Packet
@@ -13,6 +15,42 @@ namespace Inworld.Packet
     public class NetworkPacketResponse
     {
         public InworldNetworkPacket result;
+        public InworldError error;
+    }
+    [Serializable]
+    public class InworldError
+    {
+        public int code;
+        public string message;
+        public List<InworldErrorData> details;
+        
+        public InworldError(string data)
+        {
+            code = -1;
+            message = data;
+            details = new List<InworldErrorData>
+            {
+                new InworldErrorData
+                {
+                    errorType = ErrorType.CLIENT_ERROR.ToString(),
+                    reconnectType = ReconnectionType.UNDEFINED.ToString(),
+                    reconnectTime = "",
+                    maxRetries = 0
+                }
+            };
+        }
+        public bool IsValid => !string.IsNullOrEmpty(message);
+        public ReconnectionType RetryType  => details != null && details.Count != 0 && Enum.TryParse(details[0].reconnectType, true, out ReconnectionType result) ? result : ReconnectionType.UNDEFINED;
+        public ErrorType ErrorType => details != null && details.Count != 0 && Enum.TryParse(details[0].errorType, true, out ErrorType result) ? result : ErrorType.UNDEFINED;
+
+    }
+    [Serializable]
+    public class InworldErrorData
+    {
+        public string errorType;
+        public string reconnectType;
+        public string reconnectTime;
+        public int maxRetries;
     }
     [Serializable]
     public class InworldNetworkPacket : InworldPacket
@@ -25,8 +63,7 @@ namespace Inworld.Packet
         public MutationEvent mutation;
         public EmotionEvent emotion;
         public ActionEvent action;
-        public RelationEvent debugInfo;
-
+        public SessionResponseEvent sessionControlResponse;
         public InworldPacket Packet
         {
             get
@@ -47,8 +84,8 @@ namespace Inworld.Packet
                     return new EmotionPacket(this, emotion);
                 if (action != null && action.narratedAction != null && !string.IsNullOrEmpty(action.narratedAction.content))
                     return new ActionPacket(this, action);
-                if (debugInfo != null)
-                    return new RelationPacket(this, debugInfo);
+                if (sessionControlResponse != null)
+                    return new SessionResponsePacket(this, sessionControlResponse);
                 return this;
             }
         }
@@ -72,8 +109,8 @@ namespace Inworld.Packet
                     return PacketType.EMOTION;
                 if (action != null && action.narratedAction != null && !string.IsNullOrEmpty(action.narratedAction.content))
                     return PacketType.ACTION;
-                if (debugInfo != null)
-                    return PacketType.RELATION;
+                if (sessionControlResponse != null)
+                    return PacketType.SESSION_RESPONSE;
                 return PacketType.UNKNOWN;
             }
         }

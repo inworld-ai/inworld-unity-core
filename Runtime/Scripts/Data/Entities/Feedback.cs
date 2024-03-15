@@ -6,23 +6,17 @@
  *************************************************************************************************/
 
 using System;
-using UnityEngine;
+using System.Collections.Generic;
 
-namespace Inworld.UI
+namespace Inworld.Entities
 {
-    public class InworldReadme : ScriptableObject
-    {
-        public Font titleFont;
-        public Font contentFont;
-        public Texture2D icon;
-        public string title;
-        public Section[] sections;
-	
-        [Serializable]
-        public class Section 
-        {
-            public string heading, text, linkText, url;
-        }
-    }
-}
 
+	[Serializable]
+	public class Feedback
+	{
+		public bool isLike;
+		public List<string> type;
+		public string comment;
+		public string name;
+	}
+}

@@ -7,9 +7,11 @@
 using Inworld.Interactions;
 using Inworld.Packet;
 using Inworld.Entities;
+using Inworld.Sample;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Inworld
 {
@@ -17,30 +19,54 @@ namespace Inworld
     public class InworldCharacter : MonoBehaviour
     {
         [SerializeField] protected InworldCharacterData m_Data;
-        [SerializeField] bool m_VerboseLog;
-       
-        public UnityEvent onBeginSpeaking;
-        public UnityEvent onEndSpeaking;
-        public UnityEvent<InworldPacket> onPacketReceived;
-        public UnityEvent<string ,string> onCharacterSpeaks;
-        public UnityEvent<string, string> onEmotionChanged;
-        public UnityEvent<string> onGoalCompleted;
-        public UnityEvent onRelationUpdated;
-        public UnityEvent onCharacterDestroyed;
+        [SerializeField] protected CharacterEvents m_CharacterEvents;
+        [SerializeField] protected bool m_VerboseLog;
+
+        protected Animator m_Animator;
+        protected InworldInteraction m_Interaction;
+        protected bool m_IsSpeaking;
         
         RelationState m_CurrentRelation = new RelationState();
-        protected InworldInteraction m_Interaction;
+
+        /// <summary>
+        /// Gets the Unity Events of the character.
+        /// </summary>
+        public CharacterEvents Event => m_CharacterEvents;
+        /// <summary>
+        /// Gets the character's animator.
+        /// </summary>
+        public Animator Animator
+        {
+            get
+            {
+                if (!m_Animator)
+                    m_Animator = GetComponent<Animator>();
+                return m_Animator;
+            }
+        }
         /// <summary>
         /// Gets/Sets if this character is speaking.
         /// </summary>
         public bool IsSpeaking
         {
-            get => m_Interaction && m_Interaction.IsSpeaking;
-            protected set
+            get => m_IsSpeaking;
+            internal set
             {
-                if (!m_Interaction)
+                if (m_IsSpeaking == value)
                     return;
-                m_Interaction.IsSpeaking = value;
+                m_IsSpeaking = value;
+                if (m_IsSpeaking)
+                {
+                    if (m_VerboseLog)
+                        InworldAI.Log($"{Name} Starts Speaking");
+                    m_CharacterEvents.onBeginSpeaking.Invoke(BrainName);
+                }
+                else
+                {
+                    if (m_VerboseLog)
+                        InworldAI.Log($"{Name} Ends Speaking");
+                    m_CharacterEvents.onEndSpeaking.Invoke(BrainName);
+                }
             }
         }
         /// <summary>
@@ -49,27 +75,24 @@ namespace Inworld
         public RelationState CurrRelation
         {
             get => m_CurrentRelation;
-            set
+            protected set
             {
+                if (m_CurrentRelation.IsEqualTo(value))
+                    return;
                 if (m_VerboseLog)
                     InworldAI.Log($"{Name}: {m_CurrentRelation.GetUpdate(value)}");
                 m_CurrentRelation = value;
-                onRelationUpdated.Invoke();
+                m_CharacterEvents.onRelationUpdated.Invoke(BrainName);
             }
         }
         /// <summary>
         /// Gets/Sets the character's data.
         /// If set, it'll also allocate the live session ID to the character's `InworldInteraction` component.
         /// </summary>
-        public InworldCharacterData Data
+        public InworldCharacterData Data 
         {
             get => m_Data;
-            set
-            {
-                m_Data = value;
-                if (!string.IsNullOrEmpty(m_Data.agentId))
-                    m_Interaction.LiveSessionID = m_Data.agentId;
-            }
+            set => m_Data = value;
         }
         /// <summary>
         /// Get the display name for the character. Note that name may not be unique.
@@ -84,16 +107,25 @@ namespace Inworld
         /// <summary>
         /// Gets the live session ID of the character. If not registered, will try to fetch one from InworldController's CharacterHandler.
         /// </summary>
-        public string ID => string.IsNullOrEmpty(Data?.agentId) ? InworldController.CharacterHandler.GetLiveSessionID(this) : Data?.agentId;
-        
+        public string ID => string.IsNullOrEmpty(Data?.agentId) ? GetLiveSessionID() : Data?.agentId;
         /// <summary>
-        /// Register live session. Get the live session ID for this character, and also assign it to this character's components.
+        ///     Returns the priority of the character.
+        ///     the higher the Priority is, the character is more likely responding to player.
         /// </summary>
-        public virtual void RegisterLiveSession()
+        public float Priority { get; set; }
+        /// <summary>
+        /// Register the character in the character list.
+        /// Get the live session ID for an Inworld character.
+        /// </summary>
+
+        public virtual string GetLiveSessionID()
         {
-            m_Interaction.LiveSessionID = Data.agentId = InworldController.CharacterHandler.GetLiveSessionID(this);
-            if (!InworldController.CurrentCharacter && !string.IsNullOrEmpty(m_Interaction.LiveSessionID))
-                InworldController.CharacterHandler.CurrentCharacter = this;
+            if (string.IsNullOrEmpty(BrainName))
+                return "";
+            if (!InworldController.Client.LiveSessionData.TryGetValue(BrainName, out InworldCharacterData value))
+                return "";
+            Data = value;
+            return Data.agentId;
         }
         /// <summary>
         /// Send the message to this character.
@@ -104,16 +136,8 @@ namespace Inworld
             // 1. Interrupt current speaking.
             CancelResponse();
             // 2. Send Text.
-            InworldController.Instance.SendText(ID, text);
+            InworldController.Client.SendTextTo(text, new List<string>{BrainName});
         }
-        /// <summary>
-        /// Default Version of sending triggers that can be used in UnityEvent registration.
-        /// Parameters and values not supported.
-        /// Always Cancelling current response.
-        /// </summary>
-        /// <param name="trigger">the name of the trigger.</param>
-        public virtual void SendTrigger(string trigger) => SendTrigger(trigger, true);
-
         /// <summary>
         /// Send the trigger to this character.
         /// Trigger is defined in the goals section of the character in Inworld Studio.
@@ -121,13 +145,13 @@ namespace Inworld
         /// <param name="trigger">the name of the trigger.</param>
         /// <param name="needCancelResponse">If checked, this sending process will interrupt the character's current speaking.</param>
         /// <param name="parameters">The parameters and values of the trigger.</param>
-        public virtual void SendTrigger(string trigger, bool needCancelResponse, Dictionary<string, string> parameters = null)
+        public virtual void SendTrigger(string trigger, bool needCancelResponse = true, Dictionary<string, string> parameters = null)
         {
             // 1. Interrupt current speaking.
             if (needCancelResponse)
                 CancelResponse();
             // 2. Send Text. YAN: Now all trigger has to be lower cases.
-            InworldController.Instance.SendTrigger(trigger.ToLower(), ID, parameters);
+            InworldController.Client.SendTriggerTo(trigger.ToLower(), parameters, new List<string>{BrainName});
         }
         /// <summary>
         /// Enable target goal of this character.
@@ -153,50 +177,31 @@ namespace Inworld
 
         protected virtual void OnEnable()
         {
-            InworldController.CharacterHandler.OnCharacterRegistered += OnCharRegistered;
             InworldController.Client.OnStatusChanged += OnStatusChanged;
-            m_Interaction.OnStartStopInteraction += OnStartStopInteraction;
-            // YAN: This event is for handling global packets. Please only use it in InworldCharacter.
-            //      For customized integration, please use InworldController.Instance.OnCharacterInteraction
-            m_Interaction.OnInteractionChanged += OnInteractionChanged;
         }
         protected virtual void OnDisable()
         {
-            m_Interaction.OnStartStopInteraction -= OnStartStopInteraction;
-            m_Interaction.OnInteractionChanged -= OnInteractionChanged;
             if (!InworldController.Instance)
                 return;
-            InworldController.CharacterHandler.OnCharacterRegistered -= OnCharRegistered;
+            InworldController.CharacterHandler.Unregister(this);
             InworldController.Client.OnStatusChanged -= OnStatusChanged;
         }
         protected virtual void OnDestroy()
         {
-            onCharacterDestroyed?.Invoke();
+            if (!InworldController.Instance)
+                return;
+            InworldController.CharacterHandler.Unregister(this);
+            m_CharacterEvents.onCharacterDestroyed?.Invoke(BrainName);
         }
-        protected virtual void OnStartStopInteraction(bool isStarting)
-        {
-            if (isStarting)
-            {
-                if (m_VerboseLog)
-                    InworldAI.Log($"{Name} Starts Speaking");
-                onBeginSpeaking.Invoke();
-            }
-            else
-            {
-                if (m_VerboseLog)
-                    InworldAI.Log($"{Name} Ends Speaking");
-                onEndSpeaking.Invoke();
-            }
-        }
-        protected virtual void OnCharRegistered(InworldCharacterData charData)
-        {
-            
-        }
+
         protected virtual void OnStatusChanged(InworldConnectionStatus newStatus)
         {
-            
+            if (newStatus == InworldConnectionStatus.Idle)
+            {
+                Data.agentId = "";
+            }
         }
-        protected virtual void OnInteractionChanged(List<InworldPacket> packets)
+        internal virtual void OnInteractionChanged(List<InworldPacket> packets)
         {
             foreach (InworldPacket packet in packets)
             {
@@ -204,10 +209,11 @@ namespace Inworld
             }
         }
 
-        protected virtual void ProcessPacket(InworldPacket incomingPacket)
+        internal virtual void ProcessPacket(InworldPacket incomingPacket)
         {
-            onPacketReceived.Invoke(incomingPacket);
-            InworldController.Instance.CharacterInteract(incomingPacket);
+            if (!incomingPacket.IsRelated(ID))
+                return;
+            m_CharacterEvents.onPacketReceived.Invoke(incomingPacket);
             
             switch (incomingPacket)
             {
@@ -228,50 +234,66 @@ namespace Inworld
                 case CustomPacket customPacket:
                     HandleTrigger(customPacket);
                     break;
-                case RelationPacket relationPacket:
-                    // Compatible with legacy NDK packets.
+                case MutationPacket mutationPacket:
+                    HandleCancelResponse(mutationPacket);
                     break;
                 default:
                     Debug.LogError($"Received Unknown {incomingPacket}");
                     break;
             }
         }
+        protected virtual void HandleCancelResponse(MutationPacket mutationPacket)
+        {
+            // Server will not send CancelResponsePacket to client.
+            // For the client side's request, it's solved already.
+        }
         protected virtual void HandleRelation(CustomPacket relationPacket)
         {
+            RelationState tmp = new RelationState();
             foreach (TriggerParameter param in relationPacket.custom.parameters)
             {
-                CurrRelation.UpdateByTrigger(param);
+                tmp.UpdateByTrigger(param);
             }
+            CurrRelation = tmp;
         }
 
         protected virtual void HandleText(TextPacket packet)
         {
-            if (packet.text == null || string.IsNullOrEmpty(packet.text.text) || string.IsNullOrWhiteSpace(packet.text.text))
+            if (packet.text == null || string.IsNullOrWhiteSpace(packet.text.text))
                 return;
-            switch (packet.routing.source.type.ToUpper())
+            
+            if (packet.Source == SourceType.PLAYER)
             {
-                case "AGENT":
-                    IsSpeaking = true;
-                    if (m_VerboseLog)
-                        InworldAI.Log($"{Name}: {packet.text.text}");
-                    onCharacterSpeaks.Invoke(packet.routing.source.name, packet.text.text);
-                    break;
-                case "PLAYER":
-                    if (m_VerboseLog)
-                        InworldAI.Log($"{InworldAI.User.Name}: {packet.text.text}");
-                    onCharacterSpeaks.Invoke(InworldAI.User.Name, packet.text.text);
-                    CancelResponse();
-                    break;
+                CancelResponse();
+                if (m_VerboseLog)
+                    InworldAI.Log($"{InworldAI.User.Name}: {packet.text.text}");
+                if (PlayerController.Instance)
+                    PlayerController.Instance.onPlayerSpeaks.Invoke(packet.text.text);
+            }
+            if (packet.Source == SourceType.AGENT && packet.IsSource(ID))
+            {
+                IsSpeaking = true;
+                if (m_VerboseLog)
+                    InworldAI.Log($"{Name}: {packet.text.text}");
+                Event.onCharacterSpeaks.Invoke(BrainName, packet.text.text);
+            }
+            else
+            {
+                IsSpeaking = false;
             }
         }
         protected virtual void HandleEmotion(EmotionPacket packet)
         {
+            if (!packet.IsSource(ID) && !packet.IsTarget(ID))
+                return;
             if (m_VerboseLog)
                 InworldAI.Log($"{Name}: {packet.emotion.behavior} {packet.emotion.strength}");
-            onEmotionChanged.Invoke(packet.emotion.strength, packet.emotion.behavior);
+            m_CharacterEvents.onEmotionChanged.Invoke(BrainName, packet.emotion.ToString());
         }
         protected virtual void HandleTrigger(CustomPacket customPacket)
         {
+            if (!customPacket.IsSource(ID) && !customPacket.IsTarget(ID))
+                return;
             if (customPacket.Message == InworldMessage.RelationUpdate)
             {
                 HandleRelation(customPacket);
@@ -279,17 +301,15 @@ namespace Inworld
             }
             if (m_VerboseLog)
             {
-                InworldAI.Log($"{Name}: Received Trigger {customPacket.custom.name}");
-                foreach (TriggerParameter param in customPacket.custom.parameters)
-                {
-                    InworldAI.Log($"With {param.name}: {param.value}");
-                }
+                string output = $"{Name}: Received Trigger {customPacket.custom.name}";
+                output = customPacket.custom.parameters.Aggregate(output, (current, param) => current + $" With {param.name}: {param.value}");
+                InworldAI.Log(output);
             }
-            onGoalCompleted.Invoke(customPacket.TriggerName);
+            m_CharacterEvents.onGoalCompleted.Invoke(BrainName, customPacket.TriggerName);
         }
         protected virtual void HandleAction(ActionPacket actionPacket)
         {
-            if (m_VerboseLog)
+            if (m_VerboseLog && (actionPacket.IsSource(ID) || actionPacket.IsTarget(ID)))
                 InworldAI.Log($"{Name} {actionPacket.action.narratedAction.content}");
         }
         protected virtual void HandleLipSync(AudioPacket audioPacket)

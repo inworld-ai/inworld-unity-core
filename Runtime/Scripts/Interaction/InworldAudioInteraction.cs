@@ -47,8 +47,9 @@ namespace Inworld.Interactions
             if(m_Interruptable)
                 m_PlaybackSource.Stop();
         }
-        void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             m_PlaybackSource = GetComponent<AudioSource>();
             if(!m_PlaybackSource)
                 m_PlaybackSource = gameObject.AddComponent<AudioSource>();
@@ -71,7 +72,7 @@ namespace Inworld.Interactions
             m_AudioClip = m_CurrentInteraction.CurrentUtterance.GetAudioClip();
             if (m_AudioClip == null)
             {
-                Dispatch(m_CurrentInteraction.CurrentUtterance.Packets);
+                m_Character.OnInteractionChanged(m_CurrentInteraction.CurrentUtterance.Packets);
                 yield return new WaitForSeconds(m_CurrentInteraction.CurrentUtterance.GetTextSpeed() * m_TextSpeedMultipler);
                 if (m_CurrentInteraction != null)
                     m_CurrentInteraction.CurrentUtterance = null;
@@ -79,8 +80,9 @@ namespace Inworld.Interactions
             else
             {
                 AnimFactor = m_AudioClip.length;
+                InworldController.Audio.CurrentPlayingAudioSource = m_PlaybackSource;
                 m_PlaybackSource.PlayOneShot(m_AudioClip);
-                Dispatch(m_CurrentInteraction.CurrentUtterance.Packets);
+                m_Character.OnInteractionChanged(m_CurrentInteraction.CurrentUtterance.Packets);
                 yield return new WaitUntil(() => !m_PlaybackSource.isPlaying);
                 if (m_CurrentInteraction != null)
                     m_CurrentInteraction.CurrentUtterance = null;

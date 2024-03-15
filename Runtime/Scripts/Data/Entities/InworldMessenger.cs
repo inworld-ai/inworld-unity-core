@@ -21,6 +21,10 @@ namespace Inworld.Entities
 		const string k_GoalComplete = "inworld.goal.complete";
 		const string k_RelationUpdate = "inworld.relation.update";
 		const string k_ConversationNextTurn = "inworld.conversation.next_turn";
+		const string k_Error = "inworld.debug.error";
+		const string k_Critical = "inworld.debug.critical-error";
+		const string k_GoAway = "inworld.debug.goaway";
+		const string k_IncompleteInteraction = "inworld.debug.setup-incomplete-interaction";
 
 		static readonly Dictionary<string, InworldMessage> s_Message;
 
@@ -32,15 +36,28 @@ namespace Inworld.Entities
 				[k_GoalDisable] = InworldMessage.GoalDisable,
 				[k_GoalComplete] = InworldMessage.GoalComplete,
 				[k_RelationUpdate] = InworldMessage.RelationUpdate,
-				[k_ConversationNextTurn] = InworldMessage.ConversationNextTurn
+				[k_ConversationNextTurn] = InworldMessage.ConversationNextTurn,
+				[k_Error] = InworldMessage.Error,
+				[k_Critical] = InworldMessage.Critical,
+				[k_GoAway] = InworldMessage.GoAway,
+				[k_IncompleteInteraction] = InworldMessage.IncompleteInteraction
 			};
 		}
+		public static string NextTurn => k_ConversationNextTurn;
 		public static int GoalCompleteHead => k_GoalComplete.Length + 1; // YAN: With a dot in the end.
 		public static InworldMessage ProcessPacket(CustomPacket packet) => 
 			(from data in s_Message where packet.custom.name.StartsWith(data.Key) select data.Value).FirstOrDefault();
 
-		public static void EnableGoal(string goalName, string agentID) => InworldController.Instance.SendTrigger($"{k_GoalEnable}.{goalName}", agentID);
+		public static void EnableGoal(string goalName, string brainName) => InworldController.Client.SendTriggerTo($"{k_GoalEnable}.{goalName}", null, new List<string>{brainName});
 		
-		public static void DisableGoal(string goalName, string agentID) => InworldController.Instance.SendTrigger($"{k_GoalDisable}.{goalName}", agentID);
+		public static void DisableGoal(string goalName, string brainName) => InworldController.Client.SendTriggerTo($"{k_GoalDisable}.{goalName}", null, new List<string>{brainName});
+
+		public static void DebugSendError() => InworldController.Instance.SendTrigger(k_Error);
+		
+		public static void DebugSendCritical() => InworldController.Instance.SendTrigger(k_Critical);
+		
+		public static void DebugSendGoAway() => InworldController.Instance.SendTrigger(k_GoAway);
+		
+		public static void DebugSendIncompleteInteraction() => InworldController.Instance.SendTrigger(k_IncompleteInteraction);
 	}
 }
