@@ -11,9 +11,6 @@ namespace Inworld.Sample
 {
     public class PlayerController2D : PlayerController
     {
-        [SerializeField] Button m_SendButton;
-        [SerializeField] Button m_RecordButton;
-        
         protected override void Start()
         {
             if (m_SendButton)
