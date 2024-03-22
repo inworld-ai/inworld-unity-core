@@ -21,6 +21,8 @@ namespace Inworld.Sample
     public class PlayerController : SingletonBehavior<PlayerController>
     {
         [Header("Interaction Control")]
+        [SerializeField] public KeyCode uiKey = KeyCode.BackQuote;
+        [SerializeField] public KeyCode optionKey = KeyCode.Escape;
         [SerializeField] public KeyCode skipKey = KeyCode.None;
         [SerializeField] public KeyCode continueKey = KeyCode.None;
         [Header("Audio Capture")]

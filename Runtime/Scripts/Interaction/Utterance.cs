@@ -66,9 +66,10 @@ namespace Inworld.Interactions
         {
             m_Packets.Clear();
         }
-        public virtual void OnDequeue()
+        public virtual bool OnDequeue()
         {
             // YAN: Inherit your logic here in case you want to do specific stuff when dequeuing.
+            return true;
         }
     }
 }

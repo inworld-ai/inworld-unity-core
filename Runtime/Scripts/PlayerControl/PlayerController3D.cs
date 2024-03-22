@@ -17,6 +17,7 @@ namespace Inworld.Sample
         [SerializeField] protected GameObject m_ChatCanvas;
         [SerializeField] protected GameObject m_StatusCanvas;
         [SerializeField] protected GameObject m_FeedbackCanvas;
+        [SerializeField] protected GameObject m_OptionCanvas;
         [SerializeField] protected BubblePanel m_BubblePanel;
 
         CharSelectingMethod m_PrevSelectingMethod;
@@ -73,29 +74,39 @@ namespace Inworld.Sample
         }
         protected override void HandleInput()
         {
-            if (Input.GetKeyUp(KeyCode.BackQuote))
-            {
-                m_ChatCanvas.SetActive(!m_ChatCanvas.activeSelf);
-                if (m_ChatCanvas.activeSelf)
-                {
-                    m_PrevSelectingMethod = InworldController.CharacterHandler.SelectingMethod;
-                    InworldController.CharacterHandler.SelectingMethod = CharSelectingMethod.Manual;
-                }
-                else
-                {
-                    InworldController.CharacterHandler.SelectingMethod = m_PrevSelectingMethod;
-                }
-                if (m_BubblePanel)
-                    m_BubblePanel.UpdateContent();
-                m_BlockAudioHandling = m_ChatCanvas.activeSelf;
-                if (m_PushToTalk)
-                    InworldController.Instance.StopAudio();
-                InworldController.Audio.AutoPush = !m_ChatCanvas.activeSelf && !m_PushToTalk;
-                if (InworldController.CurrentCharacter)
-                    InworldController.CharacterHandler.ManualAudioHandling = m_ChatCanvas.activeSelf || m_PushToTalk;
-            }
+            _HandleChatCanvas();
+            _HandleOptionCanvas();
+        }
+        protected void _HandleOptionCanvas()
+        {
+            if (!Input.GetKeyUp(optionKey))
+                return;
+            m_OptionCanvas.SetActive(!m_OptionCanvas.activeSelf);
+        }
+        protected void _HandleChatCanvas()
+        {
             if (m_ChatCanvas.activeSelf)
                 base.HandleInput();
+            
+            if (!Input.GetKeyUp(uiKey))
+                return;
+            
+            m_ChatCanvas.SetActive(!m_ChatCanvas.activeSelf);
+            if (m_ChatCanvas.activeSelf)
+            {
+                m_PrevSelectingMethod = InworldController.CharacterHandler.SelectingMethod;
+                InworldController.CharacterHandler.SelectingMethod = CharSelectingMethod.Manual;
+            }
+            else
+                InworldController.CharacterHandler.SelectingMethod = m_PrevSelectingMethod;
+            if (m_BubblePanel)
+                m_BubblePanel.UpdateContent();
+            m_BlockAudioHandling = m_ChatCanvas.activeSelf;
+            if (m_PushToTalk)
+                InworldController.Instance.StopAudio();
+            InworldController.Audio.AutoPush = !m_ChatCanvas.activeSelf && !m_PushToTalk;
+            if (InworldController.CurrentCharacter)
+                InworldController.CharacterHandler.ManualAudioHandling = m_ChatCanvas.activeSelf || m_PushToTalk;
         }
     }
 }

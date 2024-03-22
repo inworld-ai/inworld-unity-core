@@ -89,25 +89,33 @@ namespace Inworld.Interactions
 		{
 			throw new NotImplementedException();
 		}
-		public void OnDequeue()
+		public bool OnDequeue()
 		{
-			_UpdateSessionInfo();
-			_ComposePacket();
+			if (_UpdateSessionInfo())
+			{
+				_ComposePacket();
+				return true;
+			}
+			return false;
 		}
 		
 		/// <summary>
 		/// Update the characters in this conversation with updated ID.
 		/// </summary>
 		/// <returns>The brain name of the characters not found in the current session.</returns>
-		void _UpdateSessionInfo()
+		bool _UpdateSessionInfo()
 		{
 			foreach (string key in Targets.Keys.ToList())
 			{
 				if (InworldController.Client.LiveSessionData.TryGetValue(key, out InworldCharacterData value))
 					Targets[key] = value.agentId;
-				else if (InworldAI.IsDebugMode)
-					InworldAI.LogWarning($"{key} is not in the current session.");
+				else 
+				{
+					if (InworldAI.IsDebugMode)
+						InworldAI.LogWarning($"{key} is not in the current session.");
+				}
 			}
+			return Targets.Count > 0 && !Targets.Values.Any(string.IsNullOrEmpty);
 		}
 
 		void _ComposePacket()

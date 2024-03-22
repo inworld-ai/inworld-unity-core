@@ -40,6 +40,7 @@ namespace Inworld
         public UnityEvent OnPlayerStopSpeaking;
         
 #region Variables
+        protected float m_CharacterVolume = 1f;
         protected MicSampleMode m_LastSampleMode;
         protected const int k_SizeofInt16 = sizeof(short);
         protected const int k_SampleRate = 16000;
@@ -66,6 +67,14 @@ namespace Inworld
 #endregion
         
 #region Properties
+        /// <summary>
+        /// Gets the global setting of the volumes (From 0 to 1). 
+        /// </summary>
+        public float Volume
+        {
+            get => m_CharacterVolume;
+            set => m_CharacterVolume = value;
+        }
         /// <summary>
         /// Signifies if audio is currently blocked from being captured.
         /// </summary>

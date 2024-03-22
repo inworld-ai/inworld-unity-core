@@ -21,7 +21,7 @@ namespace Inworld.Interactions
         public bool Contains(InworldPacket packet);
         public void Add(InworldPacket packet);
         public void Cancel(bool isHardCancelling = true);
-        public void OnDequeue();
+        public bool OnDequeue();
     }
     public class IndexQueue<T> where T : IContainable
     {
@@ -61,10 +61,13 @@ namespace Inworld.Interactions
             if (m_Elements.Count == 0)
                 return default;
             T result = m_Elements[0];
-            if (needCallback)
-                result.OnDequeue();
+            if (needCallback && result.OnDequeue())
+            {
+                m_Elements.Remove(result);
+                return result;
+            }
             m_Elements.Remove(result);
-            return result;
+            return default;
         }
         public void Remove(T target)
         {
