@@ -95,7 +95,11 @@ namespace Inworld
             get => m_Token;
             set => m_Token = value;
         }
-        public string CurrentScene => m_SceneFullName;
+        public string CurrentScene
+        {
+            get => m_SceneFullName;
+            set => m_SceneFullName = value;
+        }
         /// <summary>
         /// Gets if the current token is valid.
         /// </summary>
@@ -328,12 +332,20 @@ namespace Inworld
         /// Disconnect Inworld Server.
         /// </summary>
         public virtual void Disconnect() => StartCoroutine(DisconnectAsync());
+        public virtual void UnloadScene()
+        {
+            foreach (KeyValuePair<string, InworldCharacterData> data in m_LiveSessionData)
+            {
+                data.Value.agentId = "";
+            }
+        }
         /// <summary>
         /// Send LoadScene request to Inworld Server.
         /// </summary>
         /// <param name="sceneFullName">the full string of the scene to load.</param>
         public virtual void LoadScene(string sceneFullName = "")
         {
+            UnloadScene();
             InworldAI.LogEvent("Login_Runtime");
             if (!string.IsNullOrEmpty(sceneFullName))
             {
@@ -379,8 +391,8 @@ namespace Inworld
         public virtual void SendSessionConfig()
         {
             string gameSessionID = $"{InworldAI.User.Name}:{m_Token.sessionId}:{_GetSessionGUID()}";
-            string jsonToSend = JsonUtility.ToJson(m_Token.ToPacket(gameSessionID));
-            InworldAI.Log($"Sending Session Info: {gameSessionID}");
+            string jsonToSend = JsonUtility.ToJson(m_Token.ToPacket()); 
+            InworldAI.Log($"Sending Session Info."); 
             m_Socket.SendAsync(jsonToSend);
         }
         /// <summary>
@@ -611,9 +623,12 @@ namespace Inworld
             {
                 action = ControlType.AUDIO_SESSION_END.ToString()
             };
-            m_Prepared.Enqueue(new OutgoingPacket(control, characterToReceive));
+            OutgoingPacket output = new OutgoingPacket(control, characterToReceive);
+            output.OnDequeue();
+            if (!string.IsNullOrEmpty(output.RawPacket?.routing?.target?.name))
+                m_Socket.SendAsync(output.RawPacket.ToJson); // Do not enqueue dataChunk, They can be discarded.
         }
-                /// <summary>
+        /// <summary>
         /// Legacy Send AUDIO_SESSION_END control events to server to.
         /// </summary>
         /// <param name="charID">the live session ID of the character to send.</param>
@@ -661,7 +676,8 @@ namespace Inworld
             };
             OutgoingPacket output = new OutgoingPacket(dataChunk, characterToReceive);
             output.OnDequeue();
-            m_Socket.SendAsync(output.RawPacket.ToJson); // Do not enqueue dataChunk, They can be discarded.
+            if (!string.IsNullOrEmpty(output.RawPacket?.routing?.target?.name))
+                m_Socket.SendAsync(output.RawPacket.ToJson); // Do not enqueue dataChunk, They can be discarded.
         }
         /// <summary>
         /// Legacy Send the wav data to server to a specific character.

@@ -64,6 +64,7 @@ namespace Inworld
             get => Instance.m_UserSetting ? Instance.m_UserSetting : Instance.m_DefaultUserSetting;
             set => Instance.m_UserSetting = value;
         }
+        public static InworldUserSetting DefaultUser => Instance.m_DefaultUserSetting;
         /// <summary>
         /// Gets if it's in debug mode. Could be toggled in the `InworldAI.asset`.
         /// </summary>

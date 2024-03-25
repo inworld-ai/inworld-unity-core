@@ -71,9 +71,10 @@ namespace Inworld.Interactions
             }
             m_Prepared.PourTo(m_Cancelled);
         }
-        public void OnDequeue()
+        public bool OnDequeue()
         {
             // YAN: You can add your callback here when it's dequeuing.
+            return true;
         }
     }
 }

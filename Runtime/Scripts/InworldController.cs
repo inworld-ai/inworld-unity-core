@@ -337,7 +337,6 @@ namespace Inworld
         {
             _Setup();
         }
-
         protected virtual void Start() => LoadData(m_GameData);
 
         protected void _Setup()

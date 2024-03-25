@@ -95,7 +95,7 @@ namespace Inworld.Interactions
         }
         protected IEnumerator AdjustVolume()
         {
-            m_PlaybackSource.volume = InworldController.Audio.IsPlayerSpeaking ? m_VolumeOnPlayerSpeaking : 1f;
+            m_PlaybackSource.volume = (InworldController.Audio.IsPlayerSpeaking ? m_VolumeOnPlayerSpeaking : 1f) * InworldController.Audio.Volume;
             yield break;
         }
     }
