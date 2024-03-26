@@ -22,7 +22,7 @@ namespace Inworld
         [HideInInspector][SerializeField] string m_BillingAccount;
         /// <summary>
         /// Get/Set the player name, which will be displayed in the game.
-        /// If you want to change the name in the runtime, you need to restart session.
+        /// If you want to change the name in the runtime, you need to call SendUserConfig().
         /// </summary>
         public string Name
         {
@@ -47,7 +47,8 @@ namespace Inworld
         /// </summary>
         public List<PlayerProfileField> PlayerProfiles => m_PlayerData;
         /// <summary>
-        /// Get the user's billing account. It's generated via Inworld Studio Panel. Please do not modify, otherwise the Inworld interaction will not work.
+        /// Get the user's billing account. It's generated via Inworld Studio Panel.
+        /// Please do not modify, otherwise the Inworld interaction will not work.
         /// </summary>
         public string BillingAccount
         {
@@ -59,7 +60,8 @@ namespace Inworld
         /// </summary>
         public string Account => $"{BillingAccount}:{Name}";
         /// <summary>
-        /// Get the user ID. It's generated via Inworld Studio Panel. Please do not modify, otherwise the Inworld interaction will not work.
+        /// Get the user ID.
+        /// It's generated via Inworld Studio Panel. Please do not modify, otherwise the Inworld interaction will not work.
         /// </summary>
         public string ID
         {

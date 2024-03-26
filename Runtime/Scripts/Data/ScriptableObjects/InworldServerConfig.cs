@@ -15,9 +15,13 @@ namespace Inworld
         public string web;
         public string tutorialPage; //TODO(Yan): Add reference in Editor panel.
         public int port;
-        public string TokenServer => $"https://{web}/{k_TokenURL}"; 
+        
         const string k_SessionURL = "v1/session/open?session_id="; 
         const string k_TokenURL = "v1/sessionTokens/token:generate";
+        /// <summary>
+        /// Get the URL of the token server.
+        /// </summary>
+        public string TokenServer => $"https://{web}/{k_TokenURL}"; 
         /// <summary>
         /// Get the URL of runtime server.
         /// </summary>
@@ -35,6 +39,11 @@ namespace Inworld
         ///     Format should be workspaces/{workspaceName}/sessions/{sessionID}
         /// </param>
         public string LoadSessionURL(string sessionFullName) => $"https://{web}/v1/{sessionFullName}/state?name={sessionFullName}";
+        /// <summary>
+        /// Get the URL for the sending feedback request.
+        /// </summary>
+        /// <param name="callbackReference">the full name of the callback that is based on sessionID, interactionID, and correlationID.</param>
+        /// <returns></returns>
         public string FeedbackURL(string callbackReference) => $"https://{web}/v1/feedback/{callbackReference}/feedbacks";
     }
 }

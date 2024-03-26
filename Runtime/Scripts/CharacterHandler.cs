@@ -121,9 +121,6 @@ namespace Inworld
                 return;
             OnCharacterListJoined?.Invoke(character);
             m_CharacterList.Add(character);
-            if (m_CharacterList.Count == 1)
-                CurrentCharacter = character;
-            
         }
         /// <summary>
         /// Remove the character from the character list.
