@@ -627,6 +627,7 @@ namespace Inworld
             output.OnDequeue();
             if (!string.IsNullOrEmpty(output.RawPacket?.routing?.target?.name))
                 m_Socket.SendAsync(output.RawPacket.ToJson); // Do not enqueue dataChunk, They can be discarded.
+            OnPacketSent?.Invoke(output.RawPacket);
         }
         /// <summary>
         /// Legacy Send AUDIO_SESSION_END control events to server to.

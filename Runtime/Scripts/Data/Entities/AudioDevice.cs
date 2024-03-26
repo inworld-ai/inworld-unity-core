@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using UnityEngine.Scripting;
 
 
@@ -23,7 +24,7 @@ namespace Inworld.Entities
 
         public void StopAudio()
         {
-            InworldController.Client.StopAudioTo(currentBrainNames);
+            InworldController.Client.StopAudioTo(currentBrainNames); 
             lastBrainNames = currentBrainNames;
             currentBrainNames.Clear();
         }
