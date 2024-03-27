@@ -20,14 +20,24 @@ namespace Inworld.Entities
         public string audioSessionID;
         public List<string> currentBrainNames = new List<string>();
         public List<string> lastBrainNames = new List<string>();
+        /// <summary>
+        /// Gets if the current live session has any characters.
+        /// </summary>
         public bool IsLive => currentBrainNames.Count > 0;
 
+        /// <summary>
+        /// Stops the current audio session.
+        /// </summary>
         public void StopAudio()
         {
             InworldController.Client.StopAudioTo(currentBrainNames); 
             lastBrainNames = currentBrainNames;
             currentBrainNames.Clear();
         }
+        /// <summary>
+        /// Starts a new audio session.
+        /// </summary>
+        /// <param name="characterBrainNames">The brain names of the characters to enable audio interaction</param>
         public void StartAudio(List<string> characterBrainNames)
         {
             if (characterBrainNames.Count == 0)
@@ -38,6 +48,11 @@ namespace Inworld.Entities
             InworldController.Client.StartAudioTo(characterBrainNames);
             currentBrainNames = characterBrainNames;
         }
+        /// <summary>
+        /// Check if the incoming characters are same in the current session.
+        /// </summary>
+        /// <param name="characterBrainNames">The brain names of the characters to enable audio interaction</param>
+        /// <returns></returns>
         public bool CharactersAreSame(List<string> characterBrainNames)
         {
             return currentBrainNames.Count == characterBrainNames.Count && currentBrainNames.All(characterBrainNames.Contains);

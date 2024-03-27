@@ -27,7 +27,7 @@ namespace Inworld.Entities
         public InworldKeySecret DefaultKey => keySecrets.Count > 0 ? keySecrets[0] : null;
 
         /// <summary>
-        /// Get's the first scene in the list, that all the input characters are in that scene.
+        /// Get the first scene in the list, that all the input characters are in that scene.
         /// </summary>
         /// <param name="characters">the brain names of these characters.</param>
         /// <returns>the scene full name if exists. Or the first character name (We don't support load a new scene with all new characters)</returns>

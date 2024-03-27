@@ -31,7 +31,7 @@ namespace Inworld.Sample
         
         protected override void OnCharacterLeft(InworldCharacter newChar)
         {
-            base.OnCharacterJoined(newChar);
+            base.OnCharacterLeft(newChar);
             newChar.Event.onCharacterSelected.RemoveListener(OnCharSelected);
             newChar.Event.onCharacterDeselected.RemoveListener(OnCharDeselected);
         }
