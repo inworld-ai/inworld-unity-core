@@ -139,6 +139,14 @@ namespace Inworld
             InworldController.Client.SendTextTo(text, new List<string>{BrainName});
         }
         /// <summary>
+        /// Send a narrative action to this character.
+        /// </summary>
+        /// <param name="narrative">the narrative text to send</param>
+        public virtual void SendNarrative(string narrative)
+        {
+            InworldController.Client.SendNarrativeActionTo(narrative, new List<string>{BrainName});
+        }
+        /// <summary>
         /// Send the trigger to this character.
         /// Trigger is defined in the goals section of the character in Inworld Studio.
         /// </summary>

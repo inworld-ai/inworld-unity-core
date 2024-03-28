@@ -18,7 +18,14 @@ namespace Inworld.Packet
     public class ActionEvent
     {
         public NarrativeAction narratedAction;
-        public string playback;
+
+        public ActionEvent(string content = "")
+        {
+            narratedAction = new NarrativeAction()
+            {
+                content = content
+            };
+        }
     }
     [Serializable]
     public class ActionPacket : InworldPacket

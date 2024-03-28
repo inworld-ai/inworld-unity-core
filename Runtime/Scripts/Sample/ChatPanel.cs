@@ -175,14 +175,27 @@ namespace Inworld.Sample
         {
             if (!m_ChatOptions.narrativeAction || actionPacket.action == null || actionPacket.action.narratedAction == null || string.IsNullOrWhiteSpace(actionPacket.action.narratedAction.content) || !IsUIReady)
                 return;
-            InworldCharacterData charData = InworldController.Client.GetCharacterDataByID(actionPacket.routing.source.name);
-            if (charData == null)
-                return;
-            string key = m_ChatOptions.longBubbleMode ? actionPacket.packetId.interactionId : actionPacket.packetId.utteranceId;
-            string charName = charData.givenName ?? "Character";
-            Texture2D thumbnail = charData.thumbnail ? charData.thumbnail : InworldAI.DefaultThumbnail;
-            string content = $"<i><color=#AAAAAA>{actionPacket.action.narratedAction.content}</color></i>";
-            InsertBubbleWithPacketInfo(key, actionPacket.packetId, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
+
+            switch (actionPacket.routing.source.type.ToUpper())
+            {
+                case "AGENT":
+                    InworldCharacterData charData = InworldController.Client.GetCharacterDataByID(actionPacket.routing.source.name);
+                    if (charData == null)
+                        return;
+                    string key = m_ChatOptions.longBubbleMode ? actionPacket.packetId.interactionId : actionPacket.packetId.utteranceId;
+                    string charName = charData.givenName ?? "Character";
+                    Texture2D thumbnail = charData.thumbnail ? charData.thumbnail : InworldAI.DefaultThumbnail;
+                    string content = $"<i><color=#AAAAAA>{actionPacket.action.narratedAction.content}</color></i>";
+                    InsertBubbleWithPacketInfo(key, actionPacket.packetId, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
+                    break;
+                case "PLAYER":
+                    // YAN: Player Input does not apply longBubbleMode.
+                    //      And Key is always utteranceID.
+                    key = actionPacket.packetId.utteranceId;
+                    content = $"<i><color=#AAAAAA>{actionPacket.action.narratedAction.content}</color></i>";
+                    InsertBubbleWithPacketInfo(key, actionPacket.packetId, m_BubbleRight, InworldAI.User.Name, false, content, InworldAI.DefaultThumbnail);
+                    break;
+            }
         }
     }
 }

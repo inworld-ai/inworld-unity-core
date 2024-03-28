@@ -34,6 +34,17 @@ namespace Inworld.Interactions
             };
             RawPacket.packetId.correlationId = ID;
         }
+        public OutgoingPacket(ActionEvent narrativeActionToSend, Dictionary<string, string> characterTable = null)
+        {
+	        ID = Guid.NewGuid().ToString();
+	        Targets = characterTable;
+	        RawPacket = new ActionPacket()
+	        {
+		        routing = new Routing(Targets?.Values.ToList()),
+		        action = narrativeActionToSend
+	        };
+	        RawPacket.packetId.correlationId = ID;
+        }
         public OutgoingPacket(MutationEvent mutationToSend, Dictionary<string, string> characterTable = null)
         {
 	        ID = Guid.NewGuid().ToString();

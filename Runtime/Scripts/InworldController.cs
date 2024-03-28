@@ -223,6 +223,18 @@ namespace Inworld
             }
         }
         /// <summary>
+        /// Send a narrative action to an InworldCharacter in this current scene.
+        /// </summary>
+        /// <param name="charID">the live session ID of the character to send</param>
+        /// <param name="narrativeAction">the narrative action to send.</param>
+        public void SendNarrativeAction(string narrativeAction)
+        {
+            if (CharacterHandler.CurrentCharacter)
+                CharacterHandler.CurrentCharacter.SendNarrative(narrativeAction);
+            else
+                m_Client.SendNarrativeActionTo(narrativeAction, CharacterHandler.CurrentCharacterNames);
+        }
+        /// <summary>
         /// Cancel all the current character's generating responses.
         /// Automatically used when sending Text.
         /// For other sending data, such as sending trigger, please consider to use according to your scenario.

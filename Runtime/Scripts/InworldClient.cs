@@ -472,6 +472,51 @@ namespace Inworld
             OnPacketSent?.Invoke(packet);
             m_Socket.SendAsync(jsonToSend);
         }
+        /// <summary>
+        /// New Send narrative action to an InworldCharacter in this current scene.
+        /// NOTE: 1. New method uses brain ID (aka character's full name) instead of live session ID
+        ///       2. New method support broadcasting to multiple characters.
+        /// </summary>
+        /// <param name="narrativeAction">the narrative action to send.</param>
+        /// <param name="characters">the list of the characters full name.</param>
+        public virtual void SendNarrativeActionTo(string narrativeAction, List<string> characters = null)
+        {
+            if (string.IsNullOrEmpty(narrativeAction))
+                return;
+            Dictionary<string, string> characterToReceive = GetCharacterDataByFullName(characters);
+            if (characterToReceive.Count == 0)
+                return;
+            OutgoingPacket rawData = new OutgoingPacket(new ActionEvent(narrativeAction), characterToReceive);
+            m_Prepared.Enqueue(rawData);
+            OnPacketSent?.Invoke(rawData.RawPacket);
+        }
+        /// <summary>
+        /// Legacy Send a narrative action to an InworldCharacter in this current scene.
+        /// </summary>
+        /// <param name="characterID">the live session ID of the character to send</param>
+        /// <param name="narrativeAction">the narrative action to send.</param>
+        public virtual void SendNarrativeAction(string characterID, string narrativeAction)
+        {
+            if (string.IsNullOrEmpty(characterID) || string.IsNullOrEmpty(narrativeAction))
+                return;
+            InworldPacket packet = new ActionPacket
+            {
+                timestamp = InworldDateTime.UtcNow,
+                type = "ACTION",
+                packetId = new PacketId(),
+                routing = new Routing(characterID),
+                action = new ActionEvent
+                {
+                    narratedAction = new NarrativeAction
+                    {
+                        content = narrativeAction
+                    }
+                }
+            };
+            string jsonToSend = JsonUtility.ToJson(packet);
+            OnPacketSent?.Invoke(packet);
+            m_Socket.SendAsync(jsonToSend);
+        }
                 /// <summary>
         /// New Send the CancelResponse Event to InworldServer to interrupt the character's speaking.
         /// NOTE: 1. New method uses brain ID (aka character's full name) instead of live session ID
