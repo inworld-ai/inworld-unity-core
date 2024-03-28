@@ -158,6 +158,18 @@ namespace Inworld
             m_CharacterList.Remove(character);
             OnCharacterListLeft?.Invoke(character); 
         }
+         /// <summary>
+         /// Remove all the characters from the character list.
+         /// </summary>
+         public void UnregisterAll()
+         {
+             if (!InworldController.Instance || m_CharacterList.Count == 0)
+                 return;
+             CurrentCharacter = null;
+             foreach (InworldCharacter character in m_CharacterList)
+                 OnCharacterListLeft?.Invoke(character); 
+             m_CharacterList.Clear();
+         }
     }
 }
 
