@@ -33,7 +33,7 @@ namespace Inworld
         [SerializeField] protected int m_BufferSeconds = 1;
         [SerializeField] protected string m_DeviceName;
 
-        public AudioSource CurrentPlayingAudioSource { get; set; }
+        
         public UnityEvent OnRecordingStart;
         public UnityEvent OnRecordingEnd;
         public UnityEvent OnPlayerStartSpeaking;
@@ -67,6 +67,10 @@ namespace Inworld
 #endregion
         
 #region Properties
+        /// <summary>
+        /// Gets/Sets the current playing audio source.
+        /// </summary>
+        public AudioSource CurrentPlayingAudioSource { get; set; }
         /// <summary>
         /// Gets the global setting of the volumes (From 0 to 1). 
         /// </summary>

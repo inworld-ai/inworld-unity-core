@@ -244,11 +244,9 @@ namespace Inworld
             m_Client.SendCancelEventTo(interactionID, utteranceID, CharacterHandler.CurrentCharacterNames);
         } 
         /// <summary>
-        /// Legacy Send the trigger to an InworldCharacter in the current scene.
+        /// Send the trigger to the whole session.
         /// </summary>
-        /// <param name="charID">the live session ID of the character to send. Send to World if it's empty</param>
         /// <param name="triggerName">the name of the trigger to send.</param>
-        /// <param name="parameters">the parameters and their values for the triggers.</param>
         public void SendWorldTrigger(string triggerName)
         {
             if (Client.Status != InworldConnectionStatus.Connected)

@@ -39,6 +39,9 @@ namespace Inworld
         /// </summary>
         public virtual bool IsAnyCharacterSpeaking => m_CharacterList.Any(c => c.IsSpeaking);
 
+        /// <summary>
+        ///     Gets the list of all the current character's brain name in the conversation.
+        /// </summary>
         public List<string> CurrentCharacterNames => m_CharacterList.Select(a => a.BrainName).ToList();
 
         /// <summary>
@@ -97,8 +100,20 @@ namespace Inworld
         /// </summary>
         public virtual void ChangeSelectingMethod() {}
         
+        /// <summary>
+        /// Gets the character by a brain name.
+        /// It's nullable, and will return the first one if multiple characters exist. 
+        /// </summary>
+        /// <param name="brainName"></param>
+        /// <returns></returns>
         public virtual InworldCharacter GetCharacterByBrainName(string brainName) => CurrentCharacters.FirstOrDefault(c => c.BrainName == brainName);
 
+        /// <summary>
+        /// Gets the character by a given name.
+        /// It's nullable, and will return the first one if multiple characters exist. 
+        /// </summary>
+        /// <param name="givenName"></param>
+        /// <returns></returns>
         public virtual InworldCharacter GetCharacterByGivenName(string givenName) => CurrentCharacters.FirstOrDefault(c => c.Name == givenName);
         IEnumerator UpdateThumbnail(InworldCharacterData agent)
         {
@@ -115,6 +130,11 @@ namespace Inworld
                 agent.thumbnail = (uwr.downloadHandler as DownloadHandlerTexture)?.texture;
             }
         }
+        /// <summary>
+        /// Add a character to the character list.
+        /// Triggers OnCharacterListJoined
+        /// </summary>
+        /// <param name="character">target character to add.</param>
         public virtual void Register(InworldCharacter character)
         {
             if (m_CharacterList.Contains(character))

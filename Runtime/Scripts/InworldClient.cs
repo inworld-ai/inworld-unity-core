@@ -95,6 +95,9 @@ namespace Inworld
             get => m_Token;
             set => m_Token = value;
         }
+        /// <summary>
+        /// Gets/Sets the current full name of the Inworld scene.
+        /// </summary>
         public string CurrentScene
         {
             get => m_SceneFullName;
@@ -332,6 +335,9 @@ namespace Inworld
         /// Disconnect Inworld Server.
         /// </summary>
         public virtual void Disconnect() => StartCoroutine(DisconnectAsync());
+        /// <summary>
+        /// Unload curren scene. Make sure to be called before loading another scene.
+        /// </summary>
         public virtual void UnloadScene()
         {
             foreach (KeyValuePair<string, InworldCharacterData> data in m_LiveSessionData)
@@ -419,7 +425,6 @@ namespace Inworld
         /// Send the previous dialog (New version) to specific scene.
         /// Can be supported by either previous state (base64) or previous dialog (actor: text)
         /// </summary>
-        /// <param name="sceneFullName">target scene to send</param>
         public virtual void SendHistory()
         {
             if (!m_Continuation.IsValid)
