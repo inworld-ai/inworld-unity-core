@@ -47,9 +47,9 @@ namespace Inworld.Sample
                 return;
             string text = m_InputField.text;
             if (text.StartsWith("*"))
-                InworldController.CurrentCharacter.SendNarrative(text.Remove(0, 1));
+                InworldController.Instance.SendNarrativeAction(text.Remove(0, 1));
             else
-                InworldController.CurrentCharacter.SendText(text);
+                InworldController.Instance.SendText(text);
             m_InputField.text = "";
         }
         /// <summary>
