@@ -16,6 +16,8 @@ namespace Inworld.Interactions
         public string ID { get; set; }
         public DateTime RecentTime { get; set; }
         internal Utterance CurrentUtterance { get; set; }
+        public bool IsEmpty => (m_Prepared == null || m_Prepared.IsEmpty) && (CurrentUtterance == null || CurrentUtterance.IsEmpty);
+        
         readonly IndexQueue<Utterance> m_Prepared;
         readonly IndexQueue<Utterance> m_Processed;
         readonly IndexQueue<Utterance> m_Cancelled;
@@ -59,7 +61,7 @@ namespace Inworld.Interactions
             m_Processed.Enqueue(nextUtterance);
             return nextUtterance;
         }
-        public bool IsEmpty => (m_Prepared == null || m_Prepared.IsEmpty) && (CurrentUtterance == null || CurrentUtterance.IsEmpty);
+
         public bool Contains(InworldPacket packet) => packet?.packetId?.interactionId == ID;
         
         public void Cancel(bool isHardCancelling = true)

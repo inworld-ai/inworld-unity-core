@@ -90,7 +90,7 @@ namespace Inworld.Interactions
         
 		public bool Contains(InworldPacket packet)
 		{
-			throw new NotImplementedException();
+			return RawPacket.packetId == packet.packetId;
 		}
 		public void Add(InworldPacket packet)
 		{
