@@ -35,12 +35,12 @@ namespace Inworld
         protected readonly List<InworldCharacter> m_CharacterList = new List<InworldCharacter>();
 
         /// <summary>
-        ///     Return if any character is speaking.
+        /// Return if any character is speaking.
         /// </summary>
         public virtual bool IsAnyCharacterSpeaking => m_CharacterList.Any(c => c.IsSpeaking);
 
         /// <summary>
-        ///     Gets the list of all the current character's brain name in the conversation.
+        /// Gets the list of all the current character's brain name in the conversation.
         /// </summary>
         public List<string> CurrentCharacterNames => m_CharacterList.Select(a => a.BrainName).ToList();
 

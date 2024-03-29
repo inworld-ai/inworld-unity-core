@@ -336,7 +336,7 @@ namespace Inworld
         /// </summary>
         public virtual void Disconnect() => StartCoroutine(DisconnectAsync());
         /// <summary>
-        /// Unload curren scene. Make sure to be called before loading another scene.
+        /// Unload current scene. Make sure to be called before loading another scene.
         /// </summary>
         public virtual void UnloadScene()
         {
