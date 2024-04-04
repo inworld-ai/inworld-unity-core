@@ -367,7 +367,7 @@ namespace Inworld
                     InworldAI.LogException("Characters not found in the workspace");
                     return;
                 }
-                if (result.Count == 1 && result[0].Split("/scenes/").Length > 0)
+                if (result.Count == 1 && result[0].Split(new[] { "/scenes/" }, StringSplitOptions.None).Length > 1)
                 {
                     m_SceneFullName = result[0];
                     InworldAI.Log($"Load Scene: {m_SceneFullName}");
@@ -396,7 +396,6 @@ namespace Inworld
         /// </summary>
         public virtual void SendSessionConfig()
         {
-            string gameSessionID = $"{InworldAI.User.Name}:{m_Token.sessionId}:{_GetSessionGUID()}";
             string jsonToSend = JsonUtility.ToJson(m_Token.ToPacket()); 
             InworldAI.Log($"Sending Session Info."); 
             m_Socket.SendAsync(jsonToSend);
@@ -945,14 +944,6 @@ namespace Inworld
             yield return new WaitForEndOfFrame();
             m_Socket?.CloseAsync();
             yield return new WaitForEndOfFrame();
-        }
-        protected string _GetSessionGUID()
-        {
-            if (!string.IsNullOrEmpty(m_Continuation?.externallySavedState) && m_Continuation?.externallySavedState.Length >= 8)
-                return m_Continuation.externallySavedState[..8];
-            if (!string.IsNullOrEmpty(SessionHistory) && SessionHistory.Length >= 8)
-                return SessionHistory[..8];
-            return Guid.NewGuid().ToString()[..8];
         }
         protected IEnumerator _GetHistoryAsync(string sceneFullName)
         {
