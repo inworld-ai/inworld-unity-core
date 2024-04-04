@@ -353,16 +353,17 @@ namespace Inworld
         }
         protected virtual void OnPacketSent(InworldPacket packet)
         {
-            if (packet is not ControlPacket controlPacket)
-                return;
-            switch (controlPacket.Action)
+            if (packet is ControlPacket controlPacket)
             {
-                case ControlType.AUDIO_SESSION_START:
-                    StartRecording();
-                    break;
-                case ControlType.AUDIO_SESSION_END:
-                    StopRecording();
-                    break;
+                switch (controlPacket.Action)
+                {
+                    case ControlType.AUDIO_SESSION_START:
+                        StartRecording();
+                        break;
+                    case ControlType.AUDIO_SESSION_END:
+                        StopRecording();
+                        break;
+                }
             }
         }
         protected virtual void OnCharacterJoined(InworldCharacter character)
