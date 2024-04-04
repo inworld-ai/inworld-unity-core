@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Inworld.Packet
@@ -14,6 +15,27 @@ namespace Inworld.Packet
     {
         public string phoneme;
         public float startOffset;
+    }
+    [Serializable]
+    public class VisemeData
+    {
+        public List<float> visemeVal;
+        public string phonemeName;
+
+        public VisemeData(string newLine)
+        {
+            visemeVal = new List<float>();
+            string[] data = newLine.Split(',');
+            phonemeName = data[0];
+            for (int i = 1; i < data.Length; i++)
+            {
+                visemeVal.Add(float.Parse(data[i]));
+            }
+        }
+        public VisemeData()
+        {
+            visemeVal = new List<float>();
+        }
     }
     [Serializable]
     public class AudioPacket : InworldPacket
