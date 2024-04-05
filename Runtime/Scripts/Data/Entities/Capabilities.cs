@@ -17,6 +17,7 @@ namespace Inworld.Entities
         public bool emotions;
         public bool interruptions;
         public bool narratedActions;
+        public bool regenerateResponse;
         public bool text;
         public bool triggers;
         public bool phonemeInfo;
@@ -31,6 +32,7 @@ namespace Inworld.Entities
             emotions = rhs.emotions;
             interruptions = rhs.interruptions;
             narratedActions = rhs.narratedActions;
+            regenerateResponse = rhs.regenerateResponse;
             text = rhs.text;
             triggers = rhs.triggers;
             phonemeInfo = rhs.phonemeInfo;
@@ -44,6 +46,7 @@ namespace Inworld.Entities
             emotions = rhs.emotions;
             interruptions = rhs.interruptions;
             narratedActions = rhs.narratedActions;
+            regenerateResponse = rhs.regenerateResponse;
             text = rhs.text;
             triggers = rhs.triggers;
             phonemeInfo = rhs.phonemeInfo;
@@ -73,6 +76,8 @@ namespace Inworld.Entities
                 result += "INTERRUPTIONS ";
             if (narratedActions)
                 result += "NARRATIVE ";
+            if (regenerateResponse)
+                result += "REGENERATERESPONSE ";
             if (text)
                 result += "TEXT ";
             if (triggers)

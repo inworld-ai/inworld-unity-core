@@ -60,7 +60,7 @@ namespace Inworld.Packet
         public DataChunk dataChunk;
         public GestureEvent gesture;
         public CustomEvent custom;
-        public MutationEvent mutation;
+        public CancelResponseEvent mutation;
         public EmotionEvent emotion;
         public ActionEvent action;
         public SessionResponseEvent sessionControlResponse;
@@ -79,7 +79,7 @@ namespace Inworld.Packet
                 if (custom != null && !string.IsNullOrEmpty(custom.name))
                     return new CustomPacket(this, custom);
                 if (mutation != null && !string.IsNullOrEmpty(mutation.cancelResponses?.interactionId))
-                    return new MutationPacket(this, mutation);
+                    return new CancelResponsePacket(this, mutation);
                 if (emotion != null && !string.IsNullOrEmpty(emotion.behavior))
                     return new EmotionPacket(this, emotion);
                 if (action != null && action.narratedAction != null && !string.IsNullOrEmpty(action.narratedAction.content))

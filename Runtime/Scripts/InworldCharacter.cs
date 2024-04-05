@@ -242,7 +242,7 @@ namespace Inworld
                 case CustomPacket customPacket:
                     HandleTrigger(customPacket);
                     break;
-                case MutationPacket mutationPacket:
+                case CancelResponsePacket mutationPacket:
                     HandleCancelResponse(mutationPacket);
                     break;
                 default:
@@ -250,7 +250,7 @@ namespace Inworld
                     break;
             }
         }
-        protected virtual void HandleCancelResponse(MutationPacket mutationPacket)
+        protected virtual void HandleCancelResponse(CancelResponsePacket mutationPacket)
         {
             // Server will not send CancelResponsePacket to client.
             // For the client side's request, it's solved already.

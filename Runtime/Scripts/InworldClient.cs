@@ -521,7 +521,7 @@ namespace Inworld
             OnPacketSent?.Invoke(packet);
             m_Socket.SendAsync(jsonToSend);
         }
-                /// <summary>
+        /// <summary>
         /// New Send the CancelResponse Event to InworldServer to interrupt the character's speaking.
         /// NOTE: 1. New method uses brain ID (aka character's full name) instead of live session ID
         ///       2. New method support broadcasting to multiple characters.
@@ -536,7 +536,7 @@ namespace Inworld
             Dictionary<string, string>  characterToReceive = GetCharacterDataByFullName(characters);
             if (characterToReceive.Count == 0)
                 return;
-            MutationEvent mutation = new MutationEvent
+            CancelResponseEvent mutation = new CancelResponseEvent
             {
                 cancelResponses = new CancelResponse
                 {
@@ -556,13 +556,13 @@ namespace Inworld
         {
             if (string.IsNullOrEmpty(characterID))
                 return;
-            MutationPacket cancelPacket = new MutationPacket
+            CancelResponsePacket cancelPacket = new CancelResponsePacket
             {
                 timestamp = InworldDateTime.UtcNow,
                 type = "CANCEL_RESPONSE",
                 packetId = new PacketId(),
                 routing = new Routing(characterID),
-                mutation = new MutationEvent
+                mutation = new CancelResponseEvent
                 {
                     cancelResponses = new CancelResponse
                     {
@@ -573,6 +573,51 @@ namespace Inworld
             };
             OnPacketSent?.Invoke(cancelPacket); 
             m_Socket.SendAsync(JsonUtility.ToJson(cancelPacket));
+        }
+        /// <summary>
+        /// Immediately send regenerate response to the specific interaction
+        /// </summary>
+        /// <param name="characterID">The live session ID of the character.</param>
+        /// <param name="interactionID"></param>
+        public virtual void SendRegenerateEvent(string characterID, string interactionID)
+        {
+            RegenerateResponsePacket regenPacket = new RegenerateResponsePacket
+            {
+                timestamp = InworldDateTime.UtcNow,
+                type = "REGENERATE_RESPONSE",
+                packetId = new PacketId(),
+                routing = new Routing(characterID), 
+                mutation = new RegenerateResponseEvent
+                {
+                    regenerateResponse = new RegenerateResponse
+                    {
+                        interactionId = interactionID
+                    }
+                }
+            };
+            OnPacketSent?.Invoke(regenPacket); 
+            m_Socket.SendAsync(JsonUtility.ToJson(regenPacket));
+        }
+        public virtual void SendApplyResponseEvent(string characterID, PacketId regenResponsePid)
+        {
+            if (string.IsNullOrEmpty(characterID))
+                return;
+            ApplyResponsePacket regenPacket = new ApplyResponsePacket
+            {
+                timestamp = InworldDateTime.UtcNow,
+                type = "APPLY_RESPONSE",
+                packetId = new PacketId(),
+                routing = new Routing(characterID),
+                mutation = new ApplyResponseEvent
+                {
+                    applyResponse = new ApplyResponse
+                    {
+                        packetId = regenResponsePid
+                    }
+                }
+            };
+            OnPacketSent?.Invoke(regenPacket); 
+            m_Socket.SendAsync(JsonUtility.ToJson(regenPacket));
         }
         /// <summary>
         /// New Send the trigger to an InworldCharacter in the current scene.
@@ -891,6 +936,10 @@ namespace Inworld
                 return;
             }
             InworldNetworkPacket packetReceived = response.result;
+            if (packetReceived.Type == PacketType.SESSION_RESPONSE)
+            {
+                
+            }
             if (packetReceived.Type == PacketType.SESSION_RESPONSE)
             {
                 if (packetReceived.Packet is SessionResponsePacket sessionResponse)
