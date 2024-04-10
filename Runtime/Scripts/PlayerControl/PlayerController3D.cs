@@ -19,7 +19,7 @@ namespace Inworld.Sample
         [SerializeField] protected GameObject m_FeedbackCanvas;
         [SerializeField] protected GameObject m_OptionCanvas;
         [SerializeField] protected BubblePanel m_BubblePanel;
-
+        
         /// <summary>
         /// Get if any canvas is open.
         /// </summary>
@@ -104,9 +104,13 @@ namespace Inworld.Sample
             {
                 m_PrevSelectingMethod = InworldController.CharacterHandler.SelectingMethod;
                 InworldController.CharacterHandler.SelectingMethod = CharSelectingMethod.Manual;
+                InworldController.Audio.IsCapturing = false;
             }
             else
+            {
                 InworldController.CharacterHandler.SelectingMethod = m_PrevSelectingMethod;
+                InworldController.Audio.IsCapturing = true;
+            }
             if (m_BubblePanel)
                 m_BubblePanel.UpdateContent();
         }

@@ -49,7 +49,6 @@ namespace Inworld
         protected AudioClip m_Recording;
         protected IEnumerator m_AudioCoroutine;
         protected bool m_IsPlayerSpeaking;
-        protected bool m_IsCapturing;
         protected float m_BackgroundNoise;
         // Last known position in AudioClip buffer.
         protected int m_LastPosition;
@@ -87,7 +86,24 @@ namespace Inworld
         /// <summary>
         /// Signifies if microphone is capturing audio.
         /// </summary>
-        public bool IsCapturing => m_IsCapturing;
+        public bool IsCapturing
+        {
+            get => m_SamplingMode != MicSampleMode.NO_MIC;
+            set
+            {
+                if (value)
+                {
+                    if (m_SamplingMode == MicSampleMode.NO_MIC)
+                        m_SamplingMode = m_LastSampleMode;
+                }
+                else
+                {
+                    if (m_SamplingMode != MicSampleMode.NO_MIC)
+                        m_LastSampleMode = m_SamplingMode;
+                    m_SamplingMode = MicSampleMode.NO_MIC;
+                }
+            }
+        }
         /// <summary>
         /// Signifies if audio should be pushed to server automatically as it is captured.
         /// </summary>
@@ -123,8 +139,7 @@ namespace Inworld
         /// </summary>
         public bool IsPlayerTurn => 
             m_SamplingMode == MicSampleMode.NO_FILTER || 
-            m_SamplingMode == MicSampleMode.PUSH_TO_TALK ||
-            m_SamplingMode == MicSampleMode.TURN_BASED && !InworldController.CharacterHandler.IsAnyCharacterSpeaking;
+            (m_SamplingMode == MicSampleMode.PUSH_TO_TALK || m_SamplingMode== MicSampleMode.TURN_BASED) && !InworldController.CharacterHandler.IsAnyCharacterSpeaking;
 
         /// <summary>
         /// A flag to check if audio is available to send to server.
@@ -227,14 +242,14 @@ namespace Inworld
         /// </summary>
         public void StartRecording()
         {
-            if (m_IsCapturing)
+            if (IsCapturing)
                 return;
 #if UNITY_WEBGL && !UNITY_EDITOR
             m_LastPosition = WebGLGetPosition();
 #else
             m_LastPosition = Microphone.GetPosition(m_DeviceName);
 #endif
-            m_IsCapturing = true;
+            IsCapturing = true;
             OnRecordingStart?.Invoke();
         }
         /// <summary>
@@ -242,10 +257,10 @@ namespace Inworld
         /// </summary>
         public void StopRecording()
         {
-            if (!m_IsCapturing)
+            if (!IsCapturing)
                 return;
             m_AudioToPush.Clear();
-            m_IsCapturing = false;
+            IsCapturing = false;
             OnRecordingEnd?.Invoke();
         }
         /// <summary>
@@ -259,7 +274,11 @@ namespace Inworld
             }
             m_AudioToPush.Clear();
         }
-        public virtual void StopAudio() => m_CurrentAudioSession.StopAudio();
+        public virtual void StopAudio()
+        {
+            m_AudioToPush.Clear();
+            m_CurrentAudioSession.StopAudio();
+        }
         public virtual void StartAudio(List<string> characters = null)
         {
             if (characters == null || characters.Count == 0)
@@ -381,20 +400,11 @@ namespace Inworld
         }
         protected virtual void OnCharacterJoined(InworldCharacter character)
         {
-            if (!InworldController.CharacterHandler.CurrentCharacter) // Group Chat Mode
-            {
-                //m_CurrentAudioSession.StopAudio();
-                m_CurrentAudioSession.StartAudio(InworldController.CharacterHandler.CurrentCharacterNames);
-            }
             character.Event.onCharacterSelected.AddListener(OnCharacterSelected);
             character.Event.onCharacterDeselected.AddListener(OnCharacterDeselected);
         }
         protected virtual void OnCharacterLeft(InworldCharacter character)
         {
-            if (!InworldController.CharacterHandler.CurrentCharacter) // Group Chat Mode
-            {
-                m_CurrentAudioSession.StartAudio(InworldController.CharacterHandler.CurrentCharacterNames);
-            }
             character.Event.onCharacterSelected.RemoveListener(OnCharacterSelected);
             character.Event.onCharacterDeselected.RemoveListener(OnCharacterDeselected);
         }
@@ -407,7 +417,7 @@ namespace Inworld
             while (true)
             {
                 yield return _Calibrate();
-                if (!m_IsCapturing || IsBlocked)
+                if (!IsCapturing || IsBlocked)
                 {
                     yield return null;
                     continue;
