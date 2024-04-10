@@ -29,10 +29,11 @@ namespace Inworld
     public class AudioCapture : MonoBehaviour
     {
         [SerializeField] protected MicSampleMode m_SamplingMode = MicSampleMode.NO_FILTER;
+        [Tooltip("Hold the key to sample, release the key to send audio")]
+        [SerializeField] protected KeyCode m_PushToTalkKey = KeyCode.C;
         [Range(1, 2)][SerializeField] protected float m_PlayerVolumeThreshold = 2f;
         [SerializeField] protected int m_BufferSeconds = 1;
         [SerializeField] protected string m_DeviceName;
-
         
         public UnityEvent OnRecordingStart;
         public UnityEvent OnRecordingEnd;
@@ -336,9 +337,21 @@ namespace Inworld
             StopRecording();
             StopMicrophone(m_DeviceName);
         }
+        protected void Update()
+        {
+            HandlePTT();
+        }
+
 #endregion
 
 #region Protected Functions
+
+        protected virtual void HandlePTT()
+        {
+            AutoPush = !Input.GetKey(m_PushToTalkKey);
+            if (Input.GetKeyUp(m_PushToTalkKey))
+                PushAudio();
+        }
         protected virtual void Init()
         {
             m_CurrentAudioSession = new AudioSessionInfo();

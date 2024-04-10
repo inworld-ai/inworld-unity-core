@@ -11,17 +11,12 @@ namespace Inworld.Sample
 {
     public class PlayerController2D : PlayerController
     {
-        protected override void Start()
+        protected void Start()
         {
             if (m_SendButton)
                 m_SendButton.interactable = false;
             if (m_RecordButton)
                 m_RecordButton.interactable = false;
-            
-            if (!m_PushToTalk)
-                return;
-            InworldController.CharacterHandler.ManualAudioHandling = true;
-            InworldController.Audio.AutoPush = false;
         }
         protected override void OnCharacterJoined(InworldCharacter newChar)
         {
