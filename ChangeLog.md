@@ -1,3 +1,9 @@
+# 3.3.2
+New Features:
+1. Added regenerating response if players dislike the interaction.
+2. Added Sentis support for the local lipsync model.
+3. Added sending narrative actions to server.
+
 # 3.3.1
 New Features:
 1. Implemented Feedback.
