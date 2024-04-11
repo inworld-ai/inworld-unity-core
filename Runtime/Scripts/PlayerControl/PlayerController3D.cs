@@ -19,7 +19,15 @@ namespace Inworld.Sample
         [SerializeField] protected GameObject m_FeedbackCanvas;
         [SerializeField] protected GameObject m_OptionCanvas;
         [SerializeField] protected BubblePanel m_BubblePanel;
-
+        
+        /// <summary>
+        /// Get if any canvas is open.
+        /// </summary>
+        public override bool IsAnyCanvasOpen => m_ChatCanvas && m_ChatCanvas.activeSelf || 
+                                                m_StatusCanvas && m_StatusCanvas.activeSelf || 
+                                                m_FeedbackCanvas && m_FeedbackCanvas.activeSelf ||
+                                                m_OptionCanvas && m_OptionCanvas.activeSelf;
+        
         CharSelectingMethod m_PrevSelectingMethod;
         
         protected override void OnCharacterJoined(InworldCharacter newChar)
@@ -96,17 +104,15 @@ namespace Inworld.Sample
             {
                 m_PrevSelectingMethod = InworldController.CharacterHandler.SelectingMethod;
                 InworldController.CharacterHandler.SelectingMethod = CharSelectingMethod.Manual;
+                InworldController.Audio.IsCapturing = false;
             }
             else
+            {
                 InworldController.CharacterHandler.SelectingMethod = m_PrevSelectingMethod;
+                InworldController.Audio.IsCapturing = true;
+            }
             if (m_BubblePanel)
                 m_BubblePanel.UpdateContent();
-            m_BlockAudioHandling = m_ChatCanvas.activeSelf;
-            if (m_PushToTalk)
-                InworldController.Instance.StopAudio();
-            InworldController.Audio.AutoPush = !m_ChatCanvas.activeSelf && !m_PushToTalk;
-            if (InworldController.CurrentCharacter)
-                InworldController.CharacterHandler.ManualAudioHandling = m_ChatCanvas.activeSelf || m_PushToTalk;
         }
     }
 }

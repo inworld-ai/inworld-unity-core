@@ -124,7 +124,7 @@ namespace Inworld.Entities
         public List<string> UpdateRegisteredCharacter(ref List<InworldCharacterData> outData)
         {
             List<string> result = new List<string>();
-            foreach (var charData in outData)
+            foreach (InworldCharacterData charData in outData)
             {
                 string registeredID = agents.FirstOrDefault(a => a.brainName == charData.brainName)?.agentId;
                 if (string.IsNullOrEmpty(registeredID))

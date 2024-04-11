@@ -17,21 +17,21 @@ namespace Inworld.Packet
         public List<string> utteranceId;
     }
     [Serializable]
-    public class MutationEvent
+    public class CancelResponseEvent
     {
         public CancelResponse cancelResponses;
     }
     [Serializable]
-    public class MutationPacket : InworldPacket
+    public class CancelResponsePacket : InworldPacket
     {
-        public MutationEvent mutation;
+        public CancelResponseEvent mutation;
         
-        public MutationPacket()
+        public CancelResponsePacket()
         {
             type = "MUTATION";
-            mutation = new MutationEvent();
+            mutation = new CancelResponseEvent();
         }
-        public MutationPacket(InworldPacket rhs, MutationEvent evt) : base(rhs)
+        public CancelResponsePacket(InworldPacket rhs, CancelResponseEvent evt) : base(rhs)
         {
             type = "MUTATION";
             mutation = evt;

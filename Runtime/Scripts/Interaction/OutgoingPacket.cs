@@ -45,11 +45,11 @@ namespace Inworld.Interactions
 	        };
 	        RawPacket.packetId.correlationId = ID;
         }
-        public OutgoingPacket(MutationEvent mutationToSend, Dictionary<string, string> characterTable = null)
+        public OutgoingPacket(CancelResponseEvent mutationToSend, Dictionary<string, string> characterTable = null)
         {
 	        ID = Guid.NewGuid().ToString();
             Targets = characterTable;
-            RawPacket = new MutationPacket
+            RawPacket = new CancelResponsePacket
             {
                 routing = new Routing(Targets?.Values.ToList()),
                 mutation = mutationToSend

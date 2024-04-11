@@ -71,25 +71,7 @@ namespace Inworld
         /// If set, it'll also start audio sampling if `ManualAudioHandling` is false, and invoke the event OnCharacterChanged
         /// </summary>
         public List<InworldCharacter> CurrentCharacters => m_CharacterList;
-        
-        /// <summary>
-        /// If it's false, AudioCapture of the InworldController will automatically start recording player's voice when at least a character is selected.
-        /// Otherwise, developers need to manually call `InworldController.Instance.StartAudio()` to start microphone.
-        /// </summary>
-        public bool ManualAudioHandling
-        {
-            get => m_ManualAudioHandling;
-            set
-            {
-                if (m_ManualAudioHandling == value)
-                    return;
-                m_ManualAudioHandling = value;
-                if (m_ManualAudioHandling)
-                    InworldController.Instance.StopAudio();
-                else 
-                    InworldController.Instance.StartAudio();
-            }
-        }
+
         /// <summary>
         ///     Get the current Character Selecting Method. By default it's manual.
         /// </summary>

@@ -11,14 +11,14 @@ namespace Inworld.UI
 {
     public class RecordButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
-        
         public void OnPointerDown(PointerEventData eventData)
         {
-            
+            InworldController.Audio.IsCapturing = true;
             InworldController.Instance.StartAudio();
         }
         public void OnPointerUp(PointerEventData eventData)
         {
+            InworldController.Audio.IsCapturing = false;
             InworldController.Instance.PushAudio();
         }
     }

@@ -29,10 +29,12 @@ namespace Inworld
     public class AudioCapture : MonoBehaviour
     {
         [SerializeField] protected MicSampleMode m_SamplingMode = MicSampleMode.NO_FILTER;
+        [Tooltip("Hold the key to sample, release the key to send audio")]
+        [SerializeField] protected KeyCode m_PushToTalkKey = KeyCode.None;
         [Range(1, 2)][SerializeField] protected float m_PlayerVolumeThreshold = 2f;
         [SerializeField] protected int m_BufferSeconds = 1;
+        [SerializeField] protected int m_AudioToPushCapacity = 100;
         [SerializeField] protected string m_DeviceName;
-
         
         public UnityEvent OnRecordingStart;
         public UnityEvent OnRecordingEnd;
@@ -41,14 +43,13 @@ namespace Inworld
         
 #region Variables
         protected float m_CharacterVolume = 1f;
-        protected MicSampleMode m_LastSampleMode;
+        protected MicSampleMode m_InitSampleMode;
         protected const int k_SizeofInt16 = sizeof(short);
         protected const int k_SampleRate = 16000;
         protected const int k_Channel = 1;
         protected AudioClip m_Recording;
         protected IEnumerator m_AudioCoroutine;
         protected bool m_IsPlayerSpeaking;
-        protected bool m_IsCapturing;
         protected float m_BackgroundNoise;
         // Last known position in AudioClip buffer.
         protected int m_LastPosition;
@@ -86,7 +87,22 @@ namespace Inworld
         /// <summary>
         /// Signifies if microphone is capturing audio.
         /// </summary>
-        public bool IsCapturing => m_IsCapturing;
+        public bool IsCapturing
+        {
+            get => m_SamplingMode != MicSampleMode.NO_MIC;
+            set
+            {
+                if (value)
+                {
+                    if (m_SamplingMode == MicSampleMode.NO_MIC)
+                        m_SamplingMode = m_InitSampleMode;
+                }
+                else
+                {
+                    m_SamplingMode = MicSampleMode.NO_MIC;
+                }
+            }
+        }
         /// <summary>
         /// Signifies if audio should be pushed to server automatically as it is captured.
         /// </summary>
@@ -98,12 +114,10 @@ namespace Inworld
                 if (value)
                 {
                     if (m_SamplingMode == MicSampleMode.PUSH_TO_TALK)
-                        m_SamplingMode = m_LastSampleMode;
+                        m_SamplingMode = m_InitSampleMode;
                 }
                 else
                 {
-                    if (m_SamplingMode != MicSampleMode.PUSH_TO_TALK)
-                        m_LastSampleMode = m_SamplingMode;
                     m_SamplingMode = MicSampleMode.PUSH_TO_TALK;
                 }
             }
@@ -122,8 +136,8 @@ namespace Inworld
         /// </summary>
         public bool IsPlayerTurn => 
             m_SamplingMode == MicSampleMode.NO_FILTER || 
-            m_SamplingMode == MicSampleMode.PUSH_TO_TALK ||
-            m_SamplingMode == MicSampleMode.TURN_BASED && !InworldController.CharacterHandler.IsAnyCharacterSpeaking;
+            m_SamplingMode == MicSampleMode.PUSH_TO_TALK || 
+            m_SamplingMode== MicSampleMode.TURN_BASED && !InworldController.CharacterHandler.IsAnyCharacterSpeaking;
 
         /// <summary>
         /// A flag to check if audio is available to send to server.
@@ -226,14 +240,14 @@ namespace Inworld
         /// </summary>
         public void StartRecording()
         {
-            if (m_IsCapturing)
+            if (IsCapturing)
                 return;
 #if UNITY_WEBGL && !UNITY_EDITOR
             m_LastPosition = WebGLGetPosition();
 #else
             m_LastPosition = Microphone.GetPosition(m_DeviceName);
 #endif
-            m_IsCapturing = true;
+            IsCapturing = true;
             OnRecordingStart?.Invoke();
         }
         /// <summary>
@@ -241,24 +255,29 @@ namespace Inworld
         /// </summary>
         public void StopRecording()
         {
-            if (!m_IsCapturing)
+            if (!IsCapturing)
                 return;
             m_AudioToPush.Clear();
-            m_IsCapturing = false;
+            IsCapturing = false;
             OnRecordingEnd?.Invoke();
         }
         /// <summary>
         /// Manually push the audio wave data to server.
         /// </summary>
-        public void PushAudio()
+        public IEnumerator PushAudio()
         {
+            yield return new WaitForSeconds(1);
             foreach (string audioData in m_AudioToPush)
             {
                 InworldController.Instance.SendAudio(audioData);
             }
             m_AudioToPush.Clear();
         }
-        public virtual void StopAudio() => m_CurrentAudioSession.StopAudio();
+        public virtual void StopAudio()
+        {
+            m_AudioToPush.Clear();
+            m_CurrentAudioSession.StopAudio();
+        }
         public virtual void StartAudio(List<string> characters = null)
         {
             if (characters == null || characters.Count == 0)
@@ -336,16 +355,32 @@ namespace Inworld
             StopRecording();
             StopMicrophone(m_DeviceName);
         }
+        protected void Update()
+        {
+            HandlePTT();
+            if (m_AudioToPush.Count > m_AudioToPushCapacity)
+                m_AudioToPush.RemoveAt(0);
+        }
+
 #endregion
 
 #region Protected Functions
+
+        protected virtual void HandlePTT()
+        {
+            AutoPush = !Input.GetKey(m_PushToTalkKey);
+            if (Input.GetKeyDown(m_PushToTalkKey))
+                m_AudioToPush.Clear();
+            if (Input.GetKeyUp(m_PushToTalkKey))
+                StartCoroutine(PushAudio());
+        }
         protected virtual void Init()
         {
             m_CurrentAudioSession = new AudioSessionInfo();
             m_BufferSize = m_BufferSeconds * k_SampleRate;
             m_ByteBuffer = new byte[m_BufferSize * k_Channel * k_SizeofInt16];
             m_InputBuffer = new float[m_BufferSize * k_Channel];
-            m_LastSampleMode = m_SamplingMode;
+            m_InitSampleMode = m_SamplingMode;
 #if UNITY_WEBGL && !UNITY_EDITOR
             s_WebGLBuffer = new float[m_BufferSize * k_Channel];
             WebGLInit(OnWebGLInitialized);
@@ -368,20 +403,11 @@ namespace Inworld
         }
         protected virtual void OnCharacterJoined(InworldCharacter character)
         {
-            if (!InworldController.CharacterHandler.CurrentCharacter) // Group Chat Mode
-            {
-                //m_CurrentAudioSession.StopAudio();
-                m_CurrentAudioSession.StartAudio(InworldController.CharacterHandler.CurrentCharacterNames);
-            }
             character.Event.onCharacterSelected.AddListener(OnCharacterSelected);
             character.Event.onCharacterDeselected.AddListener(OnCharacterDeselected);
         }
         protected virtual void OnCharacterLeft(InworldCharacter character)
         {
-            if (!InworldController.CharacterHandler.CurrentCharacter) // Group Chat Mode
-            {
-                m_CurrentAudioSession.StartAudio(InworldController.CharacterHandler.CurrentCharacterNames);
-            }
             character.Event.onCharacterSelected.RemoveListener(OnCharacterSelected);
             character.Event.onCharacterDeselected.RemoveListener(OnCharacterDeselected);
         }
@@ -394,7 +420,7 @@ namespace Inworld
             while (true)
             {
                 yield return _Calibrate();
-                if (!m_IsCapturing || IsBlocked)
+                if (!IsCapturing || IsBlocked)
                 {
                     yield return null;
                     continue;
@@ -406,10 +432,8 @@ namespace Inworld
         {
             if (m_SamplingMode == MicSampleMode.NO_MIC)
                 yield break;
-
             if (m_SamplingMode != MicSampleMode.PUSH_TO_TALK && m_BackgroundNoise == 0)
                 yield break;
-
             int nSize = GetAudioData();
             if (nSize <= 0)
                 yield break;
