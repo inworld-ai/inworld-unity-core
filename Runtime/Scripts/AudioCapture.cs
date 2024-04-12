@@ -279,17 +279,17 @@ namespace Inworld
             m_AudioToPush.Clear();
             m_CurrentAudioSession.StopAudio();
         }
-        public virtual void StartAudio(List<string> characters = null)
+        public virtual void StartAudio(string character = null)
         {
-            if (characters == null || characters.Count == 0)
+            if (character == null)
             {
                 if (InworldController.CharacterHandler.CurrentCharacter)
-                    m_CurrentAudioSession.StartAudio(new List<string>{InworldController.CurrentCharacter.BrainName});
+                    m_CurrentAudioSession.StartAudio(InworldController.CurrentCharacter.BrainName);
                 else if (InworldController.CharacterHandler.CurrentCharacterNames.Count != 0)
-                    m_CurrentAudioSession.StartAudio(InworldController.CharacterHandler.CurrentCharacterNames);
+                    m_CurrentAudioSession.StartAudio(InworldController.CharacterHandler.CurrentCharacter.BrainName);
             }
             else
-                m_CurrentAudioSession.StartAudio(characters);
+                m_CurrentAudioSession.StartAudio(character);
         }
 
         /// <summary>

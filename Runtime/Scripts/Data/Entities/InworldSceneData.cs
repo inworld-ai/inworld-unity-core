@@ -28,6 +28,12 @@ namespace Inworld.Entities
         /// <param name="characters">the brainName of all the characters.</param>
         /// <returns></returns>
         public bool Contains(List<string> characters) => characters.All(c => characterReferences.Any(cr => cr.character == c));
+        /// <summary>
+        /// Returns true if the character is inside the scene.
+        /// </summary>
+        /// <param name="character">the brainName of the character.</param>
+        /// <returns></returns>
+        public bool Contains(string character) => characterReferences.Any(cr => cr.character == character);
     }
     [Serializable] 
     public class CharacterName
@@ -87,7 +93,7 @@ namespace Inworld.Entities
             timestamp = InworldDateTime.UtcNow;
             type = "MUTATION";
             packetId = new PacketId();
-            routing = new Routing();
+            routing = new Routing("WORLD");
             mutation = new LoadSceneEvent
             {
                 loadScene = new LoadSceneRequest
@@ -108,7 +114,7 @@ namespace Inworld.Entities
             timestamp = InworldDateTime.UtcNow;
             type = "MUTATION";
             packetId = new PacketId();
-            routing = new Routing();
+            routing = new Routing("WORLD");
             mutation = new LoadCharactersEvent
             {
                 loadCharacters = new LoadCharactersRequest(characterFullName)

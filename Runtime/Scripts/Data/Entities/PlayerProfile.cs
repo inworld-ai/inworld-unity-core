@@ -20,13 +20,13 @@ namespace Inworld.Entities
         public string name;
         public string id;
         public UserSetting userSettings;
-
-        public UserConfigPacket ToPacket => new UserConfigPacket()
+        public string ToJson => JsonUtility.ToJson(ToPacket);
+        public UserConfigPacket ToPacket => new UserConfigPacket
         {
             timestamp = InworldDateTime.UtcNow,
             type = "SESSION_CONTROL",
             packetId = new PacketId(),
-            routing = new Routing(),
+            routing = new Routing("WORLD"),
             sessionControl = new UserConfigEvent
             {
                 userConfiguration = this

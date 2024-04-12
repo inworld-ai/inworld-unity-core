@@ -17,9 +17,9 @@ namespace Inworld.Packet
         public string type;
         public string name;
 
-        public Source(string targetName = "")
+        public Source(string targetName)
         {
-            if (string.IsNullOrEmpty(targetName))
+            if (targetName == "WORLD")
             {
                 name = SourceType.WORLD.ToString();
                 type = SourceType.WORLD.ToString();
@@ -43,19 +43,19 @@ namespace Inworld.Packet
         public Source target;
         public List<Source> targets;
 
+        public Routing()
+        {
+            source = new Source(InworldAI.User.Name);
+        }
         public Routing(string character)
         {
             source = new Source(InworldAI.User.Name);
             target = new Source(character);
         }
-        public Routing(List<string> characters = null)
+        public Routing(List<string> characters)
         {
             source = new Source(InworldAI.User.Name);
-
-            if (characters == null || characters.Count == 0)
-                target = new Source();
-
-            else if (characters.Count == 1)
+            if (characters.Count == 1)
                 target = new Source(characters[0]);
             else
             {
@@ -75,8 +75,9 @@ namespace Inworld.Packet
         public string utteranceId = Guid.NewGuid().ToString(); // Each sentence is an utterance. But can be interpreted as multiple behavior (Text, EmotionChange, Audio, etc)
         public string interactionId = Guid.NewGuid().ToString(); // Lot of sentences included in one interaction.
         public string correlationId; // Used in callback for server packets.
+        public string conversationId; // Used in group conversation.
 
-        public override string ToString() => $"I: {interactionId} U: {utteranceId} P: {packetId}";
+        public override string ToString() => $"I: {interactionId} U: {utteranceId} P: {packetId} Callback: {string.IsNullOrEmpty(conversationId)} Conversation: {string.IsNullOrEmpty(conversationId)}";
     }
 
     [Serializable]

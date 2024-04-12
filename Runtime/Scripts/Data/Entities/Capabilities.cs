@@ -54,12 +54,13 @@ namespace Inworld.Entities
             debugInfo = rhs.debugInfo;
             multiAgent = rhs.multiAgent;
         }
+        public string ToJson => JsonUtility.ToJson(ToPacket);
         public CapabilityPacket ToPacket => new CapabilityPacket
         {
             timestamp = InworldDateTime.UtcNow,
             type = "SESSION_CONTROL",
             packetId = new PacketId(),
-            routing = new Routing(),
+            routing = new Routing("WORLD"),
             sessionControl = new CapabilityEvent
             {
                 capabilitiesConfiguration = this

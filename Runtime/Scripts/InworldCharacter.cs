@@ -136,7 +136,7 @@ namespace Inworld
             // 1. Interrupt current speaking.
             CancelResponse();
             // 2. Send Text.
-            InworldController.Client.SendTextTo(text, new List<string>{BrainName});
+            InworldController.Client.SendTextTo(text, BrainName);
         }
         /// <summary>
         /// Send a narrative action to this character.
@@ -144,7 +144,7 @@ namespace Inworld
         /// <param name="narrative">the narrative text to send</param>
         public virtual void SendNarrative(string narrative)
         {
-            InworldController.Client.SendNarrativeActionTo(narrative, new List<string>{BrainName});
+            InworldController.Client.SendNarrativeActionTo(narrative, BrainName);
         }
         /// <summary>
         /// Send the trigger to this character.
@@ -159,7 +159,7 @@ namespace Inworld
             if (needCancelResponse)
                 CancelResponse();
             // 2. Send Text. YAN: Now all trigger has to be lower cases.
-            InworldController.Client.SendTriggerTo(trigger.ToLower(), parameters, new List<string>{BrainName});
+            InworldController.Client.SendTriggerTo(trigger.ToLower(), parameters, BrainName);
         }
         /// <summary>
         /// Enable target goal of this character.

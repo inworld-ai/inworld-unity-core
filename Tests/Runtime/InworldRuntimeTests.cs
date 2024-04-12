@@ -132,7 +132,7 @@ namespace Inworld.Test
 			InworldController.Audio.IsPlayerSpeaking = true;
 			InworldController.Client.SendAudio(agentID, k_AudioChunk);
 			yield return new WaitForSeconds(0.1f);
-			InworldController.Client.StopAudio(agentID);
+			InworldController.Client.StopAudio();
 			yield return ConversationCheck(10);
 			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "TEXT"));
 			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "AUDIO"));

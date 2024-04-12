@@ -17,13 +17,13 @@ namespace Inworld.Entities
         public string id;
         public string version;
         public string description;
-
+        public string ToJson => JsonUtility.ToJson(ToPacket);
         public ClientConfigPacket ToPacket => new ClientConfigPacket
         {
             timestamp = InworldDateTime.UtcNow,
             type = "SESSION_CONTROL",
             packetId = new PacketId(),
-            routing = new Routing(),
+            routing = new Routing("WORLD"),
             sessionControl = new ClientConfigEvent
             {
                 clientConfiguration = this

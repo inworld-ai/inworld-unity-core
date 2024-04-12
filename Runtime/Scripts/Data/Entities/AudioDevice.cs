@@ -18,44 +18,31 @@ namespace Inworld.Entities
     public class AudioSessionInfo
     {
         public string audioSessionID;
-        public List<string> currentBrainNames = new List<string>();
-        public List<string> lastBrainNames = new List<string>();
-        /// <summary>
-        /// Gets if the current live session has any characters.
-        /// </summary>
-        public bool IsLive => currentBrainNames.Count > 0;
+        public string currentBrainName;
+        public string lastBrainName;
 
         /// <summary>
         /// Stops the current audio session.
         /// </summary>
         public void StopAudio()
         {
-            InworldController.Client.StopAudioTo(currentBrainNames); 
-            lastBrainNames = currentBrainNames;
-            currentBrainNames.Clear();
+            InworldController.Client.StopAudio(); 
+            lastBrainName = currentBrainName;
+            currentBrainName = "";
         }
         /// <summary>
         /// Starts a new audio session.
         /// </summary>
-        /// <param name="characterBrainNames">The brain names of the characters to enable audio interaction</param>
-        public void StartAudio(List<string> characterBrainNames)
+        /// <param name="characterBrainName">The brain names of the characters to enable audio interaction</param>
+        public void StartAudio(string characterBrainName)
         {
-            if (characterBrainNames.Count == 0)
+            if (string.IsNullOrEmpty(characterBrainName))
                 return;
-            if (CharactersAreSame(characterBrainNames))
+            if (currentBrainName == characterBrainName)
                 return;
             StopAudio();
-            InworldController.Client.StartAudioTo(characterBrainNames);
-            currentBrainNames = characterBrainNames;
-        }
-        /// <summary>
-        /// Check if the incoming characters are same in the current session.
-        /// </summary>
-        /// <param name="characterBrainNames">The brain names of the characters to enable audio interaction</param>
-        /// <returns></returns>
-        public bool CharactersAreSame(List<string> characterBrainNames)
-        {
-            return currentBrainNames.Count == characterBrainNames.Count && currentBrainNames.All(characterBrainNames.Contains);
+            InworldController.Client.StartAudioTo(characterBrainName);
+            currentBrainName = characterBrainName;
         }
     }
     [Serializable]

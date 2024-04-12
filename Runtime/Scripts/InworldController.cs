@@ -214,13 +214,9 @@ namespace Inworld
         /// <param name="text">the message to send.</param>
         public void SendText(string text)
         {
-            if (CharacterHandler.CurrentCharacter)
-                CharacterHandler.CurrentCharacter.SendText(text);
-            else
-            {
-                CancelResponses();
-                m_Client.SendTextTo(text, CharacterHandler.CurrentCharacterNames);
-            }
+            CancelResponses();
+            string brainName = CharacterHandler.CurrentCharacter ? CharacterHandler.CurrentCharacter.BrainName : "";
+            m_Client.SendTextTo(text, brainName);
         }
         /// <summary>
         /// Send a narrative action to an InworldCharacter in this current scene.
@@ -229,10 +225,8 @@ namespace Inworld
         /// <param name="narrativeAction">the narrative action to send.</param>
         public void SendNarrativeAction(string narrativeAction)
         {
-            if (CharacterHandler.CurrentCharacter)
-                CharacterHandler.CurrentCharacter.SendNarrative(narrativeAction);
-            else
-                m_Client.SendNarrativeActionTo(narrativeAction, CharacterHandler.CurrentCharacterNames);
+            string brainName = CharacterHandler.CurrentCharacter ? CharacterHandler.CurrentCharacter.BrainName : "";
+            m_Client.SendNarrativeActionTo(narrativeAction, brainName);
         }
         /// <summary>
         /// Cancel all the current character's generating responses.
@@ -253,7 +247,8 @@ namespace Inworld
         /// <param name="utteranceID">the handle of the current utterance that needs to be cancelled.</param>
         public void SendCancelEvent(string interactionID, string utteranceID = "")
         {
-            m_Client.SendCancelEventTo(interactionID, utteranceID, CharacterHandler.CurrentCharacterNames);
+            string brainName = CharacterHandler.CurrentCharacter ? CharacterHandler.CurrentCharacter.BrainName : "";
+            m_Client.SendCancelEventTo(interactionID, utteranceID, brainName);
         } 
         /// <summary>
         /// Send the trigger to the whole session.
@@ -312,12 +307,22 @@ namespace Inworld
         {
             if (!Audio.IsAudioAvailable)
                 return;
-            if (CurrentCharacter && !string.IsNullOrEmpty(CurrentCharacter.ID))
+            if (CurrentCharacter)
             {
-                m_Client.SendAudio(CurrentCharacter.ID, base64);
+                if (!string.IsNullOrEmpty(CurrentCharacter.ID))
+                {
+                    m_Client.SendAudio(CurrentCharacter.ID, base64);
+                }
+                else
+                {
+                    m_Client.SendAudioTo(base64, CurrentCharacter.BrainName);
+                }
             }
             else
-                m_Client.SendAudioTo(base64, CharacterHandler.CurrentCharacterNames);
+            {
+                m_Client.SendAudioTo(base64);
+            }
+                
         }
         /// <summary>
         /// Manually push the audio wave data to server.

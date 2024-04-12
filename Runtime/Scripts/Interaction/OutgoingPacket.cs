@@ -21,73 +21,145 @@ namespace Inworld.Interactions
 		public string ID { get; set; }	// YAN: This ID is correlation ID.
 		public DateTime RecentTime { get; set; }
 		public bool IsEmpty { get; }
-		public Dictionary<string, string> Targets { get; private set; } // Key: BrainName; Val: AgentID
+		public string BrainName { get; set; } // YAN: The character ID in the browser.
+		public string AgentID { get; set; } 
 		public InworldPacket RawPacket { get; protected set; }
-        public OutgoingPacket(TextEvent txtToSend, Dictionary<string, string> characterTable = null)
+        public OutgoingPacket(TextEvent txtToSend, LiveInfo liveInfo)
         {
 	        ID = Guid.NewGuid().ToString();
-            Targets = characterTable;
-            RawPacket = new TextPacket
-            {
-	            routing = new Routing(Targets?.Values.ToList()),
-	            text = txtToSend
-            };
+	        if (liveInfo.IsConversation)
+	        {
+		        RawPacket = new TextPacket
+		        {
+			        routing = new Routing(),
+			        text = txtToSend
+		        };
+		        RawPacket.packetId.conversationId = liveInfo.ConversationID;
+	        }
+	        else
+	        {
+		        BrainName = liveInfo.CurrentBrainName;
+		        RawPacket = new TextPacket
+		        {
+			        routing = new Routing(liveInfo.CurrentAgentID),
+			        text = txtToSend
+		        };
+	        }
             RawPacket.packetId.correlationId = ID;
         }
-        public OutgoingPacket(ActionEvent narrativeActionToSend, Dictionary<string, string> characterTable = null)
+        public OutgoingPacket(ActionEvent narrativeActionToSend, LiveInfo liveInfo) 
         {
 	        ID = Guid.NewGuid().ToString();
-	        Targets = characterTable;
-	        RawPacket = new ActionPacket()
+	        if (liveInfo.IsConversation)
 	        {
-		        routing = new Routing(Targets?.Values.ToList()),
-		        action = narrativeActionToSend
+		        RawPacket = new ActionPacket
+		        {
+			        routing = new Routing(),
+			        action = narrativeActionToSend
+		        };
+		        RawPacket.packetId.conversationId = liveInfo.ConversationID;
+	        }
+	        else
+	        {
+		        BrainName = liveInfo.CurrentBrainName;
+		        RawPacket = new ActionPacket
+		        {
+			        routing = new Routing(liveInfo.CurrentAgentID),
+			        action = narrativeActionToSend
+		        };
+	        }
+	        RawPacket.packetId.correlationId = ID;
+        }
+        public OutgoingPacket(CancelResponseEvent mutationToSend, LiveInfo liveInfo) 
+        {
+	        ID = Guid.NewGuid().ToString();
+	        if (liveInfo.IsConversation)
+	        {
+		        RawPacket = new CancelResponsePacket
+		        {
+			        routing = new Routing(),
+			        mutation = mutationToSend
+		        };
+		        RawPacket.packetId.conversationId = liveInfo.ConversationID;
+	        }
+	        else
+	        {
+		        BrainName = liveInfo.CurrentBrainName;
+		        RawPacket = new CancelResponsePacket
+		        {
+			        routing = new Routing(liveInfo.CurrentAgentID),
+			        mutation = mutationToSend
+		        };
+	        }
+	        RawPacket.packetId.correlationId = ID;
+        }
+        public OutgoingPacket(RegenerateResponseEvent mutationToSend, LiveInfo liveInfo) 
+        {
+	        ID = Guid.NewGuid().ToString();
+	        if (liveInfo.IsConversation)
+	        {
+		        RawPacket = new RegenerateResponsePacket
+		        {
+			        routing = new Routing(),
+			        mutation = mutationToSend
+		        };
+		        RawPacket.packetId.conversationId = liveInfo.ConversationID;
+	        }
+	        else
+	        {
+		        BrainName = liveInfo.CurrentBrainName;
+		        RawPacket = new RegenerateResponsePacket
+		        {
+			        routing = new Routing(liveInfo.CurrentAgentID),
+			        mutation = mutationToSend
+		        };
+	        }
+	        RawPacket.packetId.correlationId = ID;
+        }
+        public OutgoingPacket(CustomEvent triggerToSend, LiveInfo liveInfo)
+        {
+	        ID = Guid.NewGuid().ToString();
+	        BrainName = string.IsNullOrEmpty(liveInfo.CurrentBrainName) ? "WORLD" : liveInfo.CurrentBrainName;
+	        RawPacket = new CustomPacket
+	        {
+		        routing = new Routing(string.IsNullOrEmpty(liveInfo.CurrentAgentID) ? "WORLD" : liveInfo.CurrentAgentID),
+		        custom = triggerToSend
 	        };
 	        RawPacket.packetId.correlationId = ID;
         }
-        public OutgoingPacket(CancelResponseEvent mutationToSend, Dictionary<string, string> characterTable = null)
+        public OutgoingPacket(ControlEvent controlToSend, LiveInfo liveInfo)
         {
 	        ID = Guid.NewGuid().ToString();
-            Targets = characterTable;
-            RawPacket = new CancelResponsePacket
-            {
-                routing = new Routing(Targets?.Values.ToList()),
-                mutation = mutationToSend
-            };
+	        if (liveInfo.IsConversation)
+	        {
+		        RawPacket = new ControlPacket
+		        {
+			        routing = new Routing(),
+			        control = controlToSend
+		        };
+		        RawPacket.packetId.conversationId = liveInfo.ConversationID;
+	        }
+	        else
+	        {
+		        BrainName = liveInfo.CurrentBrainName;
+		        RawPacket = new ControlPacket
+		        {
+			        routing = new Routing(liveInfo.CurrentAgentID),
+			        control = controlToSend
+		        };
+	        }
+	        RawPacket.packetId.correlationId = ID;
         }
-        public OutgoingPacket(CustomEvent triggerToSend, Dictionary<string, string> characterTable = null)
+        public OutgoingPacket(DataChunk chunkToSend, string brainName, string agentID = "")
         {
 	        ID = Guid.NewGuid().ToString();
-            Targets = characterTable;
-            RawPacket = new CustomPacket
-            {
-                routing = new Routing(Targets?.Values.ToList()),
-                custom = triggerToSend
-            };
-        }
-        public OutgoingPacket(ControlEvent controlToSend, Dictionary<string, string> characterTable = null)
-        {
-	        ID = Guid.NewGuid().ToString();
-            Targets = characterTable;
-            RawPacket = new ControlPacket
-            {
-                routing = new Routing(Targets?.Values.ToList()),
-                control = controlToSend
-            };
-        }
-        public OutgoingPacket(DataChunk chunkToSend, Dictionary<string, string> characterTable = null)
-        {
-	        ID = Guid.NewGuid().ToString();
-            Targets = characterTable;
+	        BrainName = brainName;
             RawPacket = new AudioPacket()
             {
-                routing = new Routing(characterTable?.Values.ToList()),
+                routing = new Routing(agentID),
                 dataChunk = chunkToSend
             };
         }
-
-        public bool IsCharacterRegistered => !Targets.Values.Any(string.IsNullOrEmpty);
-        
 		public bool Contains(InworldPacket packet)
 		{
 			return RawPacket.packetId == packet.packetId;
@@ -100,41 +172,26 @@ namespace Inworld.Interactions
 		{
 			throw new NotImplementedException();
 		}
-		public bool OnDequeue()
-		{
-			if (_UpdateSessionInfo())
-			{
-				_ComposePacket();
-				return true;
-			}
-			return false;
-		}
-		
+		public bool OnDequeue() => _UpdateSessionInfo();
+	
 		/// <summary>
 		/// Update the characters in this conversation with updated ID.
 		/// </summary>
 		/// <returns>The brain name of the characters not found in the current session.</returns>
 		bool _UpdateSessionInfo()
 		{
-			foreach (string key in Targets.Keys.ToList())
+			if (InworldController.Client.LiveSessionData.TryGetValue(BrainName, out InworldCharacterData value))
 			{
-				if (InworldController.Client.LiveSessionData.TryGetValue(key, out InworldCharacterData value))
-					Targets[key] = value.agentId;
-				else 
-				{
-					if (InworldAI.IsDebugMode)
-						InworldAI.LogWarning($"{key} is not in the current session.");
-				}
+				AgentID = value.agentId;
+				RawPacket.routing = new Routing(AgentID);
+				return !string.IsNullOrEmpty(AgentID);
 			}
-			return Targets.Count > 0 && !Targets.Values.Any(string.IsNullOrEmpty);
-		}
-
-		void _ComposePacket()
-		{
-			List<string> agentIDs = Targets.Values.Where(c => !string.IsNullOrEmpty(c)).ToList();
-			if (RawPacket == null)
-				return;
-			RawPacket.routing = new Routing(agentIDs);
+			else 
+			{
+				if (InworldAI.IsDebugMode)
+					InworldAI.LogWarning($"{BrainName} is not in the current session.");
+				return false;
+			}
 		}
 	}
 }
