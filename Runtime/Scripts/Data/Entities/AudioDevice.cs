@@ -15,37 +15,6 @@ using UnityEngine.Scripting;
 namespace Inworld.Entities
 {
     [Serializable]
-    public class AudioSessionInfo
-    {
-        public string audioSessionID;
-        public string currentBrainName;
-        public string lastBrainName;
-
-        /// <summary>
-        /// Stops the current audio session.
-        /// </summary>
-        public void StopAudio()
-        {
-            InworldController.Client.StopAudio(); 
-            lastBrainName = currentBrainName;
-            currentBrainName = "";
-        }
-        /// <summary>
-        /// Starts a new audio session.
-        /// </summary>
-        /// <param name="characterBrainName">The brain names of the characters to enable audio interaction</param>
-        public void StartAudio(string characterBrainName)
-        {
-            if (string.IsNullOrEmpty(characterBrainName))
-                return;
-            if (currentBrainName == characterBrainName)
-                return;
-            StopAudio();
-            InworldController.Client.StartAudioTo(characterBrainName);
-            currentBrainName = characterBrainName;
-        }
-    }
-    [Serializable]
     public class AudioDevice
     {
         public string deviceId;

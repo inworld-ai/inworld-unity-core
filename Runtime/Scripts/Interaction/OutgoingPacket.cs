@@ -180,6 +180,12 @@ namespace Inworld.Interactions
 		/// <returns>The brain name of the characters not found in the current session.</returns>
 		bool _UpdateSessionInfo()
 		{
+			if (string.IsNullOrEmpty(BrainName))
+			{
+				if (InworldAI.IsDebugMode)
+					InworldAI.LogWarning($"Invalid packet with empty character.");
+				return false;
+			}
 			if (InworldController.Client.LiveSessionData.TryGetValue(BrainName, out InworldCharacterData value))
 			{
 				AgentID = value.agentId;

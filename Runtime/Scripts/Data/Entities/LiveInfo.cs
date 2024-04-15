@@ -5,13 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
-using UnityEngine.Scripting;
-
-
+using Inworld.Packet;
 namespace Inworld.Entities
 {
 	/// <summary>
@@ -19,22 +13,26 @@ namespace Inworld.Entities
 	/// </summary>
 	public class LiveInfo
 	{
-		const string k_Conversation = "CONVERSATION";
+		string m_CurrentBrainName; 
 		public string ConversationID { get; set; }
 		/// <summary>
-		/// Should be either Current Agent ID or Current Conversation ID.
+		/// Should be either the conversationID or the character's agent ID.
 		/// </summary>
 		public string AudioSessionID { get; set; }
 		public string CurrentAgentID { get; set; }
-		public string CurrentBrainName { get; set; } = k_Conversation;
-		public bool IsConversation => !string.IsNullOrEmpty(ConversationID);
 
-		public bool IsSameAudioSession(string brainName)
+		public string CurrentBrainName
 		{
-			if (string.IsNullOrEmpty(brainName))
-				return IsConversation && AudioSessionID == ConversationID;
-			return CurrentBrainName == brainName;
+			get => m_CurrentBrainName;
+			set
+			{
+				m_CurrentBrainName = value;
+				if (string.IsNullOrEmpty(m_CurrentBrainName))
+					CurrentAgentID = "";
+			}
 		}
+		// Current Character will overwrite the conversation.
+		public bool IsConversation => string.IsNullOrEmpty(CurrentBrainName) && !string.IsNullOrEmpty(ConversationID);
 
 		public LiveInfo()
 		{
@@ -43,6 +41,35 @@ namespace Inworld.Entities
 		public LiveInfo(string characterID, string agentID = "")
 		{
 			CurrentBrainName = characterID;
+			CurrentAgentID = agentID;
+		}
+		public bool IsValid => !string.IsNullOrEmpty(AudioSessionID) && (AudioSessionID == ConversationID || AudioSessionID == CurrentAgentID);
+		
+		public bool IsSameAudioSession(string brainName = "")
+		{
+			if (string.IsNullOrEmpty(brainName))
+				return IsConversation;
+			return CurrentBrainName == brainName;
+		}
+
+		public void OnPacketSent(ControlPacket packet)
+		{
+			switch (packet.Action)
+			{
+				case ControlType.AUDIO_SESSION_START:
+					string agentID = packet.TargetAgentID;
+					AudioSessionID = agentID;
+					if (!IsConversation)
+						CurrentAgentID = agentID;
+					break;
+				case ControlType.AUDIO_SESSION_END:
+					AudioSessionID = "";
+					break;
+			}
+		}
+		public void SetAudioCharacter(string charBrainName, string agentID = "")
+		{
+			CurrentBrainName = charBrainName;
 			CurrentAgentID = agentID;
 		}
 	}

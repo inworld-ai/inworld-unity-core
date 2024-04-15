@@ -58,7 +58,6 @@ namespace Inworld
         protected List<AudioDevice> m_Devices = new List<AudioDevice>();
         protected byte[] m_ByteBuffer;
         protected float[] m_InputBuffer;
-        protected AudioSessionInfo m_CurrentAudioSession;
         static int m_nPosition;
 #if UNITY_WEBGL
         protected static float[] s_WebGLBuffer;
@@ -277,19 +276,12 @@ namespace Inworld
         public virtual void StopAudio()
         {
             m_AudioToPush.Clear();
-            m_CurrentAudioSession.StopAudio();
+            InworldController.Client.StopAudio();
         }
-        public virtual void StartAudio(string character = null)
+        public virtual void StartAudio(string brainName)
         {
-            if (character == null)
-            {
-                if (InworldController.CharacterHandler.CurrentCharacter)
-                    m_CurrentAudioSession.StartAudio(InworldController.CurrentCharacter.BrainName);
-                else if (InworldController.CharacterHandler.CurrentCharacterNames.Count != 0)
-                    m_CurrentAudioSession.StartAudio(InworldController.CharacterHandler.CurrentCharacter.BrainName);
-            }
-            else
-                m_CurrentAudioSession.StartAudio(character);
+            m_AudioToPush.Clear();
+            InworldController.Client.StartAudioTo(brainName);
         }
 
         /// <summary>
@@ -373,7 +365,6 @@ namespace Inworld
         }
         protected virtual void Init()
         {
-            m_CurrentAudioSession = new AudioSessionInfo();
             m_BufferSize = m_BufferSeconds * k_SampleRate;
             m_ByteBuffer = new byte[m_BufferSize * k_Channel * k_SizeofInt16];
             m_InputBuffer = new float[m_BufferSize * k_Channel];
@@ -408,7 +399,7 @@ namespace Inworld
             character.Event.onCharacterSelected.RemoveListener(OnCharacterSelected);
             character.Event.onCharacterDeselected.RemoveListener(OnCharacterDeselected);
         }
-        protected virtual void OnCharacterSelected(string brainName) => StartAudio();
+        protected virtual void OnCharacterSelected(string brainName) => StartAudio(brainName);
 
         protected virtual void OnCharacterDeselected(string brainName) => StopAudio();
 

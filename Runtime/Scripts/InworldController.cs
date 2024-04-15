@@ -286,7 +286,7 @@ namespace Inworld
                 InworldAI.LogException($"Tried to start audio, but not connected to server.");
             if (CharacterHandler.CurrentCharacterNames.Count <= 0)
                 InworldAI.LogException($"No characters in the session.");
-            Audio.StartAudio();
+            Audio.StartAudio("");
         }
         /// <summary>
         /// Send AUDIO_SESSION_END control events to server.

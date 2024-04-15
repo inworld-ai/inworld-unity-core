@@ -285,6 +285,8 @@ namespace Inworld
             OutgoingPacket rawData = m_Prepared.Dequeue(true);
             if (rawData == null)
                 return;
+            if (rawData.RawPacket is ControlPacket packet)
+                Current.OnPacketSent(packet);
             m_Socket.SendAsync(rawData.RawPacket.ToJson);
             m_Sent.Enqueue(rawData);
         }
@@ -354,7 +356,6 @@ namespace Inworld
                 InworldAI.Log($"Load Scene: {sceneFullName}");
                 m_SceneFullName = sceneFullName;
                 string json = new LoadScenePacket(m_SceneFullName).ToJson;
-                Debug.Log(json);
                 m_Socket.SendAsync(json);
             }
         }
@@ -700,14 +701,19 @@ namespace Inworld
             {
                 action = ControlType.AUDIO_SESSION_START.ToString()
             };
+            
             if (Current.IsConversation && string.IsNullOrEmpty(character))
             {
+                InworldAI.Log("Now broadcasting");
+                Current.ConversationID = InworldController.CharacterHandler.ConversationID;
                 rawData = new OutgoingPacket(control, Current);
                 _SendPacket(rawData, immediate);
                 return;
             }
+            InworldAI.Log($"Now talking to {InworldController.CharacterHandler.GetCharacterByBrainName(character)?.Name}");
             string agentID = GetAgentIDByFullName(character);
-            rawData = new OutgoingPacket(control, new LiveInfo(character, agentID));
+            Current.SetAudioCharacter(character, agentID);
+            rawData = new OutgoingPacket(control, Current);
             _SendPacket(rawData, immediate);
         }
         /// <summary>
@@ -740,7 +746,7 @@ namespace Inworld
         /// </summary>
         public virtual void StopAudio()
         {
-            if (string.IsNullOrEmpty(Current.AudioSessionID)) 
+            if (string.IsNullOrEmpty(Current.AudioSessionID))
                 return;
             InworldPacket packet = new ControlPacket
             {
@@ -752,15 +758,18 @@ namespace Inworld
                     action = ControlType.AUDIO_SESSION_END.ToString()
                 }
             };
-            if (Current.AudioSessionID == Current.ConversationID)
+            if (Current.IsConversation)
             {
+                InworldAI.Log("Stop Broadcasting");
                 packet.packetId.conversationId = Current.ConversationID;
                 packet.routing = new Routing();
             }
-            if (Current.AudioSessionID == Current.CurrentAgentID)
+            else
             {
                 packet.routing = new Routing(Current.CurrentAgentID);
+                InworldAI.Log($"Stop Talking to {InworldController.Client.GetCharacterDataByID(Current.CurrentAgentID)?.givenName}");
             }
+            Current.AudioSessionID = "";
             string jsonToSend = JsonUtility.ToJson(packet);
             m_Socket.SendAsync(jsonToSend);
         }

@@ -111,6 +111,20 @@ namespace Inworld.Packet
         public string SourceName => routing?.source?.name;
         
         public string TargetName => routing?.target?.name;
+
+        public string TargetAgentID
+        {
+            get
+            {
+                string agentID = TargetName;
+                if (!string.IsNullOrEmpty(agentID))
+                    return agentID;
+                string conversationID = packetId?.conversationId;
+                if (!string.IsNullOrEmpty(conversationID))
+                    return packetId.conversationId;
+                return "";
+            }
+        }
         
         public bool IsSource(string agentID) => !string.IsNullOrEmpty(agentID) && SourceName == agentID;
         

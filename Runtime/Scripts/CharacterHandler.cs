@@ -25,10 +25,12 @@ namespace Inworld
     {
         [SerializeField] bool m_ManualAudioHandling;
         InworldCharacter m_CurrentCharacter;
+        string m_ConversationID;
         
         public event Action<InworldCharacter> OnCharacterListJoined;
         public event Action<InworldCharacter> OnCharacterListLeft;
-        
+
+        public string ConversationID => m_ConversationID;
         // The Character List only lists the interactable characters. 
         // Although InworldCharacter also has InworldCharacterData, its agentID won't be always updated. Please check m_LiveSession
         // and Call RegisterLiveSession if outdated.
@@ -151,6 +153,10 @@ namespace Inworld
              foreach (InworldCharacter character in m_CharacterList)
                  OnCharacterListLeft?.Invoke(character); 
              m_CharacterList.Clear();
+         }
+         void Start()
+         {
+             m_ConversationID = Guid.NewGuid().ToString();
          }
     }
 }
