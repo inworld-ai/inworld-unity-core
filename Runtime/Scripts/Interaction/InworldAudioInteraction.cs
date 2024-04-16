@@ -48,6 +48,7 @@ namespace Inworld.Interactions
             base.CancelResponse(isHardCancelling);
             if(m_Interruptable)
                 m_PlaybackSource.Stop();
+            m_WaitTimer = 0;
         }
         protected override void Awake()
         {
@@ -106,6 +107,7 @@ namespace Inworld.Interactions
         {
             base.SkipCurrentUtterance();
             m_PlaybackSource.Stop();
+            m_WaitTimer = 0;
         }
         protected IEnumerator AdjustVolume()
         {
