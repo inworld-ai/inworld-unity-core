@@ -58,10 +58,10 @@ namespace Inworld.Interactions
             {
                 switch (p)
                 {
-                    case TextPacket:
+                    case TextPacket textPacket:
                         foundText = true;
                         break;
-                    case AudioPacket:
+                    case AudioPacket audioPacket:
                         foundAudio = true;
                         break;
                 }
