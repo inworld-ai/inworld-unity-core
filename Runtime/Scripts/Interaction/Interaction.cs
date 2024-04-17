@@ -15,6 +15,7 @@ namespace Inworld.Interactions
     {
         public string ID { get; set; }
         public DateTime RecentTime { get; set; }
+        public bool ReceivedInteractionEnd { get; set; }
         internal Utterance CurrentUtterance { get; set; }
         public bool IsEmpty => (m_Prepared == null || m_Prepared.IsEmpty) && (CurrentUtterance == null || CurrentUtterance.IsEmpty);
         
@@ -41,6 +42,8 @@ namespace Inworld.Interactions
         /// <returns>If it needs to dispatch immediately, will return, otherwise return null.</returns>
         public void Add(InworldPacket packet)
         {
+            if (packet is ControlPacket controlPacket && controlPacket.Action == ControlType.INTERACTION_END)
+                ReceivedInteractionEnd = true;
             if (m_Processed.IsOverDue(packet) || m_Processed.Contains(packet))
             {
                 m_Processed.Add(packet);

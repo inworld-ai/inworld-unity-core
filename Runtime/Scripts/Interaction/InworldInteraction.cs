@@ -134,6 +134,7 @@ namespace Inworld.Interactions
             {
                 yield return RemoveExceedItems();
                 yield return HandleNextUtterance();
+                yield return null;
             }
         }
         protected IEnumerator HandleNextUtterance()
@@ -151,7 +152,9 @@ namespace Inworld.Interactions
                 }
                 if (m_CurrentInteraction != null && m_CurrentInteraction.CurrentUtterance != null)
                 {
-                    if (InworldController.Audio.SampleMode != MicSampleMode.TURN_BASED || !InworldController.Audio.CurrentPlayingAudioSource || !InworldController.Audio.CurrentPlayingAudioSource.isPlaying)
+                    if (InworldController.Audio.SampleMode != MicSampleMode.TURN_BASED || 
+                               !InworldController.Audio.CurrentPlayingAudioSource || 
+                               !InworldController.Audio.CurrentPlayingAudioSource.isPlaying)
                         yield return PlayNextUtterance();
                 }
                 else if (m_Character)
@@ -160,7 +163,6 @@ namespace Inworld.Interactions
             else
             {
                 ShowContinue();
-                yield return null;
             }
         }
         void HideContinue()
@@ -178,7 +180,10 @@ namespace Inworld.Interactions
             if (!IsRelated(incomingPacket))
                 return;
             if (incomingPacket is CustomPacket || incomingPacket is EmotionPacket)
+            {
                 m_Character.ProcessPacket(incomingPacket);
+                return;
+            }
             if (incomingPacket.Source == SourceType.PLAYER && (incomingPacket.IsBroadCast || incomingPacket.IsTarget(m_Character.ID)))
             {
                 if (!(incomingPacket is AudioPacket))

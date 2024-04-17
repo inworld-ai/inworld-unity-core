@@ -42,6 +42,32 @@ namespace Inworld.Interactions
             RecentTime = packetTime > RecentTime ? packetTime : RecentTime;
             m_Packets[packet.packetId.packetId] = packet;
         }
+        public bool IsPlayable()
+        {
+            foreach (InworldPacket p in m_Packets.Values)
+            {
+                if (p is TextPacket || p is AudioPacket)
+                    return true;
+            }
+            return false;
+        }
+        public bool ContainsTextAndAudio()
+        {
+            bool foundAudio = false, foundText = false;
+            foreach (InworldPacket p in m_Packets.Values)
+            {
+                switch (p)
+                {
+                    case TextPacket textPacket:
+                        foundText = true;
+                        break;
+                    case AudioPacket audioPacket:
+                        foundAudio = true;
+                        break;
+                }
+            }
+            return foundAudio && foundText;
+        }
         public float GetTextSpeed()
         {
             foreach (InworldPacket p in m_Packets.Values)

@@ -16,7 +16,9 @@ namespace Inworld.Interactions
         [Range (0, 1)][SerializeField] protected float m_VolumeOnPlayerSpeaking = 1f;
         AudioSource m_PlaybackSource;
         AudioClip m_AudioClip;
+        float m_WaitTimer;
         const string k_NoAudioCapabilities = "Audio Capabilities have been disabled in the Inworld AI object. Audio is required to be enabled when using the InworldAudioInteraction component.";
+        const float k_WaitTime = 2f;
         public override float AnimFactor
         {
             get => m_AnimFactor;
@@ -46,6 +48,7 @@ namespace Inworld.Interactions
             base.CancelResponse(isHardCancelling);
             if(m_Interruptable)
                 m_PlaybackSource.Stop();
+            m_WaitTimer = 0;
         }
         protected override void Awake()
         {
@@ -65,17 +68,28 @@ namespace Inworld.Interactions
                 yield return AdjustVolume();
                 yield return RemoveExceedItems();
                 yield return HandleNextUtterance();
+                yield return null;
             }
         }
         protected override IEnumerator PlayNextUtterance()
         {
+            if (!m_CurrentInteraction.CurrentUtterance.IsPlayable())
+            {
+                m_Character.OnInteractionChanged(m_CurrentInteraction.CurrentUtterance.Packets);
+                m_CurrentInteraction.CurrentUtterance = null;
+                m_WaitTimer = 0;
+                yield break;
+            }
+            if (!m_CurrentInteraction.CurrentUtterance.ContainsTextAndAudio() && !m_CurrentInteraction.ReceivedInteractionEnd && m_WaitTimer < k_WaitTime)
+            {
+                m_WaitTimer += Time.unscaledDeltaTime;
+                yield break;
+            }
             m_AudioClip = m_CurrentInteraction.CurrentUtterance.GetAudioClip();
             if (m_AudioClip == null)
             {
                 m_Character.OnInteractionChanged(m_CurrentInteraction.CurrentUtterance.Packets);
                 yield return new WaitForSeconds(m_CurrentInteraction.CurrentUtterance.GetTextSpeed() * m_TextSpeedMultipler);
-                if (m_CurrentInteraction != null)
-                    m_CurrentInteraction.CurrentUtterance = null;
             }
             else
             {
@@ -84,14 +98,16 @@ namespace Inworld.Interactions
                 m_PlaybackSource.PlayOneShot(m_AudioClip);
                 m_Character.OnInteractionChanged(m_CurrentInteraction.CurrentUtterance.Packets);
                 yield return new WaitUntil(() => !m_PlaybackSource.isPlaying);
-                if (m_CurrentInteraction != null)
-                    m_CurrentInteraction.CurrentUtterance = null;
             }
+            if(m_CurrentInteraction != null)
+                m_CurrentInteraction.CurrentUtterance = null;
+            m_WaitTimer = 0;
         }
         protected override void SkipCurrentUtterance()
         {
             base.SkipCurrentUtterance();
             m_PlaybackSource.Stop();
+            m_WaitTimer = 0;
         }
         protected IEnumerator AdjustVolume()
         {
