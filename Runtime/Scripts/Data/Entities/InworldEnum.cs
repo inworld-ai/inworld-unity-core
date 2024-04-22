@@ -90,6 +90,12 @@ namespace Inworld
         CONVERSATION_UPDATE,
         CONVERSATION_EVENT
     }
+    public enum ConversationEventType
+    {
+        EVICTED,
+        STARTED,
+        UPDATED,
+    }
     public enum SourceType
     {
         NONE,

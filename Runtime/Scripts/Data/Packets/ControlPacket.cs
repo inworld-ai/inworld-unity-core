@@ -11,10 +11,21 @@ using UnityEngine;
 namespace Inworld.Packet
 {
     [Serializable]
+    public class ConversationUpdatePayLoad
+    {
+        public ConversationUpdate conversationUpdate;
+    }
+    [Serializable]
+    public class ConversationUpdate
+    {
+        public List<Source> participants;
+    }
+    [Serializable]
     public class ControlEvent
     {
         public string action;
         public string description;
+        public ConversationUpdate conversationUpdate;
     }
     [Serializable]
     public class ControlPacket : InworldPacket
@@ -32,6 +43,18 @@ namespace Inworld.Packet
             control = evt;
         }
         public ControlType Action => Enum.TryParse(control.action, true, out ControlType result) ? result : ControlType.UNKNOWN;
+        public bool IsConversation => control.action == ControlType.CONVERSATION_UPDATE.ToString();
+        public void InstallPayload(List<Source> agentIDs)
+        {
+            if (control == null || agentIDs == null || agentIDs.Count == 0)
+                return;
+            packetId.conversationId = InworldController.CharacterHandler.ConversationID;
+            control.action = ControlType.CONVERSATION_UPDATE.ToString();
+            control.conversationUpdate = new ConversationUpdate
+            {
+                participants = agentIDs
+            };
+        }
         public override string ToJson => JsonUtility.ToJson(this); 
     }
 }

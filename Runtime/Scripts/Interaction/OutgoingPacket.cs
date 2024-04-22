@@ -132,10 +132,10 @@ namespace Inworld.Interactions
         {
 	        ID = Guid.NewGuid().ToString();
 	        m_BrainNames = brainNames;
-	        RawPacket = new ConversationPacket
+	        RawPacket = new ControlPacket
 	        {
 		        routing = new Routing("WORLD"),
-		        control = new ConversationEvent
+		        control = new ControlEvent
 		        {
 			        action = ControlType.CONVERSATION_UPDATE.ToString()
 		        }
@@ -196,7 +196,7 @@ namespace Inworld.Interactions
 		/// <returns>The brain name of the characters not found in the current session.</returns>
 		bool _UpdateSessionInfo()
 		{
-			if (m_BrainNames.Count != 0 && RawPacket is ConversationPacket convoPacket && convoPacket.IsConversation)
+			if (m_BrainNames.Count != 0 && RawPacket is ControlPacket convoPacket && convoPacket.IsConversation)
 			{
 				List<Source> agentIDs = new List<Source>();
 				foreach (string brainName in m_BrainNames)

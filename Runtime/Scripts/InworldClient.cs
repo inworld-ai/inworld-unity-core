@@ -686,7 +686,6 @@ namespace Inworld
         }
         public void UpdateConversation(List<string> characters = null)
         {
-            Debug.LogWarning($"Send Update Convo {characters?.Count}");
             OutgoingPacket rawData = new OutgoingPacket(InworldController.CharacterHandler.ConversationID, characters);
             m_CurrentLiveInfo.ConversationID = InworldController.CharacterHandler.ConversationID;
             _SendPacket(rawData);
@@ -995,8 +994,7 @@ namespace Inworld
                         case ControlType.INTERACTION_END:
                             _FinishInteraction(controlPacket.packetId.correlationId);
                             break;
-                        default:
-                            Debug.LogWarning(e.Data);
+                        case ControlType.CONVERSATION_EVENT:
                             break;
                     }
                 }

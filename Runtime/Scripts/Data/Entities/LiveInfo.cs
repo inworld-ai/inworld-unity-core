@@ -14,6 +14,7 @@ namespace Inworld.Entities
 	/// </summary>
 	public class LiveInfo
 	{
+		public ConversationEventType currentConversationStatus = ConversationEventType.EVICTED;
 		string m_CurrentBrainName; 
 		public string ConversationID { get; set; }
 		/// <summary>

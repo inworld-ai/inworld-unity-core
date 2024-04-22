@@ -25,6 +25,7 @@ namespace Inworld
     {
         [SerializeField] bool m_ManualAudioHandling;
         InworldCharacter m_CurrentCharacter;
+
         string m_ConversationID;
         public event Action<InworldCharacter> OnCharacterListJoined;
         public event Action<InworldCharacter> OnCharacterListLeft;
