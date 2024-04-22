@@ -6,6 +6,7 @@
  *************************************************************************************************/
 
 using Inworld.Packet;
+
 namespace Inworld.Entities
 {
 	/// <summary>
@@ -32,7 +33,7 @@ namespace Inworld.Entities
 			}
 		}
 		// Current Character will overwrite the conversation.
-		public bool IsConversation => string.IsNullOrEmpty(CurrentBrainName) && !string.IsNullOrEmpty(ConversationID);
+		public bool IsConversation => string.IsNullOrEmpty(CurrentBrainName) && !string.IsNullOrEmpty(ConversationID); 
 
 		public LiveInfo()
 		{

@@ -416,7 +416,6 @@ namespace Inworld
             InworldAI.Log($"Send previous history... {jsonToSend}");
             m_Socket.SendAsync(jsonToSend);
         }
-
         /// <summary>
         /// New Send messages to an InworldCharacter in this current scene.
         /// NOTE: 1. New method uses brainName (aka character's full name) instead of live session ID
@@ -425,18 +424,19 @@ namespace Inworld
         /// <param name="textToSend">the message to send.</param>
         /// <param name="character">the characters full name. If null, it would be sent to chat group.</param>
         /// <param name="immediate">if immediately sent without enqueuing.</param>
-        public virtual void SendTextTo(string textToSend, string character = null, bool immediate = false)
+        public virtual void SendTextTo(string textToSend, string character = null, bool immediate = false) // false
         {
             if (string.IsNullOrEmpty(textToSend))
                 return;
             OutgoingPacket rawData;
-            if (Current.IsConversation && string.IsNullOrEmpty(character))
+            if (Current.IsConversation)// && string.IsNullOrEmpty(character))
             {
                 rawData = new OutgoingPacket(new TextEvent(textToSend), Current);
                 _SendPacket(rawData, immediate, true);
                 return;
             }
             string agentID = GetAgentIDByFullName(character);
+            Debug.Log($"Send Text to AgentID: {agentID}");
             rawData = new OutgoingPacket(new TextEvent(textToSend), new LiveInfo(character, agentID));
             _SendPacket(rawData, immediate, true);
         }
@@ -683,6 +683,13 @@ namespace Inworld
             string jsonToSend = JsonUtility.ToJson(packet);
             InworldAI.Log($"Send Trigger {triggerName}");
             m_Socket.SendAsync(jsonToSend);
+        }
+        public void UpdateConversation(List<string> characters = null)
+        {
+            Debug.LogWarning($"Send Update Convo {characters?.Count}");
+            OutgoingPacket rawData = new OutgoingPacket(InworldController.CharacterHandler.ConversationID, characters);
+            m_CurrentLiveInfo.ConversationID = InworldController.CharacterHandler.ConversationID;
+            _SendPacket(rawData);
         }
         /// <summary>
         /// New Send AUDIO_SESSION_START control events to server.
@@ -964,10 +971,6 @@ namespace Inworld
             InworldNetworkPacket packetReceived = response.result;
             if (packetReceived.Type == PacketType.SESSION_RESPONSE)
             {
-                
-            }
-            if (packetReceived.Type == PacketType.SESSION_RESPONSE)
-            {
                 if (packetReceived.Packet is SessionResponsePacket sessionResponse)
                 {
                     m_CurrentSceneData = new LoadSceneResponse();
@@ -991,6 +994,9 @@ namespace Inworld
                             return;
                         case ControlType.INTERACTION_END:
                             _FinishInteraction(controlPacket.packetId.correlationId);
+                            break;
+                        default:
+                            Debug.LogWarning(e.Data);
                             break;
                     }
                 }
@@ -1106,5 +1112,6 @@ namespace Inworld
             }
         }
 #endregion
+
     }
 }

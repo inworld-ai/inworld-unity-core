@@ -21,7 +21,6 @@ namespace Inworld.Packet
         {
             if (targetName == "WORLD")
             {
-                name = SourceType.WORLD.ToString();
                 type = SourceType.WORLD.ToString();
             }
             else if (targetName == InworldAI.User.Name)
@@ -55,15 +54,10 @@ namespace Inworld.Packet
         public Routing(List<string> characters)
         {
             source = new Source(InworldAI.User.Name);
-            if (characters.Count == 1)
-                target = new Source(characters[0]);
-            else
+            targets = new List<Source>();
+            foreach (string characterID in characters)
             {
-                targets = new List<Source>();
-                foreach (string characterID in characters)
-                {
-                    targets.Add(new Source(characterID));
-                }
+                targets.Add(new Source(characterID));
             }
         }
     }

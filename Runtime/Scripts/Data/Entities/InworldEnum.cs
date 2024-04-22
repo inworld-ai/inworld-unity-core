@@ -86,6 +86,9 @@ namespace Inworld
         AUDIO_SESSION_END,
         INTERACTION_END,
         WARNING,
+        CONVERSATION_START,
+        CONVERSATION_UPDATE,
+        CONVERSATION_EVENT
     }
     public enum SourceType
     {

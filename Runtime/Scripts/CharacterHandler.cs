@@ -26,16 +26,26 @@ namespace Inworld
         [SerializeField] bool m_ManualAudioHandling;
         InworldCharacter m_CurrentCharacter;
         string m_ConversationID;
-        
         public event Action<InworldCharacter> OnCharacterListJoined;
         public event Action<InworldCharacter> OnCharacterListLeft;
+        
+        /// <summary>
+        /// Gets/Sets the ConversationID. 
+        /// </summary>
+        public string ConversationID
+        {
+            get => m_ConversationID;
+            set
+            {
+                m_ConversationID = value;
+                InworldController.Client.UpdateConversation(CurrentCharacterNames);
+            }
+        }
 
-        public string ConversationID => m_ConversationID;
         // The Character List only lists the interactable characters. 
         // Although InworldCharacter also has InworldCharacterData, its agentID won't be always updated. Please check m_LiveSession
         // and Call RegisterLiveSession if outdated.
         protected readonly List<InworldCharacter> m_CharacterList = new List<InworldCharacter>();
-
         /// <summary>
         /// Return if any character is speaking.
         /// </summary>
@@ -78,6 +88,12 @@ namespace Inworld
         ///     Get the current Character Selecting Method. By default it's manual.
         /// </summary>
         public virtual CharSelectingMethod SelectingMethod { get; set; } = CharSelectingMethod.Manual;
+        
+        /// <summary>
+        ///     Create a new conversationID.
+        ///     You can create multiple conversationIDs and categorize with specific characters to have a clear chat history.
+        /// </summary>
+        public virtual void CreateConversation() => m_ConversationID = Guid.NewGuid().ToString();
 
         /// <summary>
         ///     Change the method of how to select character.
@@ -123,8 +139,9 @@ namespace Inworld
         {
             if (m_CharacterList.Contains(character))
                 return;
-            OnCharacterListJoined?.Invoke(character);
             m_CharacterList.Add(character);
+            OnCharacterListJoined?.Invoke(character);
+            InworldController.Client.UpdateConversation(CurrentCharacterNames);
         }
         /// <summary>
         /// Remove the character from the character list.
@@ -140,6 +157,7 @@ namespace Inworld
             if (!m_CharacterList.Contains(character))
                 return;
             m_CharacterList.Remove(character);
+            InworldController.Client.UpdateConversation(CurrentCharacterNames);
             OnCharacterListLeft?.Invoke(character); 
         }
          /// <summary>
@@ -154,9 +172,9 @@ namespace Inworld
                  OnCharacterListLeft?.Invoke(character); 
              m_CharacterList.Clear();
          }
-         void Start()
+         void Awake()
          {
-             m_ConversationID = Guid.NewGuid().ToString();
+             CreateConversation();
          }
     }
 }

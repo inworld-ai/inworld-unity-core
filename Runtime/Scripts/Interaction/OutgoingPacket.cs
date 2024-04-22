@@ -24,6 +24,7 @@ namespace Inworld.Interactions
 		public string BrainName { get; set; } // YAN: The character ID in the browser.
 		public string AgentID { get; set; } 
 		public InworldPacket RawPacket { get; protected set; }
+		List<string> m_BrainNames = new List<string>();
         public OutgoingPacket(TextEvent txtToSend, LiveInfo liveInfo)
         {
 	        ID = Guid.NewGuid().ToString();
@@ -31,7 +32,7 @@ namespace Inworld.Interactions
 	        {
 		        RawPacket = new TextPacket
 		        {
-			        routing = new Routing(),
+			        routing = new Routing("WORLD"),
 			        text = txtToSend
 		        };
 		        RawPacket.packetId.conversationId = liveInfo.ConversationID;
@@ -54,7 +55,7 @@ namespace Inworld.Interactions
 	        {
 		        RawPacket = new ActionPacket
 		        {
-			        routing = new Routing(),
+			        routing = new Routing("WORLD"),
 			        action = narrativeActionToSend
 		        };
 		        RawPacket.packetId.conversationId = liveInfo.ConversationID;
@@ -77,7 +78,7 @@ namespace Inworld.Interactions
 	        {
 		        RawPacket = new CancelResponsePacket
 		        {
-			        routing = new Routing(),
+			        routing = new Routing("WORLD"),
 			        mutation = mutationToSend
 		        };
 		        RawPacket.packetId.conversationId = liveInfo.ConversationID;
@@ -100,7 +101,7 @@ namespace Inworld.Interactions
 	        {
 		        RawPacket = new RegenerateResponsePacket
 		        {
-			        routing = new Routing(),
+			        routing = new Routing("WORLD"),
 			        mutation = mutationToSend
 		        };
 		        RawPacket.packetId.conversationId = liveInfo.ConversationID;
@@ -127,6 +128,20 @@ namespace Inworld.Interactions
 	        };
 	        RawPacket.packetId.correlationId = ID;
         }
+        public OutgoingPacket(string conversationID, List<string> brainNames)
+        {
+	        ID = Guid.NewGuid().ToString();
+	        m_BrainNames = brainNames;
+	        RawPacket = new ConversationPacket
+	        {
+		        routing = new Routing("WORLD"),
+		        control = new ConversationEvent
+		        {
+			        action = ControlType.CONVERSATION_UPDATE.ToString()
+		        }
+	        };
+	        RawPacket.packetId.conversationId = conversationID;
+        }
         public OutgoingPacket(ControlEvent controlToSend, LiveInfo liveInfo)
         {
 	        ID = Guid.NewGuid().ToString();
@@ -134,7 +149,7 @@ namespace Inworld.Interactions
 	        {
 		        RawPacket = new ControlPacket
 		        {
-			        routing = new Routing(),
+			        routing = new Routing("WORLD"),
 			        control = controlToSend
 		        };
 		        RawPacket.packetId.conversationId = liveInfo.ConversationID;
@@ -154,12 +169,13 @@ namespace Inworld.Interactions
         {
 	        ID = Guid.NewGuid().ToString();
 	        BrainName = brainName;
-            RawPacket = new AudioPacket()
+            RawPacket = new AudioPacket
             {
                 routing = new Routing(agentID),
                 dataChunk = chunkToSend
             };
         }
+        public bool IsConversation => !string.IsNullOrEmpty(RawPacket?.packetId?.conversationId);
 		public bool Contains(InworldPacket packet)
 		{
 			return RawPacket.packetId == packet.packetId;
@@ -180,8 +196,27 @@ namespace Inworld.Interactions
 		/// <returns>The brain name of the characters not found in the current session.</returns>
 		bool _UpdateSessionInfo()
 		{
+			if (m_BrainNames.Count != 0 && RawPacket is ConversationPacket convoPacket && convoPacket.IsConversation)
+			{
+				List<Source> agentIDs = new List<Source>();
+				foreach (string brainName in m_BrainNames)
+				{
+					if (InworldController.Client.LiveSessionData.TryGetValue(brainName, out InworldCharacterData val))
+					{
+						agentIDs.Add(new Source(val.agentId));
+					}
+				}
+				convoPacket.InstallPayload(agentIDs);
+				return agentIDs.Count > 0;
+			}
+			// return true;
 			if (string.IsNullOrEmpty(BrainName))
 			{
+				if (IsConversation)
+				{
+					Debug.Log("Send to Convo");
+					return true;
+				}
 				if (InworldAI.IsDebugMode)
 					InworldAI.LogWarning($"Invalid packet with empty character.");
 				return false;
@@ -192,12 +227,9 @@ namespace Inworld.Interactions
 				RawPacket.routing = new Routing(AgentID);
 				return !string.IsNullOrEmpty(AgentID);
 			}
-			else 
-			{
-				if (InworldAI.IsDebugMode)
-					InworldAI.LogWarning($"{BrainName} is not in the current session.");
-				return false;
-			}
+			if (InworldAI.IsDebugMode)
+				InworldAI.LogWarning($"{BrainName} is not in the current session.");
+			return false;
 		}
 	}
 }
