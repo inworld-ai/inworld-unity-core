@@ -108,6 +108,7 @@ namespace Inworld.Test
 		[UnityTest]
 		public IEnumerator InworldRuntimeTest_LoadCharacter()
 		{
+			yield return InworldRuntimeTest_Init();
 			InworldController.Client.StartSession();
 			yield return StatusCheck(10, InworldConnectionStatus.Connected);
 			yield return LiveSessionCheck(10);
@@ -115,6 +116,8 @@ namespace Inworld.Test
 		[UnityTest]
 		public IEnumerator InworldRuntimeTest_SendText()
 		{
+			yield return InworldRuntimeTest_Init();
+			yield return InworldRuntimeTest_LoadCharacter();
 			m_Conversation.Clear();
 			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Hello");
 			yield return ConversationCheck(10);
@@ -125,6 +128,8 @@ namespace Inworld.Test
 		[UnityTest]
 		public IEnumerator InworldRuntimeTest_SendAudio()
 		{
+			yield return InworldRuntimeTest_Init();
+			yield return InworldRuntimeTest_LoadCharacter();
 			m_Conversation.Clear();
 			string agentID = InworldController.Client.LiveSessionData.Values.First().agentId;
 			InworldController.Client.StartAudio(agentID); ;
