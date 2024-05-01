@@ -34,6 +34,8 @@ namespace Inworld.Test
 			m_Conversation = new List<InworldPacket>();
 			InworldController.Client.OnStatusChanged += OnClientStatusChanged;
 			InworldController.Client.OnPacketReceived += OnPacketReceived;
+			InworldController.Instance.Init();
+			Assert.IsTrue(InworldController.Client.Token.IsValid);
 		}
 		[OneTimeTearDown]
 		public void CleanupEnv()
@@ -98,17 +100,8 @@ namespace Inworld.Test
 		}
 
 		[UnityTest]
-		public IEnumerator InworldRuntimeTest_Init()
-		{
-			InworldController.Instance.Init();
-			yield return StatusCheck(1, InworldConnectionStatus.Initializing);
-			yield return StatusCheck(1, InworldConnectionStatus.Initialized);
-			Assert.IsTrue(InworldController.Client.Token.IsValid);
-		}
-		[UnityTest]
 		public IEnumerator InworldRuntimeTest_LoadCharacter()
 		{
-			yield return InworldRuntimeTest_Init();
 			InworldController.Client.StartSession();
 			yield return StatusCheck(10, InworldConnectionStatus.Connected);
 			yield return LiveSessionCheck(10);
@@ -116,7 +109,6 @@ namespace Inworld.Test
 		[UnityTest]
 		public IEnumerator InworldRuntimeTest_SendText()
 		{
-			yield return InworldRuntimeTest_Init();
 			yield return InworldRuntimeTest_LoadCharacter();
 			m_Conversation.Clear();
 			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Hello");
@@ -128,7 +120,6 @@ namespace Inworld.Test
 		[UnityTest]
 		public IEnumerator InworldRuntimeTest_SendAudio()
 		{
-			yield return InworldRuntimeTest_Init();
 			yield return InworldRuntimeTest_LoadCharacter();
 			m_Conversation.Clear();
 			string agentID = InworldController.Client.LiveSessionData.Values.First().agentId;
