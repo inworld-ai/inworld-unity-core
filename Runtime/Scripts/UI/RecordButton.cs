@@ -13,13 +13,11 @@ namespace Inworld.UI
     {
         public void OnPointerDown(PointerEventData eventData)
         {
-            InworldController.Audio.IsCapturing = true;
-            InworldController.Instance.StartAudio();
+            InworldController.Audio.IsRecording = true;
         }
         public void OnPointerUp(PointerEventData eventData)
         {
-            InworldController.Audio.IsCapturing = false;
-            InworldController.Instance.PushAudio();
+            InworldController.Audio.IsRecording = false;
         }
     }
 }

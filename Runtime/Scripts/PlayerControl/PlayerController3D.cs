@@ -21,10 +21,9 @@ namespace Inworld.Sample
         [SerializeField] protected BubblePanel m_BubblePanel;
         
         /// <summary>
-        /// Get if any canvas is open.
+        /// Get if any canvas (except Status Canvas) is open.
         /// </summary>
         public override bool IsAnyCanvasOpen => m_ChatCanvas && m_ChatCanvas.activeSelf || 
-                                                m_StatusCanvas && m_StatusCanvas.activeSelf || 
                                                 m_FeedbackCanvas && m_FeedbackCanvas.activeSelf ||
                                                 m_OptionCanvas && m_OptionCanvas.activeSelf;
         
@@ -84,6 +83,7 @@ namespace Inworld.Sample
         {
             _HandleChatCanvas();
             _HandleOptionCanvas();
+            InworldController.Audio.DetectPlayerSpeaking = !IsAnyCanvasOpen;
         }
         protected void _HandleOptionCanvas()
         {
@@ -104,12 +104,10 @@ namespace Inworld.Sample
             {
                 m_PrevSelectingMethod = InworldController.CharacterHandler.SelectingMethod;
                 InworldController.CharacterHandler.SelectingMethod = CharSelectingMethod.Manual;
-                InworldController.Audio.IsCapturing = false;
             }
             else
             {
                 InworldController.CharacterHandler.SelectingMethod = m_PrevSelectingMethod;
-                InworldController.Audio.IsCapturing = true;
             }
             if (m_BubblePanel)
                 m_BubblePanel.UpdateContent();

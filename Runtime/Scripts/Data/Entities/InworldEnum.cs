@@ -79,6 +79,12 @@ namespace Inworld
         // The content contains repetition issue
         INTERACTION_DISLIKE_TYPE_REPETITION = 7
     }
+    public enum MicrophoneMode
+    {
+        UNSPECIFIED,
+        OPEN_MIC, // For auto push
+        EXPECT_AUDIO_END // For push to talk
+    }
     public enum ControlType
     {
         UNKNOWN,

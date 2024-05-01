@@ -10,10 +10,16 @@ using UnityEngine;
 namespace Inworld.Packet
 {
     [Serializable]
+    public class AudioSessionPayload
+    {
+        public string mode;
+    }
+    [Serializable]
     public class ControlEvent
     {
         public string action;
         public string description;
+        public AudioSessionPayload audioSessionStart;
     }
     [Serializable]
     public class ControlPacket : InworldPacket

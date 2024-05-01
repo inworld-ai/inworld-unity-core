@@ -129,7 +129,6 @@ namespace Inworld.Test
 			string agentID = InworldController.Client.LiveSessionData.Values.First().agentId;
 			InworldController.Client.StartAudio(agentID); ;
 			yield return new WaitForSeconds(0.1f);
-			InworldController.Audio.IsPlayerSpeaking = true;
 			InworldController.Client.SendAudio(agentID, k_AudioChunk);
 			yield return new WaitForSeconds(0.1f);
 			InworldController.Client.StopAudio(agentID);
