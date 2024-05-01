@@ -173,13 +173,9 @@ namespace Inworld
                     return;
                 m_IsCapturing = value;
                 if (m_IsCapturing)
-                {
                     StartAudio();
-                }
                 else
-                {
                     StopAudio();
-                }
             }
         }
         /// <summary>
@@ -366,7 +362,6 @@ namespace Inworld
         }
         protected void Update()
         {
-            HandleInput();
             if (m_AudioToPush.Count > m_AudioToPushCapacity)
                 m_AudioToPush.TryDequeue(out AudioChunk chunk);
         }
@@ -426,10 +421,6 @@ namespace Inworld
             if (m_AudioToPush.Count > m_AudioToPushCapacity)
                 m_AudioToPush.TryDequeue(out AudioChunk chunk);
             yield return new WaitForSecondsRealtime(0.1f);
-        }
-        protected virtual void HandleInput()
-        {
-            
         }
         protected int GetAudioData()
         {
