@@ -35,6 +35,7 @@ namespace Inworld
         [SerializeField] protected int m_BufferSeconds = 1;
         [SerializeField] protected int m_AudioToPushCapacity = 100;
         [SerializeField] protected string m_DeviceName;
+        [SerializeField] protected bool m_DetectPlayerSpeaking = true;
         
         public UnityEvent OnRecordingStart;
         public UnityEvent OnRecordingEnd;
@@ -50,7 +51,6 @@ namespace Inworld
         protected AudioClip m_Recording;
         protected IEnumerator m_AudioCoroutine;
         protected AudioChunk m_SendingAudioChunk;
-        protected bool m_DetectPlayerSpeaking = true;
         protected bool m_IsRecording;
         protected bool m_IsPlayerSpeaking;
         protected bool m_IsCapturing;
@@ -366,6 +366,7 @@ namespace Inworld
         }
         protected void Update()
         {
+            HandleInput();
             if (m_AudioToPush.Count > m_AudioToPushCapacity)
                 m_AudioToPush.TryDequeue(out AudioChunk chunk);
         }
@@ -425,6 +426,10 @@ namespace Inworld
             if (m_AudioToPush.Count > m_AudioToPushCapacity)
                 m_AudioToPush.TryDequeue(out AudioChunk chunk);
             yield return new WaitForSecondsRealtime(0.1f);
+        }
+        protected virtual void HandleInput()
+        {
+            
         }
         protected int GetAudioData()
         {
