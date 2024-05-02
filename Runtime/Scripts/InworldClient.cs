@@ -633,9 +633,7 @@ namespace Inworld
         {
             if (string.IsNullOrEmpty(triggerName))
                 return;
-            Dictionary<string, string>  characterToReceive = GetCharacterDataByFullName(characters);
-            // if (characterToReceive.Count == 0)
-            //     return;
+            Dictionary<string, string> characterToReceive = GetCharacterDataByFullName(characters);
             m_Prepared.Enqueue(new OutgoingPacket(new CustomEvent(triggerName, parameters), characterToReceive));
         }
         /// <summary>
@@ -731,11 +729,9 @@ namespace Inworld
                     mode = MicrophoneMode.UNSPECIFIED.ToString()
                 }
             };
-            OutgoingPacket output = new OutgoingPacket(control, characterToReceive);
-            output.OnDequeue();
-            if (!string.IsNullOrEmpty(output.RawPacket?.routing?.target?.name))
-                m_Socket.SendAsync(output.RawPacket.ToJson); // Do not enqueue dataChunk, They can be discarded.
-            OnPacketSent?.Invoke(output.RawPacket);
+            OutgoingPacket rawData = new OutgoingPacket(control, characterToReceive);
+            m_Prepared.Enqueue(rawData);
+            OnPacketSent?.Invoke(rawData.RawPacket);
         }
         /// <summary>
         /// Legacy Send AUDIO_SESSION_END control events to server to.
@@ -744,7 +740,9 @@ namespace Inworld
         public virtual void StopAudio(string charID)
         {
             if (string.IsNullOrEmpty(charID))
+            {
                 return;
+            }
             InworldPacket packet = new ControlPacket
             {
                 timestamp = InworldDateTime.UtcNow,
@@ -754,7 +752,7 @@ namespace Inworld
                 control = new ControlEvent
                 {
                     action = ControlType.AUDIO_SESSION_END.ToString(),
-                    audioSessionStart = new AudioSessionPayload()
+                    audioSessionStart = new AudioSessionPayload
                     {
                         mode = MicrophoneMode.UNSPECIFIED.ToString()
                     }
