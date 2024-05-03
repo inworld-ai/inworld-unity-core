@@ -97,21 +97,7 @@ namespace Inworld
         /// <param name="givenName"></param>
         /// <returns></returns>
         public virtual InworldCharacter GetCharacterByGivenName(string givenName) => CurrentCharacters.FirstOrDefault(c => c.Name == givenName);
-        IEnumerator UpdateThumbnail(InworldCharacterData agent)
-        {
-            if (agent.thumbnail)
-                yield break;
-            string url = agent.characterAssets?.ThumbnailURL;
-            if (string.IsNullOrEmpty(url))
-                yield break;
-            UnityWebRequest uwr = new UnityWebRequest(url);
-            uwr.downloadHandler = new DownloadHandlerTexture();
-            yield return uwr.SendWebRequest();
-            if (uwr.isDone && uwr.result == UnityWebRequest.Result.Success)
-            {
-                agent.thumbnail = (uwr.downloadHandler as DownloadHandlerTexture)?.texture;
-            }
-        }
+
         /// <summary>
         /// Add a character to the character list.
         /// Triggers OnCharacterListJoined

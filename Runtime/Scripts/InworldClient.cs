@@ -856,6 +856,7 @@ namespace Inworld
             foreach (InworldCharacterData agent in loadSceneResponse.agents.Where(agent => !string.IsNullOrEmpty(agent.agentId) && !string.IsNullOrEmpty(agent.brainName)))
             {
                 m_LiveSessionData[agent.brainName] = agent;
+                StartCoroutine(agent.UpdateThumbnail());
             }
         }
         protected string _GetSessionFullName(string sceneFullName)
