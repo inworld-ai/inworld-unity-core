@@ -955,10 +955,6 @@ namespace Inworld
             InworldNetworkPacket packetReceived = response.result;
             if (packetReceived.Type == PacketType.SESSION_RESPONSE)
             {
-                
-            }
-            if (packetReceived.Type == PacketType.SESSION_RESPONSE)
-            {
                 if (packetReceived.Packet is SessionResponsePacket sessionResponse)
                 {
                     m_CurrentSceneData = new LoadSceneResponse();
