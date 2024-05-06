@@ -13,6 +13,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using System.Collections.Generic;
 
+
 #if UNITY_WEBGL
 using AOT;
 using System.Linq;
@@ -36,7 +37,6 @@ namespace Inworld
         [SerializeField] protected int m_AudioToPushCapacity = 100;
         [SerializeField] protected string m_DeviceName;
         [SerializeField] protected bool m_DetectPlayerSpeaking = true;
-        
         public UnityEvent OnRecordingStart;
         public UnityEvent OnRecordingEnd;
         public UnityEvent OnPlayerStartSpeaking;
@@ -86,6 +86,15 @@ namespace Inworld
             set => m_CharacterVolume = value;
         }
         /// <summary>
+        /// Gets/Sets the Push to talk key.
+        /// The auto detecting would only be effected if this key is NONE.
+        /// </summary>
+        public KeyCode PushToTalkKey
+        {
+            get => m_PushToTalkKey;
+            set => m_PushToTalkKey = value;
+        }
+        /// <summary>
         /// Signifies if audio should be pushed to server automatically as it is captured.
         /// </summary>
         public bool AutoPush
@@ -126,13 +135,11 @@ namespace Inworld
         ///     (Either Enable AEC or it's Player's turn to speak)
         /// </summary>
         public bool IsAudioAvailable => m_SamplingMode == MicSampleMode.AEC || IsPlayerTurn;
-        /// <summary>
-        /// Toggle to enable auto push.
-        /// By default it will turn to false by PlayerController if any canvas was open.
-        /// </summary>
-        public bool DetectPlayerSpeaking
+        public bool AutoDetectPlayerSpeaking
         {
-            get => m_DetectPlayerSpeaking;
+            get => m_DetectPlayerSpeaking 
+                   && (SampleMode != MicSampleMode.TURN_BASED || InworldController.CharacterHandler.IsAnyCharacterSpeaking) 
+                   && PushToTalkKey == KeyCode.None; 
             set => m_DetectPlayerSpeaking = value;
         }
         /// <summary>
@@ -406,9 +413,8 @@ namespace Inworld
             int nSize = GetAudioData();
             if (nSize <= 0)
                 yield break;
-            bool isCharacterSpeaking = InworldController.CharacterHandler.IsAnyCharacterSpeaking;
             IsPlayerSpeaking = CalculateAmplitude() > m_BackgroundNoise * m_PlayerVolumeThreshold;
-            IsCapturing = IsRecording || DetectPlayerSpeaking && IsPlayerSpeaking;
+            IsCapturing = IsRecording || AutoDetectPlayerSpeaking && IsPlayerSpeaking;
             string charName = InworldController.CharacterHandler.CurrentCharacter ? InworldController.CharacterHandler.CurrentCharacter.BrainName : "";
             byte[] output = Output(nSize * m_Recording.channels);
             string audioData = Convert.ToBase64String(output);
