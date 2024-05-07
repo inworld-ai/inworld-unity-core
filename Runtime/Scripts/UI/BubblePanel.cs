@@ -67,7 +67,7 @@ namespace Inworld.UI
         }
         protected virtual void RemoveBubble(string key)
         {
-            if (!m_Bubbles.ContainsKey(key))
+            if (string.IsNullOrEmpty(key) || !m_Bubbles.ContainsKey(key))
                 return;
             InworldUIElement elementToDestroy = m_Bubbles[key];
             m_Bubbles.Remove(key);

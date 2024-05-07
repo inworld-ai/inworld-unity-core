@@ -5,8 +5,10 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace Inworld.Entities
 {
@@ -25,6 +27,21 @@ namespace Inworld.Entities
             brainName = charRef.character;
             givenName = charRef.characterOverloads[0].defaultCharacterDescription.givenName;
             characterAssets = new CharacterAssets(charRef.characterOverloads[0].defaultCharacterAssets);
+        }
+        public IEnumerator UpdateThumbnail()
+        {
+            if (thumbnail)
+                yield break;
+            string url = characterAssets?.ThumbnailURL;
+            if (string.IsNullOrEmpty(url))
+                yield break;
+            UnityWebRequest uwr = new UnityWebRequest(url);
+            uwr.downloadHandler = new DownloadHandlerTexture();
+            yield return uwr.SendWebRequest();
+            if (uwr.isDone && uwr.result == UnityWebRequest.Result.Success)
+            {
+                thumbnail = (uwr.downloadHandler as DownloadHandlerTexture)?.texture;
+            }
         }
         public string CharacterFileName
         {

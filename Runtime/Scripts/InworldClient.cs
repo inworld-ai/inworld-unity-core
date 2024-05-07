@@ -11,11 +11,13 @@ using Inworld.Interactions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityWebSocket;
+using ErrorEventArgs = UnityWebSocket.ErrorEventArgs;
 
 namespace Inworld
 {
@@ -631,9 +633,7 @@ namespace Inworld
         {
             if (string.IsNullOrEmpty(triggerName))
                 return;
-            Dictionary<string, string>  characterToReceive = GetCharacterDataByFullName(characters);
-            // if (characterToReceive.Count == 0)
-            //     return;
+            Dictionary<string, string> characterToReceive = GetCharacterDataByFullName(characters);
             m_Prepared.Enqueue(new OutgoingPacket(new CustomEvent(triggerName, parameters), characterToReceive));
         }
         /// <summary>
@@ -671,7 +671,11 @@ namespace Inworld
                 return;
             ControlEvent control = new ControlEvent
             {
-                action = ControlType.AUDIO_SESSION_START.ToString()
+                action = ControlType.AUDIO_SESSION_START.ToString(),
+                audioSessionStart = new AudioSessionPayload
+                {
+                    mode = MicrophoneMode.EXPECT_AUDIO_END.ToString()
+                }
             };
             OutgoingPacket rawData = new OutgoingPacket(control, characterToReceive);
             m_Prepared.Enqueue(rawData);
@@ -696,7 +700,11 @@ namespace Inworld
                 routing = new Routing(charID),
                 control = new ControlEvent
                 {
-                    action = ControlType.AUDIO_SESSION_START.ToString()
+                    action = ControlType.AUDIO_SESSION_START.ToString(),
+                    audioSessionStart = new AudioSessionPayload
+                    {
+                        mode = MicrophoneMode.EXPECT_AUDIO_END.ToString()
+                    }
                 }
             };
             string jsonToSend = JsonUtility.ToJson(packet);
@@ -715,13 +723,15 @@ namespace Inworld
                 return;
             ControlEvent control = new ControlEvent
             {
-                action = ControlType.AUDIO_SESSION_END.ToString()
+                action = ControlType.AUDIO_SESSION_END.ToString(),
+                audioSessionStart = new AudioSessionPayload()
+                {
+                    mode = MicrophoneMode.UNSPECIFIED.ToString()
+                }
             };
-            OutgoingPacket output = new OutgoingPacket(control, characterToReceive);
-            output.OnDequeue();
-            if (!string.IsNullOrEmpty(output.RawPacket?.routing?.target?.name))
-                m_Socket.SendAsync(output.RawPacket.ToJson); // Do not enqueue dataChunk, They can be discarded.
-            OnPacketSent?.Invoke(output.RawPacket);
+            OutgoingPacket rawData = new OutgoingPacket(control, characterToReceive);
+            m_Prepared.Enqueue(rawData);
+            OnPacketSent?.Invoke(rawData.RawPacket);
         }
         /// <summary>
         /// Legacy Send AUDIO_SESSION_END control events to server to.
@@ -730,7 +740,9 @@ namespace Inworld
         public virtual void StopAudio(string charID)
         {
             if (string.IsNullOrEmpty(charID))
+            {
                 return;
+            }
             InworldPacket packet = new ControlPacket
             {
                 timestamp = InworldDateTime.UtcNow,
@@ -739,7 +751,11 @@ namespace Inworld
                 routing = new Routing(charID),
                 control = new ControlEvent
                 {
-                    action = ControlType.AUDIO_SESSION_END.ToString()
+                    action = ControlType.AUDIO_SESSION_END.ToString(),
+                    audioSessionStart = new AudioSessionPayload
+                    {
+                        mode = MicrophoneMode.UNSPECIFIED.ToString()
+                    }
                 }
             };
             string jsonToSend = JsonUtility.ToJson(packet);
@@ -774,6 +790,7 @@ namespace Inworld
             if (!string.IsNullOrEmpty(output.RawPacket?.routing?.target?.name))
                 m_Socket.SendAsync(output.RawPacket.ToJson); // Do not enqueue dataChunk, They can be discarded.
         }
+
         /// <summary>
         /// Legacy Send the wav data to server to a specific character.
         /// Need to make sure that AUDIO_SESSION_START control event has been sent to server.
@@ -839,6 +856,7 @@ namespace Inworld
             foreach (InworldCharacterData agent in loadSceneResponse.agents.Where(agent => !string.IsNullOrEmpty(agent.agentId) && !string.IsNullOrEmpty(agent.brainName)))
             {
                 m_LiveSessionData[agent.brainName] = agent;
+                StartCoroutine(agent.UpdateThumbnail());
             }
         }
         protected string _GetSessionFullName(string sceneFullName)
@@ -936,10 +954,6 @@ namespace Inworld
                 return;
             }
             InworldNetworkPacket packetReceived = response.result;
-            if (packetReceived.Type == PacketType.SESSION_RESPONSE)
-            {
-                
-            }
             if (packetReceived.Type == PacketType.SESSION_RESPONSE)
             {
                 if (packetReceived.Packet is SessionResponsePacket sessionResponse)

@@ -8,7 +8,6 @@ using Inworld.Interactions;
 using Inworld.Packet;
 using Inworld.Entities;
 using Inworld.Sample;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -185,12 +184,15 @@ namespace Inworld
 
         protected virtual void OnEnable()
         {
+            InworldController.Audio.OnRecordingStart.AddListener(OnAudioCaptureStarted);
             InworldController.Client.OnStatusChanged += OnStatusChanged;
         }
+
         protected virtual void OnDisable()
         {
             if (!InworldController.Instance)
                 return;
+            InworldController.Audio.OnRecordingStart.RemoveListener(OnAudioCaptureStarted);
             InworldController.CharacterHandler.Unregister(this);
             InworldController.Client.OnStatusChanged -= OnStatusChanged;
         }
@@ -201,7 +203,10 @@ namespace Inworld
             InworldController.CharacterHandler.Unregister(this);
             m_CharacterEvents.onCharacterDestroyed?.Invoke(BrainName);
         }
-
+        protected virtual void OnAudioCaptureStarted()
+        {
+            CancelResponse();
+        }
         protected virtual void OnStatusChanged(InworldConnectionStatus newStatus)
         {
             if (newStatus == InworldConnectionStatus.Idle)

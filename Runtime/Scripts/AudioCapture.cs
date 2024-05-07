@@ -6,12 +6,13 @@
  *************************************************************************************************/
 
 using Inworld.Entities;
-using Inworld.Packet;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using UnityEngine;
 using UnityEngine.Events;
 using System.Collections.Generic;
+
 
 #if UNITY_WEBGL
 using AOT;
@@ -35,7 +36,7 @@ namespace Inworld
         [SerializeField] protected int m_BufferSeconds = 1;
         [SerializeField] protected int m_AudioToPushCapacity = 100;
         [SerializeField] protected string m_DeviceName;
-        
+        [SerializeField] protected bool m_DetectPlayerSpeaking = true;
         public UnityEvent OnRecordingStart;
         public UnityEvent OnRecordingEnd;
         public UnityEvent OnPlayerStartSpeaking;
@@ -49,13 +50,17 @@ namespace Inworld
         protected const int k_Channel = 1;
         protected AudioClip m_Recording;
         protected IEnumerator m_AudioCoroutine;
+        protected AudioChunk m_SendingAudioChunk;
+        protected bool m_IsRecording;
         protected bool m_IsPlayerSpeaking;
+        protected bool m_IsCapturing;
         protected float m_BackgroundNoise;
+        protected float m_CalibratingTime;
         // Last known position in AudioClip buffer.
         protected int m_LastPosition;
         // Size of audioclip used to collect information, need to be big enough to keep up with collect. 
         protected int m_BufferSize;
-        protected readonly List<string> m_AudioToPush = new List<string>();
+        protected readonly ConcurrentQueue<AudioChunk> m_AudioToPush = new ConcurrentQueue<AudioChunk>();
         protected List<AudioDevice> m_Devices = new List<AudioDevice>();
         protected byte[] m_ByteBuffer;
         protected float[] m_InputBuffer;
@@ -81,27 +86,13 @@ namespace Inworld
             set => m_CharacterVolume = value;
         }
         /// <summary>
-        /// Signifies if audio is currently blocked from being captured.
+        /// Gets/Sets the Push to talk key.
+        /// The auto detecting would only be effected if this key is NONE.
         /// </summary>
-        public bool IsBlocked { get; set; }
-        /// <summary>
-        /// Signifies if microphone is capturing audio.
-        /// </summary>
-        public bool IsCapturing
+        public KeyCode PushToTalkKey
         {
-            get => m_SamplingMode != MicSampleMode.NO_MIC;
-            set
-            {
-                if (value)
-                {
-                    if (m_SamplingMode == MicSampleMode.NO_MIC)
-                        m_SamplingMode = m_InitSampleMode;
-                }
-                else
-                {
-                    m_SamplingMode = MicSampleMode.NO_MIC;
-                }
-            }
+            get => m_PushToTalkKey;
+            set => m_PushToTalkKey = value;
         }
         /// <summary>
         /// Signifies if audio should be pushed to server automatically as it is captured.
@@ -144,14 +135,29 @@ namespace Inworld
         ///     (Either Enable AEC or it's Player's turn to speak)
         /// </summary>
         public bool IsAudioAvailable => m_SamplingMode == MicSampleMode.AEC || IsPlayerTurn;
-
+        public bool AutoDetectPlayerSpeaking
+        {
+            get => m_DetectPlayerSpeaking 
+                   && (SampleMode != MicSampleMode.TURN_BASED || InworldController.CharacterHandler.IsAnyCharacterSpeaking) 
+                   && PushToTalkKey == KeyCode.None; 
+            set => m_DetectPlayerSpeaking = value;
+        }
+        /// <summary>
+        /// By default, it's controlled by the Record UI button in PlayerController.
+        /// Note: This status is overwritten by Push to talk Hot key.
+        /// </summary>
+        public bool IsRecording
+        {
+            get => m_IsRecording || Input.GetKey(m_PushToTalkKey);
+            set => m_IsRecording = value;
+        }
         /// <summary>
         /// Signifies if user is speaking based on audio amplitude and threshold.
         /// </summary>
         public bool IsPlayerSpeaking
         {
             get => m_IsPlayerSpeaking;
-            set
+            protected set
             {
                 if (m_IsPlayerSpeaking == value)
                     return;
@@ -160,6 +166,29 @@ namespace Inworld
                     OnPlayerStartSpeaking?.Invoke();
                 else
                     OnPlayerStopSpeaking?.Invoke();
+            }
+        }
+        /// <summary>
+        /// Signifies it's currently capturing.
+        /// </summary>
+        public bool IsCapturing
+        {
+            get => m_IsCapturing;
+            set
+            {
+                if (m_IsCapturing == value)
+                    return;
+                m_IsCapturing = value;
+                if (m_IsCapturing)
+                {
+                    OnRecordingStart.Invoke();
+                    StartAudio();
+                }
+                else
+                {
+                    OnRecordingEnd.Invoke();
+                    StopAudio();
+                }
             }
         }
         /// <summary>
@@ -235,31 +264,13 @@ namespace Inworld
             m_DeviceName = deviceName;
             StartMicrophone(m_DeviceName);
         }
-        /// <summary>
-        /// Unity's official microphone module starts recording, will trigger OnRecordingStart event.
-        /// </summary>
-        public void StartRecording()
+
+        public void PushAudioImmediate()
         {
-            if (IsCapturing)
+            if (!m_AudioToPush.TryDequeue(out AudioChunk audioChunk) || m_SendingAudioChunk == audioChunk)
                 return;
-#if UNITY_WEBGL && !UNITY_EDITOR
-            m_LastPosition = WebGLGetPosition();
-#else
-            m_LastPosition = Microphone.GetPosition(m_DeviceName);
-#endif
-            IsCapturing = true;
-            OnRecordingStart?.Invoke();
-        }
-        /// <summary>
-        /// Unity's official microphone module stops recording, will trigger OnRecordingEnd event.
-        /// </summary>
-        public void StopRecording()
-        {
-            if (!IsCapturing)
-                return;
-            m_AudioToPush.Clear();
-            IsCapturing = false;
-            OnRecordingEnd?.Invoke();
+            m_SendingAudioChunk = audioChunk;
+            SendAudio(audioChunk);
         }
         /// <summary>
         /// Manually push the audio wave data to server.
@@ -267,9 +278,9 @@ namespace Inworld
         public IEnumerator PushAudio()
         {
             yield return new WaitForSeconds(1);
-            foreach (string audioData in m_AudioToPush)
+            foreach (AudioChunk audioData in m_AudioToPush)
             {
-                InworldController.Instance.SendAudio(audioData);
+                SendAudio(audioData);
             }
             m_AudioToPush.Clear();
         }
@@ -290,12 +301,27 @@ namespace Inworld
             else
                 m_CurrentAudioSession.StartAudio(characters);
         }
+        public virtual void SendAudio(AudioChunk chunk)
+        {
+            if (InworldController.Client.Status != InworldConnectionStatus.Connected)
+                return;
 
+            if (chunk.targetName != InworldController.CurrentCharacter.BrainName)
+            {
+                List<string> list = new List<string> { chunk.targetName };
+                StartAudio(list);
+            }
+            InworldController.Client.SendAudioTo(chunk.chunk, InworldController.CharacterHandler.CurrentCharacterNames);
+        }
         /// <summary>
         ///     Recalculate the background noise (including bg music, etc)
         ///     Please call it whenever audio environment changed in your game.
         /// </summary>
-        public virtual void Calibrate() => m_BackgroundNoise = 0;
+        public virtual void Calibrate()
+        {
+            m_BackgroundNoise = 0;
+            m_CalibratingTime = 0;
+        }
         protected IEnumerator _Calibrate()
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -305,11 +331,14 @@ namespace Inworld
             if (!Microphone.IsRecording(m_DeviceName))
                 StartMicrophone(m_DeviceName);
 #endif
-            while (m_BackgroundNoise == 0)
+            while (m_BackgroundNoise == 0 || m_CalibratingTime < m_BufferSeconds)
             {
                 int nSize = GetAudioData();
+                m_CalibratingTime += 0.1f;
                 yield return new WaitForSecondsRealtime(0.1f);
-                m_BackgroundNoise = CalculateAmplitude();
+                float amp = CalculateAmplitude();
+                if (amp > m_BackgroundNoise)
+                    m_BackgroundNoise = amp;
             }
         }
 #endregion
@@ -322,9 +351,6 @@ namespace Inworld
         
         protected virtual void OnEnable()
         {
-            InworldController.Client.OnPacketSent += OnPacketSent;
-            InworldController.CharacterHandler.OnCharacterListJoined += OnCharacterJoined;
-            InworldController.CharacterHandler.OnCharacterListLeft += OnCharacterLeft;
 #if UNITY_WEBGL && !UNITY_EDITOR
             StartWebMicrophone();
 #else            
@@ -334,14 +360,7 @@ namespace Inworld
         }
         protected virtual void OnDisable()
         {
-            if (InworldController.Instance)
-            {
-                InworldController.Client.OnPacketSent -= OnPacketSent;
-                InworldController.CharacterHandler.OnCharacterListJoined -= OnCharacterJoined;
-                InworldController.CharacterHandler.OnCharacterListLeft -= OnCharacterLeft;
-            }
             StopCoroutine(m_AudioCoroutine);
-            StopRecording();
             StopMicrophone(m_DeviceName);
         }
 
@@ -352,28 +371,18 @@ namespace Inworld
             WebGLDispose();
             s_WebGLBuffer = null;
 #endif
-            StopRecording();
             StopMicrophone(m_DeviceName);
         }
         protected void Update()
         {
-            HandlePTT();
             if (m_AudioToPush.Count > m_AudioToPushCapacity)
-                m_AudioToPush.RemoveAt(0);
+                m_AudioToPush.TryDequeue(out AudioChunk chunk);
         }
 
 #endregion
 
 #region Protected Functions
 
-        protected virtual void HandlePTT()
-        {
-            AutoPush = !Input.GetKey(m_PushToTalkKey);
-            if (Input.GetKeyDown(m_PushToTalkKey))
-                m_AudioToPush.Clear();
-            if (Input.GetKeyUp(m_PushToTalkKey))
-                StartCoroutine(PushAudio());
-        }
         protected virtual void Init()
         {
             m_CurrentAudioSession = new AudioSessionInfo();
@@ -386,46 +395,13 @@ namespace Inworld
             WebGLInit(OnWebGLInitialized);
 #endif
         }
-        protected virtual void OnPacketSent(InworldPacket packet)
-        {
-            if (packet is ControlPacket controlPacket)
-            {
-                switch (controlPacket.Action)
-                {
-                    case ControlType.AUDIO_SESSION_START:
-                        StartRecording();
-                        break;
-                    case ControlType.AUDIO_SESSION_END:
-                        StopRecording();
-                        break;
-                }
-            }
-        }
-        protected virtual void OnCharacterJoined(InworldCharacter character)
-        {
-            character.Event.onCharacterSelected.AddListener(OnCharacterSelected);
-            character.Event.onCharacterDeselected.AddListener(OnCharacterDeselected);
-        }
-        protected virtual void OnCharacterLeft(InworldCharacter character)
-        {
-            character.Event.onCharacterSelected.RemoveListener(OnCharacterSelected);
-            character.Event.onCharacterDeselected.RemoveListener(OnCharacterDeselected);
-        }
-        protected virtual void OnCharacterSelected(string brainName) => StartAudio();
-
-        protected virtual void OnCharacterDeselected(string brainName) => StopAudio();
-
         protected virtual IEnumerator AudioCoroutine()
         {
             while (true)
             {
                 yield return _Calibrate();
-                if (!IsCapturing || IsBlocked)
-                {
-                    yield return null;
-                    continue;
-                }
                 yield return Collect();
+                yield return OutputData();
             }
         }
         protected virtual IEnumerator Collect()
@@ -438,12 +414,24 @@ namespace Inworld
             if (nSize <= 0)
                 yield break;
             IsPlayerSpeaking = CalculateAmplitude() > m_BackgroundNoise * m_PlayerVolumeThreshold;
+            IsCapturing = IsRecording || AutoDetectPlayerSpeaking && IsPlayerSpeaking;
+            string charName = InworldController.CharacterHandler.CurrentCharacter ? InworldController.CharacterHandler.CurrentCharacter.BrainName : "";
             byte[] output = Output(nSize * m_Recording.channels);
             string audioData = Convert.ToBase64String(output);
-            if (AutoPush)
-                InworldController.Instance.SendAudio(audioData);
-            else
-                m_AudioToPush.Add(audioData);
+            if (IsCapturing)
+                m_AudioToPush.Enqueue(new AudioChunk
+                {
+                    chunk = audioData,
+                    targetName = charName
+                });
+            yield return new WaitForSecondsRealtime(0.1f);
+        }
+        protected virtual IEnumerator OutputData()
+        {
+            if (InworldController.Client.Status == InworldConnectionStatus.Connected)
+                PushAudioImmediate();
+            if (m_AudioToPush.Count > m_AudioToPushCapacity)
+                m_AudioToPush.TryDequeue(out AudioChunk chunk);
             yield return new WaitForSecondsRealtime(0.1f);
         }
         protected int GetAudioData()

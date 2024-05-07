@@ -50,6 +50,13 @@ namespace Inworld.Entities
 #endregion
 
 #region New
+
+    [Serializable]
+    public class Actor
+    {
+        public SourceType type;
+        public string name;
+    }
     [Serializable]
     public class ContinuationInfo
     {
@@ -65,7 +72,7 @@ namespace Inworld.Entities
     [Serializable]
     public class HistoryItem
     {
-        public string actor;
+        public Actor actor;
         public string text;
     }
     [Serializable]

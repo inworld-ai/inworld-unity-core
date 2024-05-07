@@ -5,15 +5,20 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
+using Inworld.Packet;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
 using UnityEngine.Scripting;
 
 
 namespace Inworld.Entities
 {
+    [Serializable]
+    public class AudioChunk
+    {
+        public string targetName; //YAN: character's full name or conversation's conversation ID.
+        public string chunk;
+    }
     [Serializable]
     public class AudioSessionInfo
     {
@@ -42,20 +47,9 @@ namespace Inworld.Entities
         {
             if (characterBrainNames.Count == 0)
                 return;
-            if (CharactersAreSame(characterBrainNames))
-                return;
             StopAudio();
             InworldController.Client.StartAudioTo(characterBrainNames);
             currentBrainNames = characterBrainNames;
-        }
-        /// <summary>
-        /// Check if the incoming characters are same in the current session.
-        /// </summary>
-        /// <param name="characterBrainNames">The brain names of the characters to enable audio interaction</param>
-        /// <returns></returns>
-        public bool CharactersAreSame(List<string> characterBrainNames)
-        {
-            return currentBrainNames.Count == characterBrainNames.Count && currentBrainNames.All(characterBrainNames.Contains);
         }
     }
     [Serializable]
