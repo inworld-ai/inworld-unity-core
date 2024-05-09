@@ -12,6 +12,8 @@ using System.Collections.Concurrent;
 using UnityEngine;
 using UnityEngine.Events;
 using System.Collections.Generic;
+using System.Linq;
+using TMPro;
 
 
 #if UNITY_WEBGL
@@ -32,7 +34,7 @@ namespace Inworld
         [SerializeField] protected MicSampleMode m_SamplingMode = MicSampleMode.NO_FILTER;
         [Tooltip("Hold the key to sample, release the key to send audio")]
         [SerializeField] protected KeyCode m_PushToTalkKey = KeyCode.None;
-        [Range(1, 2)][SerializeField] protected float m_PlayerVolumeThreshold = 2f;
+        [Range(5, 30)][SerializeField] protected float m_PlayerVolumeThreshold = 10f;
         [SerializeField] protected int m_BufferSeconds = 1;
         [SerializeField] protected int m_AudioToPushCapacity = 100;
         [SerializeField] protected string m_DeviceName;
@@ -336,9 +338,9 @@ namespace Inworld
                 int nSize = GetAudioData();
                 m_CalibratingTime += 0.1f;
                 yield return new WaitForSecondsRealtime(0.1f);
-                float amp = CalculateAmplitude();
-                if (amp > m_BackgroundNoise)
-                    m_BackgroundNoise = amp;
+                float rms = CalculateRMS();
+                if (rms > m_BackgroundNoise)
+                    m_BackgroundNoise = rms;
             }
         }
 #endregion
@@ -413,7 +415,7 @@ namespace Inworld
             int nSize = GetAudioData();
             if (nSize <= 0)
                 yield break;
-            IsPlayerSpeaking = CalculateAmplitude() > m_BackgroundNoise * m_PlayerVolumeThreshold;
+            IsPlayerSpeaking = CalculateSNR() > m_PlayerVolumeThreshold;
             IsCapturing = IsRecording || AutoDetectPlayerSpeaking && IsPlayerSpeaking;
             string charName = InworldController.CharacterHandler.CurrentCharacter ? InworldController.CharacterHandler.CurrentCharacter.BrainName : "";
             byte[] output = Output(nSize * m_Recording.channels);
@@ -532,20 +534,17 @@ namespace Inworld
             Buffer.BlockCopy(m_ByteBuffer, 0, output, 0, nWavCount);
             return output;
         }
-        // Helper method to calculate the amplitude of audio data
-        protected float CalculateAmplitude()
+        // Root Mean Square, used to measure the variation of the noise.
+        protected float CalculateRMS()
         {
-            float fAvg = 0;
-            int nCount = 0;
-            foreach (float t in m_InputBuffer)
-            {
-                float tmp = Mathf.Abs(t);
-                if (tmp == 0)
-                    continue;
-                fAvg += tmp;
-                nCount++;
-            }
-            return nCount == 0 ? 0 : fAvg / nCount;
+            return Mathf.Sqrt(m_InputBuffer.Average(sample => sample * sample));
+        }
+        // Sound Noise Ratio (dB). Used to check how loud the input voice is.
+        protected float CalculateSNR()
+        {
+            if (m_BackgroundNoise == 0)
+                return 0;  // Need to calibrate first.
+            return 20.0f * Mathf.Log10(CalculateRMS() / m_BackgroundNoise); 
         }
         
 
