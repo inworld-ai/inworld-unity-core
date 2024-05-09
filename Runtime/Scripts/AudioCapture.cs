@@ -140,7 +140,7 @@ namespace Inworld
         public bool AutoDetectPlayerSpeaking
         {
             get => m_DetectPlayerSpeaking 
-                   && (SampleMode != MicSampleMode.TURN_BASED || InworldController.CharacterHandler.IsAnyCharacterSpeaking) 
+                   && (SampleMode != MicSampleMode.TURN_BASED || !InworldController.CharacterHandler.IsAnyCharacterSpeaking) 
                    && PushToTalkKey == KeyCode.None; 
             set => m_DetectPlayerSpeaking = value;
         }
@@ -313,7 +313,10 @@ namespace Inworld
                 List<string> list = new List<string> { chunk.targetName };
                 StartAudio(list);
             }
-            InworldController.Client.SendAudioTo(chunk.chunk, InworldController.CharacterHandler.CurrentCharacterNames);
+            InworldController.Client.SendAudioTo(chunk.chunk, new List<string>
+            {
+                InworldController.CurrentCharacter.BrainName
+            });
         }
         /// <summary>
         ///     Recalculate the background noise (including bg music, etc)
