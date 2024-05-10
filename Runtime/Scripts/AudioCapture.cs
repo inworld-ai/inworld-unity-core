@@ -52,12 +52,12 @@ namespace Inworld
         protected const int k_Channel = 1;
         protected AudioClip m_Recording;
         protected IEnumerator m_AudioCoroutine;
-        protected AudioChunk m_SendingAudioChunk;
         protected bool m_IsRecording;
         protected bool m_IsPlayerSpeaking;
         protected bool m_IsCapturing;
         protected float m_BackgroundNoise;
         protected float m_CalibratingTime;
+        protected int m_CacheTime;
         // Last known position in AudioClip buffer.
         protected int m_LastPosition;
         // Size of audioclip used to collect information, need to be big enough to keep up with collect. 
@@ -269,9 +269,8 @@ namespace Inworld
 
         public void PushAudioImmediate()
         {
-            if (!m_AudioToPush.TryDequeue(out AudioChunk audioChunk) || m_SendingAudioChunk == audioChunk)
+            if (!m_AudioToPush.TryDequeue(out AudioChunk audioChunk))
                 return;
-            m_SendingAudioChunk = audioChunk;
             SendAudio(audioChunk);
         }
         /// <summary>
