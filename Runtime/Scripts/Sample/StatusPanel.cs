@@ -16,9 +16,12 @@ namespace Inworld.Sample
 		[SerializeField] GameObject m_Board;
 		[SerializeField] TMP_Text m_Indicator;
 		[SerializeField] TMP_Text m_Error;
+		[SerializeField] GameObject m_NoMic;
 		
 		protected virtual void OnEnable()
 		{
+			InworldController.Audio.OnStartCalibrating.AddListener(() => SwitchMic(true));
+			InworldController.Audio.OnStopCalibrating.AddListener(() => SwitchMic(false));
 			InworldController.Client.OnErrorReceived += OnErrorReceived;
 			InworldController.Client.OnStatusChanged += OnStatusChanged;
 		}
@@ -36,10 +39,16 @@ namespace Inworld.Sample
 			m_Error.gameObject.SetActive(true);
 			m_Error.text = error.message;
 		}
+		void SwitchMic(bool isOn)
+		{
+			if (m_NoMic)
+				m_NoMic.SetActive(isOn);
+		}
 		void OnStatusChanged(InworldConnectionStatus incomingStatus)
 		{
 			bool hidePanel = incomingStatus == InworldConnectionStatus.Idle && !InworldController.HasError || incomingStatus == InworldConnectionStatus.Connected;
-			m_Board.SetActive(!hidePanel);
+			if (m_Board)
+				m_Board.SetActive(!hidePanel);
 			if (m_Indicator)
 				m_Indicator.text = incomingStatus.ToString();
 			if (m_Error && incomingStatus == InworldConnectionStatus.Error)

@@ -39,6 +39,8 @@ namespace Inworld
         [SerializeField] protected int m_AudioToPushCapacity = 100;
         [SerializeField] protected string m_DeviceName;
         [SerializeField] protected bool m_DetectPlayerSpeaking = true;
+        public UnityEvent OnStartCalibrating;
+        public UnityEvent OnStopCalibrating;
         public UnityEvent OnRecordingStart;
         public UnityEvent OnRecordingEnd;
         public UnityEvent OnPlayerStartSpeaking;
@@ -57,7 +59,7 @@ namespace Inworld
         protected bool m_IsCapturing;
         protected float m_BackgroundNoise;
         protected float m_CalibratingTime;
-        protected int m_CacheTime;
+        protected bool m_NeedCalibrate = true;
         // Last known position in AudioClip buffer.
         protected int m_LastPosition;
         // Size of audioclip used to collect information, need to be big enough to keep up with collect. 
@@ -290,32 +292,21 @@ namespace Inworld
             m_AudioToPush.Clear();
             m_CurrentAudioSession.StopAudio();
         }
-        public virtual void StartAudio(List<string> characters = null)
+        public virtual void StartAudio()
         {
-            if (characters == null || characters.Count == 0)
-            {
-                if (InworldController.CharacterHandler.CurrentCharacter)
-                    m_CurrentAudioSession.StartAudio(new List<string>{InworldController.CurrentCharacter.BrainName});
-                else if (InworldController.CharacterHandler.CurrentCharacterNames.Count != 0)
-                    m_CurrentAudioSession.StartAudio(InworldController.CharacterHandler.CurrentCharacterNames);
-            }
-            else
-                m_CurrentAudioSession.StartAudio(characters);
+            if (InworldController.CharacterHandler.CurrentCharacter)
+                m_CurrentAudioSession.StartAudio(new List<string>{InworldController.CurrentCharacter.BrainName});
+            else if (InworldController.CharacterHandler.CurrentCharacterNames.Count != 0)
+                m_CurrentAudioSession.StartAudio(InworldController.CharacterHandler.CurrentCharacterNames);
         }
         public virtual void SendAudio(AudioChunk chunk)
         {
             if (InworldController.Client.Status != InworldConnectionStatus.Connected)
                 return;
-
-            if (chunk.targetName != InworldController.CurrentCharacter.BrainName)
-            {
-                List<string> list = new List<string> { chunk.targetName };
-                StartAudio(list);
-            }
-            InworldController.Client.SendAudioTo(chunk.chunk, new List<string>
-            {
-                InworldController.CurrentCharacter.BrainName
-            });
+            if (InworldController.CharacterHandler.CurrentCharacter)
+                InworldController.Client.SendAudioTo(chunk.chunk,new List<string>{InworldController.CurrentCharacter.BrainName});
+            else if (InworldController.CharacterHandler.CurrentCharacterNames.Count != 0)
+                InworldController.Client.SendAudioTo(chunk.chunk,InworldController.CharacterHandler.CurrentCharacterNames);
         }
         /// <summary>
         ///     Recalculate the background noise (including bg music, etc)
@@ -325,6 +316,7 @@ namespace Inworld
         {
             m_BackgroundNoise = 0;
             m_CalibratingTime = 0;
+            m_NeedCalibrate = true;
         }
         protected IEnumerator _Calibrate()
         {
@@ -335,6 +327,8 @@ namespace Inworld
             if (!Microphone.IsRecording(m_DeviceName))
                 StartMicrophone(m_DeviceName);
 #endif
+            if (m_NeedCalibrate)
+                OnStartCalibrating.Invoke();
             while (m_BackgroundNoise == 0 || m_CalibratingTime < m_BufferSeconds)
             {
                 int nSize = GetAudioData();
@@ -343,6 +337,11 @@ namespace Inworld
                 float rms = CalculateRMS();
                 if (rms > m_BackgroundNoise)
                     m_BackgroundNoise = rms;
+            }
+            if (m_NeedCalibrate && m_BackgroundNoise != 0)
+            {
+                OnStopCalibrating.Invoke();
+                m_NeedCalibrate = false;
             }
         }
 #endregion

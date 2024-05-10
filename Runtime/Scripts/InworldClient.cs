@@ -68,7 +68,11 @@ namespace Inworld
         /// key by character's full name (aka brainName) value by its agent ID.
         /// </summary>
         public Dictionary<string, InworldCharacterData> LiveSessionData => m_LiveSessionData;
-
+        /// <summary>
+        /// Gets if group chat is enabled.
+        /// This feature is still under development, and will be coming soon.
+        /// </summary>
+        public bool EnableGroupChat => false;
         /// <summary>
         /// Get/Set the session history.
         /// </summary>
@@ -212,6 +216,8 @@ namespace Inworld
                 return result;
             foreach (string brainID in characterFullNames)
             {
+                if (!EnableGroupChat && result.Count == 1)
+                    break;
                 if (m_LiveSessionData.TryGetValue(brainID, out InworldCharacterData value))
                     result[brainID] = value.agentId;
                 else
@@ -777,7 +783,7 @@ namespace Inworld
                 return;
             if (string.IsNullOrEmpty(base64))
                 return;
-            Dictionary<string, string>  characterToReceive = GetCharacterDataByFullName(characters);
+            Dictionary<string, string> characterToReceive = GetCharacterDataByFullName(characters);
             if (characterToReceive.Count == 0)
                 return;
             DataChunk dataChunk = new DataChunk

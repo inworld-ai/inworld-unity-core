@@ -116,7 +116,7 @@ namespace Inworld.Interactions
 		/// <returns>The brain name of the characters not found in the current session.</returns>
 		bool _UpdateSessionInfo()
 		{
-			foreach (string key in Targets.Keys.ToList())
+			foreach (string key in Targets.Keys.ToList().Where(key => !string.IsNullOrEmpty(key)))
 			{
 				if (InworldController.Client.LiveSessionData.TryGetValue(key, out InworldCharacterData value))
 					Targets[key] = value.agentId;
