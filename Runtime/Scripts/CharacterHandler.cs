@@ -25,7 +25,7 @@ namespace Inworld
     {
         [SerializeField] bool m_ManualAudioHandling;
         InworldCharacter m_CurrentCharacter;
-        
+        string m_ConversationID;
         public event Action<InworldCharacter> OnCharacterListJoined;
         public event Action<InworldCharacter> OnCharacterListLeft;
         
@@ -34,6 +34,25 @@ namespace Inworld
         // and Call RegisterLiveSession if outdated.
         protected readonly List<InworldCharacter> m_CharacterList = new List<InworldCharacter>();
 
+        /// <summary>
+        /// Start a new conversation.
+        /// In Unity SDK by default, we only use one single conversation for handling all the characters.
+        /// But it's able to handle multiple conversations by developers.
+        ///
+        /// To do so, save those conversation ID and use them correspondingly.
+        /// </summary>
+        public virtual void StartNewConversation(string conversationID = null) => m_ConversationID = string.IsNullOrEmpty(conversationID) ? Guid.NewGuid().ToString() : conversationID;
+
+        public string ConversationID
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(m_ConversationID))
+                    StartNewConversation();
+                return m_ConversationID;
+            }
+        }
+        
         /// <summary>
         /// Return if any character is speaking.
         /// </summary>

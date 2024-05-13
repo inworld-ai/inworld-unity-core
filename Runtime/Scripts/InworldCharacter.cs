@@ -135,7 +135,7 @@ namespace Inworld
             // 1. Interrupt current speaking.
             CancelResponse();
             // 2. Send Text.
-            InworldController.Client.SendTextTo(text, new List<string>{BrainName});
+            InworldController.Client.SendTextTo(text, BrainName);
         }
         /// <summary>
         /// Send a narrative action to this character.
@@ -205,7 +205,8 @@ namespace Inworld
         }
         protected virtual void OnAudioCaptureStarted()
         {
-            CancelResponse();
+            if (InworldController.Audio.IsRecording)
+                CancelResponse();
         }
         protected virtual void OnStatusChanged(InworldConnectionStatus newStatus)
         {

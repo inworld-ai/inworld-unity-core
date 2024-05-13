@@ -67,7 +67,6 @@ namespace Inworld
         protected List<AudioDevice> m_Devices = new List<AudioDevice>();
         protected byte[] m_ByteBuffer;
         protected float[] m_InputBuffer;
-        protected AudioSessionInfo m_CurrentAudioSession;
         static int m_nPosition;
 #if UNITY_WEBGL
         protected static float[] s_WebGLBuffer;
@@ -289,23 +288,25 @@ namespace Inworld
         public virtual void StopAudio()
         {
             m_AudioToPush.Clear();
-            m_CurrentAudioSession.StopAudio();
+            InworldController.Client.StopAudioTo();
         }
         public virtual void StartAudio()
         {
-            if (InworldController.CharacterHandler.CurrentCharacter)
-                m_CurrentAudioSession.StartAudio(new List<string>{InworldController.CurrentCharacter.BrainName});
-            else if (InworldController.CharacterHandler.CurrentCharacterNames.Count != 0)
-                m_CurrentAudioSession.StartAudio(InworldController.CharacterHandler.CurrentCharacterNames);
+            InworldCharacter character = InworldController.CharacterHandler.CurrentCharacter;
+            if (character)
+                InworldController.Client.StartAudioTo(character.BrainName);
+            else
+                InworldController.Client.StartAudioTo();
         }
         public virtual void SendAudio(AudioChunk chunk)
         {
             if (InworldController.Client.Status != InworldConnectionStatus.Connected)
                 return;
-            if (InworldController.CharacterHandler.CurrentCharacter)
-                InworldController.Client.SendAudioTo(chunk.chunk,new List<string>{InworldController.CurrentCharacter.BrainName});
-            else if (InworldController.CharacterHandler.CurrentCharacterNames.Count != 0)
-                InworldController.Client.SendAudioTo(chunk.chunk,InworldController.CharacterHandler.CurrentCharacterNames);
+            if (!InworldController.Client.Current.IsConversation && chunk.targetName != InworldController.Client.Current.Character.brainName)
+            {
+                InworldController.Client.Current.Character = InworldController.CharacterHandler.GetCharacterByBrainName(chunk.targetName)?.Data;
+            }
+            InworldController.Client.SendAudioTo(chunk.chunk);
         }
         /// <summary>
         ///     Recalculate the background noise (including bg music, etc)
@@ -387,7 +388,6 @@ namespace Inworld
 
         protected virtual void Init()
         {
-            m_CurrentAudioSession = new AudioSessionInfo();
             m_BufferSize = m_BufferSeconds * k_SampleRate;
             m_ByteBuffer = new byte[m_BufferSize * k_Channel * k_SizeofInt16];
             m_InputBuffer = new float[m_BufferSize * k_Channel];

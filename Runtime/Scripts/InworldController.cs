@@ -219,7 +219,7 @@ namespace Inworld
             else
             {
                 CancelResponses();
-                m_Client.SendTextTo(text, CharacterHandler.CurrentCharacterNames);
+                m_Client.SendTextTo(text, CharacterHandler.CurrentCharacter.BrainName);
             }
         }
         /// <summary>
@@ -317,7 +317,7 @@ namespace Inworld
                 m_Client.SendAudio(CurrentCharacter.ID, base64);
             }
             else
-                m_Client.SendAudioTo(base64, CharacterHandler.CurrentCharacterNames);
+                m_Client.SendAudioTo(base64);
         }
         /// <summary>
         /// Manually push the audio wave data to server.

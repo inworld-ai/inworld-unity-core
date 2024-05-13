@@ -87,7 +87,7 @@ namespace Inworld.Entities
             timestamp = InworldDateTime.UtcNow;
             type = "MUTATION";
             packetId = new PacketId();
-            routing = new Routing();
+            routing = new Routing("WORLD");
             mutation = new LoadSceneEvent
             {
                 loadScene = new LoadSceneRequest

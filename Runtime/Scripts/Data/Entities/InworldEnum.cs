@@ -93,6 +93,12 @@ namespace Inworld
         INTERACTION_END,
         WARNING,
     }
+    public enum ConversationEventType
+    {
+        EVICTED,
+        STARTED,
+        UPDATED,
+    }
     public enum SourceType
     {
         NONE,
