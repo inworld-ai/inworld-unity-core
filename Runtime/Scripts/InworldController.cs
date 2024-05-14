@@ -202,6 +202,7 @@ namespace Inworld
         /// </summary>
         public void Disconnect()
         {
+            CancelResponses();
             m_Client.Disconnect();
         }
 #endregion

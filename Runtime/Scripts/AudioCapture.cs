@@ -58,7 +58,6 @@ namespace Inworld
         protected bool m_IsCapturing;
         protected float m_BackgroundNoise;
         protected float m_CalibratingTime;
-        protected bool m_NeedCalibrate = true;
         // Last known position in AudioClip buffer.
         protected int m_LastPosition;
         // Size of audioclip used to collect information, need to be big enough to keep up with collect. 
@@ -316,7 +315,6 @@ namespace Inworld
         {
             m_BackgroundNoise = 0;
             m_CalibratingTime = 0;
-            m_NeedCalibrate = true;
         }
         protected IEnumerator _Calibrate()
         {
@@ -327,8 +325,7 @@ namespace Inworld
             if (!Microphone.IsRecording(m_DeviceName))
                 StartMicrophone(m_DeviceName);
 #endif
-            if (m_NeedCalibrate)
-                OnStartCalibrating.Invoke();
+            OnStartCalibrating.Invoke();
             while (m_BackgroundNoise == 0 || m_CalibratingTime < m_BufferSeconds)
             {
                 int nSize = GetAudioData();
@@ -338,11 +335,7 @@ namespace Inworld
                 if (rms > m_BackgroundNoise)
                     m_BackgroundNoise = rms;
             }
-            if (m_NeedCalibrate && m_BackgroundNoise != 0)
-            {
-                OnStopCalibrating.Invoke();
-                m_NeedCalibrate = false;
-            }
+            OnStopCalibrating.Invoke();
         }
 #endregion
 

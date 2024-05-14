@@ -1034,7 +1034,6 @@ namespace Inworld
         void OnSocketClosed(object sender, CloseEventArgs e)
         {
             InworldAI.Log($"Closed: StatusCode: {e.StatusCode}, Reason: {e.Reason}");
-            // Status = e.StatusCode == CloseStatusCode.Normal ? InworldConnectionStatus.Idle : InworldConnectionStatus.LostConnect;
             Status = InworldConnectionStatus.Idle;
         }
         void OnSocketError(object sender, ErrorEventArgs e)
