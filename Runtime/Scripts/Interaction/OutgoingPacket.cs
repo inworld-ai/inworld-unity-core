@@ -6,12 +6,11 @@
  *************************************************************************************************/
 
 using Inworld.Entities;
-using UnityEngine;
 using Inworld.Packet;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+
 
 
 namespace Inworld.Interactions
@@ -23,67 +22,72 @@ namespace Inworld.Interactions
 		public bool IsEmpty { get; }
 		public Dictionary<string, string> Targets { get; private set; } // Key: BrainName; Val: AgentID
 		public InworldPacket RawPacket { get; protected set; }
-        public OutgoingPacket(TextEvent txtToSend, Dictionary<string, string> characterTable = null)
+
+		void PreparePacket()
+		{
+			// ReSharper disable Unity.PerformanceCriticalCodeInvocation
+			// because InworldController.Client's GetComponent would not be called mostly.
+			ID = Guid.NewGuid().ToString();
+			LiveInfo liveInfo = InworldController.Client.Current;
+			if (liveInfo.Character == null)
+				RawPacket.packetId.conversationId = liveInfo.Conversation.ID;
+			else
+			{
+				Targets = new Dictionary<string, string>
+				{
+					[liveInfo.Character.brainName] = liveInfo.Character.agentId
+				};
+				RawPacket.routing = new Routing(liveInfo.Character.agentId);
+			}
+			RawPacket.packetId.correlationId = ID;
+		}
+        public OutgoingPacket(TextEvent txtToSend) 
         {
-	        ID = Guid.NewGuid().ToString();
-            Targets = characterTable;
-            RawPacket = new TextPacket
-            {
-	            routing = new Routing(Targets?.Values.ToList()),
-	            text = txtToSend
-            };
-            RawPacket.packetId.correlationId = ID;
-        }
-        public OutgoingPacket(ActionEvent narrativeActionToSend, Dictionary<string, string> characterTable = null)
-        {
-	        ID = Guid.NewGuid().ToString();
-	        Targets = characterTable;
-	        RawPacket = new ActionPacket()
+	        RawPacket = new TextPacket
 	        {
-		        routing = new Routing(Targets?.Values.ToList()),
+		        text = txtToSend
+	        };
+	        PreparePacket(); 
+        }
+        public OutgoingPacket(ActionEvent narrativeActionToSend)
+        {
+	        RawPacket = new ActionPacket
+	        {
 		        action = narrativeActionToSend
 	        };
-	        RawPacket.packetId.correlationId = ID;
+	        PreparePacket(); 
         }
-        public OutgoingPacket(CancelResponseEvent mutationToSend, Dictionary<string, string> characterTable = null)
+        public OutgoingPacket(CancelResponseEvent mutationToSend)
         {
-	        ID = Guid.NewGuid().ToString();
-            Targets = characterTable;
-            RawPacket = new CancelResponsePacket
-            {
-                routing = new Routing(Targets?.Values.ToList()),
-                mutation = mutationToSend
-            };
+	        RawPacket = new CancelResponsePacket
+	        {
+		        mutation = mutationToSend
+	        };
+	        PreparePacket(); 
         }
-        public OutgoingPacket(CustomEvent triggerToSend, Dictionary<string, string> characterTable = null)
+        public OutgoingPacket(CustomEvent triggerToSend)
         {
-	        ID = Guid.NewGuid().ToString();
-            Targets = characterTable;
             RawPacket = new CustomPacket
             {
-                routing = new Routing(Targets?.Values.ToList()),
                 custom = triggerToSend
             };
+            PreparePacket(); 
         }
-        public OutgoingPacket(ControlEvent controlToSend, Dictionary<string, string> characterTable = null)
+        public OutgoingPacket(ControlEvent controlToSend)
         {
-	        ID = Guid.NewGuid().ToString();
-            Targets = characterTable;
-            RawPacket = new ControlPacket
-            {
-                routing = new Routing(Targets?.Values.ToList()),
-                control = controlToSend
-            };
+	        RawPacket = new ControlPacket
+	        {
+		        control = controlToSend
+	        };
+	        PreparePacket();
         }
-        public OutgoingPacket(DataChunk chunkToSend, Dictionary<string, string> characterTable = null)
+        public OutgoingPacket(DataChunk chunkToSend)
         {
-	        ID = Guid.NewGuid().ToString();
-            Targets = characterTable;
-            RawPacket = new AudioPacket()
-            {
-                routing = new Routing(characterTable?.Values.ToList()),
-                dataChunk = chunkToSend
-            };
+	        RawPacket = new AudioPacket
+	        {
+		        dataChunk = chunkToSend
+	        };
+	        PreparePacket();
         }
 
         public bool IsCharacterRegistered => !Targets.Values.Any(string.IsNullOrEmpty);
@@ -116,7 +120,9 @@ namespace Inworld.Interactions
 		/// <returns>The brain name of the characters not found in the current session.</returns>
 		bool _UpdateSessionInfo()
 		{
-			foreach (string key in Targets.Keys.ToList())
+			if (Targets == null)
+				return false;
+			foreach (string key in Targets.Keys.ToList().Where(key => !string.IsNullOrEmpty(key)))
 			{
 				if (InworldController.Client.LiveSessionData.TryGetValue(key, out InworldCharacterData value))
 					Targets[key] = value.agentId;

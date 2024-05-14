@@ -19,12 +19,7 @@ namespace Inworld.Packet
 
         public Source(string targetName = "")
         {
-            if (string.IsNullOrEmpty(targetName))
-            {
-                name = SourceType.WORLD.ToString();
-                type = SourceType.WORLD.ToString();
-            }
-            else if (targetName == InworldAI.User.Name)
+            if (targetName == InworldAI.User.Name)
             {
                 name = targetName;
                 type = SourceType.PLAYER.ToString();
@@ -32,7 +27,7 @@ namespace Inworld.Packet
             else
             {
                 name = targetName;
-                type = SourceType.AGENT.ToString();
+                type = targetName == "WORLD" ? SourceType.WORLD.ToString() : SourceType.AGENT.ToString();
             }
         }
     }
@@ -53,17 +48,16 @@ namespace Inworld.Packet
             source = new Source(InworldAI.User.Name);
 
             if (characters == null || characters.Count == 0)
-                target = new Source();
-
-            else if (characters.Count == 1)
-                target = new Source(characters[0]);
-            else
+                return;
+            if (characters.Count == 1)
             {
-                targets = new List<Source>();
-                foreach (string characterID in characters)
-                {
-                    targets.Add(new Source(characterID));
-                }
+                target = new Source(characters[0]);
+                return;
+            }
+            targets = new List<Source>();
+            foreach (string characterID in characters)
+            {
+                targets.Add(new Source(characterID));
             }
         }
     }
@@ -75,6 +69,7 @@ namespace Inworld.Packet
         public string utteranceId = Guid.NewGuid().ToString(); // Each sentence is an utterance. But can be interpreted as multiple behavior (Text, EmotionChange, Audio, etc)
         public string interactionId = Guid.NewGuid().ToString(); // Lot of sentences included in one interaction.
         public string correlationId; // Used in callback for server packets.
+        public string conversationId; // Used in the conversations.
 
         public override string ToString() => $"I: {interactionId} U: {utteranceId} P: {packetId}";
     }

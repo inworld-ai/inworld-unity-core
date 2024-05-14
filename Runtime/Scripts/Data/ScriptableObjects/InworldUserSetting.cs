@@ -52,7 +52,12 @@ namespace Inworld
         /// </summary>
         public string BillingAccount
         {
-            get => m_BillingAccount;
+            get
+            {
+                if (string.IsNullOrEmpty(m_BillingAccount))
+                    m_BillingAccount = Guid.NewGuid().ToString(); // YAN: Only for default demo workspace.
+                return m_BillingAccount;
+            }
             set => m_BillingAccount = value;
         }
         /// <summary>
@@ -65,7 +70,12 @@ namespace Inworld
         /// </summary>
         public string ID
         {
-            get => m_UserID;
+            get
+            {
+                if (string.IsNullOrEmpty(m_UserID))
+                    m_UserID = BillingAccount;
+                return m_UserID;
+            }
             set => m_UserID = value;
         }
         /// <summary>

@@ -86,7 +86,7 @@ namespace Inworld.Sample
 
         protected virtual void OnCharacterJoined(InworldCharacter newChar)
         {
-            InworldAI.Log($"Now Talking to: {newChar.Name}");
+            InworldAI.Log($"{newChar.Name} joined.");
             if (m_Dropdown)
             {
                 m_Dropdown.options.Add(new TMP_Dropdown.OptionData
@@ -100,6 +100,7 @@ namespace Inworld.Sample
         
         protected virtual void OnCharacterLeft(InworldCharacter newChar)
         {
+            InworldAI.Log($"{newChar.Name} left.");
             if (m_Dropdown)
             {
                 TMP_Dropdown.OptionData option = m_Dropdown.options.FirstOrDefault(o => o.text == newChar.Name);
@@ -108,7 +109,6 @@ namespace Inworld.Sample
                 if (m_Dropdown.options.Count <= 0)
                     m_Dropdown.gameObject.SetActive(false);
             }
-            InworldAI.Log(InworldController.CharacterHandler.CurrentCharacter ? $"Now Talking to: {InworldController.CharacterHandler.CurrentCharacter.Name}" : $"Now broadcasting.");
         }
         
         protected virtual void Update()

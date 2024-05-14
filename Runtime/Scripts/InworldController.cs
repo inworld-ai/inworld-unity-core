@@ -202,6 +202,7 @@ namespace Inworld
         /// </summary>
         public void Disconnect()
         {
+            CancelResponses();
             m_Client.Disconnect();
         }
 #endregion
@@ -219,7 +220,7 @@ namespace Inworld
             else
             {
                 CancelResponses();
-                m_Client.SendTextTo(text, CharacterHandler.CurrentCharacterNames);
+                m_Client.SendTextTo(text, CharacterHandler.CurrentCharacter.BrainName);
             }
         }
         /// <summary>
@@ -232,7 +233,7 @@ namespace Inworld
             if (CharacterHandler.CurrentCharacter)
                 CharacterHandler.CurrentCharacter.SendNarrative(narrativeAction);
             else
-                m_Client.SendNarrativeActionTo(narrativeAction, CharacterHandler.CurrentCharacterNames);
+                m_Client.SendNarrativeActionTo(narrativeAction, CharacterHandler.CurrentCharacter.BrainName);
         }
         /// <summary>
         /// Cancel all the current character's generating responses.
@@ -253,7 +254,7 @@ namespace Inworld
         /// <param name="utteranceID">the handle of the current utterance that needs to be cancelled.</param>
         public void SendCancelEvent(string interactionID, string utteranceID = "")
         {
-            m_Client.SendCancelEventTo(interactionID, utteranceID, CharacterHandler.CurrentCharacterNames);
+            m_Client.SendCancelEventTo(interactionID, utteranceID, CharacterHandler.CurrentCharacter.BrainName);
         } 
         /// <summary>
         /// Send the trigger to the whole session.
@@ -262,7 +263,7 @@ namespace Inworld
         public void SendWorldTrigger(string triggerName)
         {
             if (Client.Status != InworldConnectionStatus.Connected)
-                m_Client.SendTriggerTo(triggerName);
+                m_Client.SendTriggerTo(triggerName, null,SourceType.WORLD.ToString());
         }
         /// <summary>
         /// Legacy Send the trigger to an InworldCharacter in the current scene.
@@ -275,7 +276,7 @@ namespace Inworld
             if (Client.Status != InworldConnectionStatus.Connected)
                 InworldAI.LogException($"Tried to send trigger to {charID}, but not connected to server.");
             if (string.IsNullOrEmpty(charID))
-                m_Client.SendTriggerTo(triggerName, parameters);
+                m_Client.SendTriggerTo(triggerName, parameters, charID);
             else
                 m_Client.SendTrigger(charID, triggerName, parameters);
         }
@@ -317,7 +318,7 @@ namespace Inworld
                 m_Client.SendAudio(CurrentCharacter.ID, base64);
             }
             else
-                m_Client.SendAudioTo(base64, CharacterHandler.CurrentCharacterNames);
+                m_Client.SendAudioTo(base64);
         }
         /// <summary>
         /// Manually push the audio wave data to server.

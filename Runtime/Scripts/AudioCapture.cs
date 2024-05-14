@@ -12,6 +12,7 @@ using System.Collections.Concurrent;
 using UnityEngine;
 using UnityEngine.Events;
 using System.Collections.Generic;
+using System.Linq;
 
 
 #if UNITY_WEBGL
@@ -32,11 +33,13 @@ namespace Inworld
         [SerializeField] protected MicSampleMode m_SamplingMode = MicSampleMode.NO_FILTER;
         [Tooltip("Hold the key to sample, release the key to send audio")]
         [SerializeField] protected KeyCode m_PushToTalkKey = KeyCode.None;
-        [Range(1, 2)][SerializeField] protected float m_PlayerVolumeThreshold = 2f;
+        [Range(5, 30)][SerializeField] protected float m_PlayerVolumeThreshold = 10f;
         [SerializeField] protected int m_BufferSeconds = 1;
         [SerializeField] protected int m_AudioToPushCapacity = 100;
         [SerializeField] protected string m_DeviceName;
         [SerializeField] protected bool m_DetectPlayerSpeaking = true;
+        public UnityEvent OnStartCalibrating;
+        public UnityEvent OnStopCalibrating;
         public UnityEvent OnRecordingStart;
         public UnityEvent OnRecordingEnd;
         public UnityEvent OnPlayerStartSpeaking;
@@ -50,7 +53,6 @@ namespace Inworld
         protected const int k_Channel = 1;
         protected AudioClip m_Recording;
         protected IEnumerator m_AudioCoroutine;
-        protected AudioChunk m_SendingAudioChunk;
         protected bool m_IsRecording;
         protected bool m_IsPlayerSpeaking;
         protected bool m_IsCapturing;
@@ -64,7 +66,6 @@ namespace Inworld
         protected List<AudioDevice> m_Devices = new List<AudioDevice>();
         protected byte[] m_ByteBuffer;
         protected float[] m_InputBuffer;
-        protected AudioSessionInfo m_CurrentAudioSession;
         static int m_nPosition;
 #if UNITY_WEBGL
         protected static float[] s_WebGLBuffer;
@@ -138,7 +139,7 @@ namespace Inworld
         public bool AutoDetectPlayerSpeaking
         {
             get => m_DetectPlayerSpeaking 
-                   && (SampleMode != MicSampleMode.TURN_BASED || InworldController.CharacterHandler.IsAnyCharacterSpeaking) 
+                   && (SampleMode != MicSampleMode.TURN_BASED || !InworldController.CharacterHandler.IsAnyCharacterSpeaking) 
                    && PushToTalkKey == KeyCode.None; 
             set => m_DetectPlayerSpeaking = value;
         }
@@ -262,14 +263,13 @@ namespace Inworld
                 StopMicrophone(m_DeviceName);
 #endif
             m_DeviceName = deviceName;
-            StartMicrophone(m_DeviceName);
+            Calibrate();
         }
 
         public void PushAudioImmediate()
         {
-            if (!m_AudioToPush.TryDequeue(out AudioChunk audioChunk) || m_SendingAudioChunk == audioChunk)
+            if (!m_AudioToPush.TryDequeue(out AudioChunk audioChunk))
                 return;
-            m_SendingAudioChunk = audioChunk;
             SendAudio(audioChunk);
         }
         /// <summary>
@@ -287,31 +287,25 @@ namespace Inworld
         public virtual void StopAudio()
         {
             m_AudioToPush.Clear();
-            m_CurrentAudioSession.StopAudio();
+            InworldController.Client.StopAudioTo();
         }
-        public virtual void StartAudio(List<string> characters = null)
+        public virtual void StartAudio()
         {
-            if (characters == null || characters.Count == 0)
-            {
-                if (InworldController.CharacterHandler.CurrentCharacter)
-                    m_CurrentAudioSession.StartAudio(new List<string>{InworldController.CurrentCharacter.BrainName});
-                else if (InworldController.CharacterHandler.CurrentCharacterNames.Count != 0)
-                    m_CurrentAudioSession.StartAudio(InworldController.CharacterHandler.CurrentCharacterNames);
-            }
+            InworldCharacter character = InworldController.CharacterHandler.CurrentCharacter;
+            if (character)
+                InworldController.Client.StartAudioTo(character.BrainName);
             else
-                m_CurrentAudioSession.StartAudio(characters);
+                InworldController.Client.StartAudioTo();
         }
         public virtual void SendAudio(AudioChunk chunk)
         {
             if (InworldController.Client.Status != InworldConnectionStatus.Connected)
                 return;
-
-            if (chunk.targetName != InworldController.CurrentCharacter.BrainName)
+            if (!InworldController.Client.Current.IsConversation && chunk.targetName != InworldController.Client.Current.Character.brainName)
             {
-                List<string> list = new List<string> { chunk.targetName };
-                StartAudio(list);
+                InworldController.Client.Current.Character = InworldController.CharacterHandler.GetCharacterByBrainName(chunk.targetName)?.Data;
             }
-            InworldController.Client.SendAudioTo(chunk.chunk, InworldController.CharacterHandler.CurrentCharacterNames);
+            InworldController.Client.SendAudioTo(chunk.chunk);
         }
         /// <summary>
         ///     Recalculate the background noise (including bg music, etc)
@@ -331,15 +325,17 @@ namespace Inworld
             if (!Microphone.IsRecording(m_DeviceName))
                 StartMicrophone(m_DeviceName);
 #endif
+            OnStartCalibrating.Invoke();
             while (m_BackgroundNoise == 0 || m_CalibratingTime < m_BufferSeconds)
             {
                 int nSize = GetAudioData();
                 m_CalibratingTime += 0.1f;
                 yield return new WaitForSecondsRealtime(0.1f);
-                float amp = CalculateAmplitude();
-                if (amp > m_BackgroundNoise)
-                    m_BackgroundNoise = amp;
+                float rms = CalculateRMS();
+                if (rms > m_BackgroundNoise)
+                    m_BackgroundNoise = rms;
             }
+            OnStopCalibrating.Invoke();
         }
 #endregion
 
@@ -385,7 +381,6 @@ namespace Inworld
 
         protected virtual void Init()
         {
-            m_CurrentAudioSession = new AudioSessionInfo();
             m_BufferSize = m_BufferSeconds * k_SampleRate;
             m_ByteBuffer = new byte[m_BufferSize * k_Channel * k_SizeofInt16];
             m_InputBuffer = new float[m_BufferSize * k_Channel];
@@ -413,7 +408,7 @@ namespace Inworld
             int nSize = GetAudioData();
             if (nSize <= 0)
                 yield break;
-            IsPlayerSpeaking = CalculateAmplitude() > m_BackgroundNoise * m_PlayerVolumeThreshold;
+            IsPlayerSpeaking = CalculateSNR() > m_PlayerVolumeThreshold;
             IsCapturing = IsRecording || AutoDetectPlayerSpeaking && IsPlayerSpeaking;
             string charName = InworldController.CharacterHandler.CurrentCharacter ? InworldController.CharacterHandler.CurrentCharacter.BrainName : "";
             byte[] output = Output(nSize * m_Recording.channels);
@@ -532,20 +527,17 @@ namespace Inworld
             Buffer.BlockCopy(m_ByteBuffer, 0, output, 0, nWavCount);
             return output;
         }
-        // Helper method to calculate the amplitude of audio data
-        protected float CalculateAmplitude()
+        // Root Mean Square, used to measure the variation of the noise.
+        protected float CalculateRMS()
         {
-            float fAvg = 0;
-            int nCount = 0;
-            foreach (float t in m_InputBuffer)
-            {
-                float tmp = Mathf.Abs(t);
-                if (tmp == 0)
-                    continue;
-                fAvg += tmp;
-                nCount++;
-            }
-            return nCount == 0 ? 0 : fAvg / nCount;
+            return Mathf.Sqrt(m_InputBuffer.Average(sample => sample * sample));
+        }
+        // Sound Noise Ratio (dB). Used to check how loud the input voice is.
+        protected float CalculateSNR()
+        {
+            if (m_BackgroundNoise == 0)
+                return 0;  // Need to calibrate first.
+            return 20.0f * Mathf.Log10(CalculateRMS() / m_BackgroundNoise); 
         }
         
 
