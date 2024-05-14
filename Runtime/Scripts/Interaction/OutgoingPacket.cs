@@ -6,12 +6,11 @@
  *************************************************************************************************/
 
 using Inworld.Entities;
-using UnityEngine;
 using Inworld.Packet;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+
 
 
 namespace Inworld.Interactions
@@ -23,98 +22,72 @@ namespace Inworld.Interactions
 		public bool IsEmpty { get; }
 		public Dictionary<string, string> Targets { get; private set; } // Key: BrainName; Val: AgentID
 		public InworldPacket RawPacket { get; protected set; }
-        public OutgoingPacket(TextEvent txtToSend)
+
+		void PreparePacket()
+		{
+			// ReSharper disable Unity.PerformanceCriticalCodeInvocation
+			// because InworldController.Client's GetComponent would not be called mostly.
+			ID = Guid.NewGuid().ToString();
+			LiveInfo liveInfo = InworldController.Client.Current;
+			if (liveInfo.Character == null)
+				RawPacket.packetId.conversationId = liveInfo.Conversation.ID;
+			else
+			{
+				Targets = new Dictionary<string, string>
+				{
+					[liveInfo.Character.brainName] = liveInfo.Character.agentId
+				};
+				RawPacket.routing = new Routing(liveInfo.Character.agentId);
+			}
+			RawPacket.packetId.correlationId = ID;
+		}
+        public OutgoingPacket(TextEvent txtToSend) 
         {
-	        LiveInfo liveInfo = InworldController.Client.Current;
-	        ID = Guid.NewGuid().ToString();
 	        RawPacket = new TextPacket
 	        {
 		        text = txtToSend
 	        };
-	        if (liveInfo.Character == null)
-		        RawPacket.packetId.conversationId = liveInfo.Conversation.ID;
-	        else
-	        {
-		        Targets = new Dictionary<string, string>
-		        {
-			        [liveInfo.Character.brainName] = liveInfo.Character.agentId
-		        };
-		        RawPacket.routing = new Routing(liveInfo.Character.agentId);
-	        }
-            RawPacket.packetId.correlationId = ID;
+	        PreparePacket(); 
         }
-        public OutgoingPacket(ActionEvent narrativeActionToSend, Dictionary<string, string> characterTable = null)
+        public OutgoingPacket(ActionEvent narrativeActionToSend)
         {
-	        ID = Guid.NewGuid().ToString();
-	        Targets = characterTable;
-	        RawPacket = new ActionPacket()
+	        RawPacket = new ActionPacket
 	        {
-		        routing = new Routing(Targets?.Values.ToList()),
 		        action = narrativeActionToSend
 	        };
-	        RawPacket.packetId.correlationId = ID;
+	        PreparePacket(); 
         }
-        public OutgoingPacket(CancelResponseEvent mutationToSend, Dictionary<string, string> characterTable = null)
+        public OutgoingPacket(CancelResponseEvent mutationToSend)
         {
-	        ID = Guid.NewGuid().ToString();
-            Targets = characterTable;
-            RawPacket = new CancelResponsePacket
-            {
-                routing = new Routing(Targets?.Values.ToList()),
-                mutation = mutationToSend
-            };
+	        RawPacket = new CancelResponsePacket
+	        {
+		        mutation = mutationToSend
+	        };
+	        PreparePacket(); 
         }
-        public OutgoingPacket(CustomEvent triggerToSend, Dictionary<string, string> characterTable = null)
+        public OutgoingPacket(CustomEvent triggerToSend)
         {
-	        ID = Guid.NewGuid().ToString();
-            Targets = characterTable;
             RawPacket = new CustomPacket
             {
-                routing = new Routing(Targets?.Values.ToList()),
                 custom = triggerToSend
             };
+            PreparePacket(); 
         }
         public OutgoingPacket(ControlEvent controlToSend)
         {
-	        LiveInfo liveInfo = InworldController.Client.Current;
-	        ID = Guid.NewGuid().ToString();
 	        RawPacket = new ControlPacket
 	        {
 		        control = controlToSend
 	        };
-	        if (liveInfo.IsConversation)
-	        {
-		        RawPacket.packetId.conversationId = liveInfo.Conversation.ID;
-	        }
-	        else
-	        {
-		        Targets = new Dictionary<string, string>
-		        {
-			        [liveInfo.Character.brainName] = liveInfo.Character.agentId
-		        };
-		        RawPacket.routing = new Routing(liveInfo.Character.agentId);
-	        }
+	        PreparePacket();
         }
         public OutgoingPacket(DataChunk chunkToSend)
         {
-	        LiveInfo liveInfo = InworldController.Client.Current;
-	        ID = Guid.NewGuid().ToString();
 	        RawPacket = new AudioPacket
 	        {
 		        dataChunk = chunkToSend
 	        };
-	        if (liveInfo.IsConversation)
-	        {
-		        RawPacket.packetId.conversationId = liveInfo.Conversation.ID;
-	        }
-	        else
-	        {
-		        Targets = new Dictionary<string, string>
-		        {
-			        [liveInfo.Character.brainName] = liveInfo.Character.agentId
-		        };
-		        RawPacket.routing = new Routing("");
-	        }
+	        PreparePacket();
         }
 
         public bool IsCharacterRegistered => !Targets.Values.Any(string.IsNullOrEmpty);
