@@ -5,11 +5,17 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 using System;
+using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace Inworld.Packet
 {
+    [Serializable]
+    public class PhonemeList
+    {
+        public List<PhonemeInfo> phonemes;
+    }
     [Serializable]
     public class PhonemeInfo
     {
@@ -35,7 +41,21 @@ namespace Inworld.Packet
             type = "AUDIO";
             dataChunk = chunk;
         }
-
+        /// <summary>
+        /// Dump received audio packet to local files.
+        /// </summary>
+        /// <param name="fileName">the filename to be saved.</param>
+        public void DumpWaveFile(string fileName)
+        {
+            byte[] bytes = Convert.FromBase64String(dataChunk.chunk);
+            File.WriteAllBytes($"{fileName}.wav", bytes);
+            PhonemeList phonemes = new PhonemeList
+            {
+                phonemes = dataChunk.additionalPhonemeInfo
+            };
+            string phoneme = JsonUtility.ToJson(phonemes);
+            File.WriteAllText($"{fileName}.json", phoneme);
+        }
         public AudioClip Clip
         {
             get
@@ -45,7 +65,6 @@ namespace Inworld.Packet
                 try
                 {
                     byte[] bytes = Convert.FromBase64String(dataChunk.chunk);
-                    
                     return WavUtility.ToAudioClip(bytes);
                 }
                 catch (Exception)
