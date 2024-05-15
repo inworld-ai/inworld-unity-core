@@ -1048,7 +1048,7 @@ namespace Inworld
         }
         
         
-        protected void PreparePacketToSend(OutgoingPacket rawData, bool immediate = false)
+        protected void PreparePacketToSend(OutgoingPacket rawData, bool immediate = false, bool needCallback = true)
         {
             if (!immediate)
                 m_Prepared.Enqueue(rawData);
@@ -1059,7 +1059,8 @@ namespace Inworld
                 rawData.OnDequeue();
                 m_Socket.SendAsync(rawData.RawPacket.ToJson);
             }
-            OnPacketSent?.Invoke(rawData.RawPacket);
+            if (needCallback)
+                OnPacketSent?.Invoke(rawData.RawPacket);
         }
         protected IEnumerator _GetHistoryAsync(string sceneFullName)
         {

@@ -116,7 +116,7 @@ namespace Inworld
             {
                 if (CharacterHandler && CharacterHandler.CurrentCharacter)
                     return CharacterHandler.CurrentCharacter;
-                return CharacterHandler.CurrentCharacters.Count > 0 ? CharacterHandler.CurrentCharacters[0] : null;
+                return null;
             }
 
             set

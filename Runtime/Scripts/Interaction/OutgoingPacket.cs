@@ -89,7 +89,15 @@ namespace Inworld.Interactions
 	        };
 	        PreparePacket();
         }
-
+        public OutgoingPacket(string conversationID, List<string> brainNames)
+        {
+	        ID = Guid.NewGuid().ToString();
+	        RawPacket = new ControlPacket
+	        {
+		        //control = new ControlEvent(ControlType.CONVERSATION_UPDATE)
+	        };
+	        RawPacket.packetId.conversationId = conversationID;
+        }
         public bool IsCharacterRegistered => !Targets.Values.Any(string.IsNullOrEmpty);
         
 		public bool Contains(InworldPacket packet)
