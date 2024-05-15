@@ -182,12 +182,12 @@ namespace Inworld
                 m_IsCapturing = value;
                 if (m_IsCapturing)
                 {
-                    OnRecordingStart.Invoke();
+                    OnRecordingStart?.Invoke();
                     StartAudio();
                 }
                 else
                 {
-                    OnRecordingEnd.Invoke();
+                    OnRecordingEnd?.Invoke();
                     StopAudio();
                 }
             }
