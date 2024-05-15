@@ -263,6 +263,7 @@ namespace Inworld
                 StopMicrophone(m_DeviceName);
 #endif
             m_DeviceName = deviceName;
+            StartMicrophone(m_DeviceName);
             Calibrate();
         }
 
