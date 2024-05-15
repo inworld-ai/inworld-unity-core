@@ -23,7 +23,6 @@ namespace Inworld
     }
     public class CharacterHandler : MonoBehaviour
     {
-        [SerializeField] bool m_ManualAudioHandling;
         InworldCharacter m_CurrentCharacter;
         string m_ConversationID;
         public event Action<InworldCharacter> OnCharacterListJoined;
