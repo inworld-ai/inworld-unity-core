@@ -182,12 +182,12 @@ namespace Inworld
                 m_IsCapturing = value;
                 if (m_IsCapturing)
                 {
-                    OnRecordingStart.Invoke();
+                    OnRecordingStart?.Invoke();
                     StartAudio();
                 }
                 else
                 {
-                    OnRecordingEnd.Invoke();
+                    OnRecordingEnd?.Invoke();
                     StopAudio();
                 }
             }
@@ -263,6 +263,7 @@ namespace Inworld
                 StopMicrophone(m_DeviceName);
 #endif
             m_DeviceName = deviceName;
+            StartMicrophone(m_DeviceName);
             Calibrate();
         }
 
@@ -325,7 +326,7 @@ namespace Inworld
             if (!Microphone.IsRecording(m_DeviceName))
                 StartMicrophone(m_DeviceName);
 #endif
-            OnStartCalibrating.Invoke();
+            OnStartCalibrating?.Invoke();
             while (m_BackgroundNoise == 0 || m_CalibratingTime < m_BufferSeconds)
             {
                 int nSize = GetAudioData();
@@ -335,7 +336,7 @@ namespace Inworld
                 if (rms > m_BackgroundNoise)
                     m_BackgroundNoise = rms;
             }
-            OnStopCalibrating.Invoke();
+            OnStopCalibrating?.Invoke();
         }
 #endregion
 
