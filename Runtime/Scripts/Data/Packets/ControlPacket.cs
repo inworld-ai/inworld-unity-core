@@ -5,6 +5,8 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace Inworld.Packet
@@ -19,24 +21,61 @@ namespace Inworld.Packet
     {
         public string action;
         public string description;
+    }
+    [Serializable]
+    public class AudioControlEvent : ControlEvent
+    {
         public AudioSessionPayload audioSessionStart;
+    }
+    [Serializable]
+    public class ConversationControlEvent : ControlEvent
+    {
+        public ConversationUpdatePayload conversationUpdate;
+    }
+    [Serializable]
+    public class ConversationUpdatePayload
+    {
+        public List<Source> participants;
     }
     [Serializable]
     public class ControlPacket : InworldPacket
     {
-        public ControlEvent control;
-
+        string m_ControlJson;
+        ControlEvent m_Control;
         public ControlPacket()
         {
             type = "CONTROL";
-            control = new ControlEvent();
+            m_Control = new ControlEvent();
         }
         public ControlPacket(InworldPacket rhs, ControlEvent evt) : base(rhs)
         {
             type = "CONTROL";
-            control = evt;
+            m_Control = evt;
         }
-        public ControlType Action => Enum.TryParse(control.action, true, out ControlType result) ? result : ControlType.UNKNOWN;
-        public override string ToJson => JsonUtility.ToJson(this); 
+        public ControlEvent Control
+        {
+            get => m_Control;
+            set => m_Control = value;
+        }
+        public ControlType Action => Enum.TryParse(m_Control.action, true, out ControlType result) ? result : ControlType.UNKNOWN;
+
+        public override string ToJson
+        {
+            get
+            {
+                if (m_Control is ConversationControlEvent convoCtrl)
+                {
+                    m_ControlJson = JsonUtility.ToJson(convoCtrl);
+                }
+                else if (m_Control is AudioControlEvent audioCtrl)
+                    m_ControlJson = JsonUtility.ToJson(audioCtrl);
+                else
+                    m_ControlJson = JsonUtility.ToJson(m_Control);
+                Debug.LogWarning(m_ControlJson);
+                string json = RemoveTargetFieldInJson(JsonUtility.ToJson(this));
+                json = Regex.Replace(json, @"(?=\}$)", $",\"control\": {m_ControlJson}");
+                return json;
+            }
+        }
     }
 }

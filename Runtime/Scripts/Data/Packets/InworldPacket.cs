@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace Inworld.Packet
@@ -113,5 +114,12 @@ namespace Inworld.Packet
         public bool Contains(string agentID) => !string.IsNullOrEmpty(agentID) && (routing?.targets?.Any(agent => agent.name == agentID) ?? false);
 
         public bool IsRelated(string agentID) => IsSource(agentID) || IsTarget(agentID) || Contains(agentID);
+
+        public string RemoveTargetFieldInJson(string json)
+        {
+            json = Regex.Replace(json, @",\s*""target""\s*:\s*{[^}]*},?", "");
+            json = Regex.Replace(json, @"""targets""\s*:\s*\[\s*\],?", "");
+            return json;
+        }
     }
 }

@@ -127,6 +127,7 @@ namespace Inworld
                 return;
             OnCharacterListJoined?.Invoke(character);
             m_CharacterList.Add(character);
+            InworldController.Client.UpdateConversation();
         }
         /// <summary>
         /// Remove the character from the character list.
@@ -143,6 +144,7 @@ namespace Inworld
                 return;
             m_CharacterList.Remove(character);
             OnCharacterListLeft?.Invoke(character); 
+            InworldController.Client.UpdateConversation();
         }
          /// <summary>
          /// Remove all the characters from the character list.

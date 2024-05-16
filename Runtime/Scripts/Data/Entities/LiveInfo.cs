@@ -21,7 +21,7 @@ namespace Inworld.Entities
 					m_ConversationID = InworldController.CharacterHandler.ConversationID;
 				return m_ConversationID;
 			}
-
+			set => m_ConversationID = value;
 		}
 		public ConversationEventType Status { get; set; } = ConversationEventType.EVICTED;
 		public List<string> BrainNames { get; set; } = new List<string>();
@@ -53,16 +53,21 @@ namespace Inworld.Entities
 		{
 			return string.IsNullOrEmpty(brainName) ? UpdateMultiTargets() : UpdateSingleTarget(brainName);
 		}
-		protected bool UpdateMultiTargets()
+		// ReSharper disable Unity.PerformanceAnalysis
+		// As InworldController.CharacterHandler would return directly in most cases.
+		public bool UpdateMultiTargets(string conversationID = "", List<string> brainNames = null)
 		{
 			Character = null;
 			IsConversation = true;
-			//TODO(Yan): Implemented in the next version.
-			return false;
+			if (string.IsNullOrEmpty(conversationID))
+				conversationID = InworldController.CharacterHandler.ConversationID;
+			Conversation.ID = conversationID;
+			Conversation.BrainNames = brainNames;
+			return Conversation.BrainNames?.Count > 0;
 		}
 		// ReSharper disable Unity.PerformanceAnalysis
 		// As InworldController.CharacterHandler would return directly in most cases.
-		protected bool UpdateSingleTarget(string brainName)
+		public bool UpdateSingleTarget(string brainName)
 		{
 			if (string.IsNullOrEmpty(brainName))
 				return false;

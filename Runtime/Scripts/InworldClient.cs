@@ -701,7 +701,7 @@ namespace Inworld
             StopAudioTo();
             if (!Current.UpdateLiveInfo(brainName))
                 return;
-            ControlEvent control = new ControlEvent
+            ControlEvent control = new AudioControlEvent
             {
                 action = ControlType.AUDIO_SESSION_START.ToString(),
                 audioSessionStart = new AudioSessionPayload
@@ -731,7 +731,7 @@ namespace Inworld
                 type = "TEXT",
                 packetId = new PacketId(),
                 routing = new Routing(charID),
-                control = new ControlEvent
+                Control = new AudioControlEvent
                 {
                     action = ControlType.AUDIO_SESSION_START.ToString(),
                     audioSessionStart = new AudioSessionPayload
@@ -758,10 +758,6 @@ namespace Inworld
             ControlEvent control = new ControlEvent
             {
                 action = ControlType.AUDIO_SESSION_END.ToString(),
-                audioSessionStart = new AudioSessionPayload
-                {
-                    mode = MicrophoneMode.UNSPECIFIED.ToString()
-                }
             };
             OutgoingPacket rawData = new OutgoingPacket(control);
             PreparePacketToSend(rawData, immediate);
@@ -784,13 +780,9 @@ namespace Inworld
                 type = "TEXT",
                 packetId = new PacketId(),
                 routing = new Routing(charID),
-                control = new ControlEvent
+                Control = new ControlEvent
                 {
                     action = ControlType.AUDIO_SESSION_END.ToString(),
-                    audioSessionStart = new AudioSessionPayload
-                    {
-                        mode = MicrophoneMode.UNSPECIFIED.ToString()
-                    }
                 }
             };
             string jsonToSend = JsonUtility.ToJson(packet);
@@ -808,8 +800,6 @@ namespace Inworld
         /// <param name="immediate">if you want to send the data immediately (Need connected first).</param>
         public virtual void SendAudioTo(string base64, bool immediate = false)
         {
-            if (Status != InworldConnectionStatus.Connected)
-                return;
             if (string.IsNullOrEmpty(base64))
                 return;
             DataChunk dataChunk = new DataChunk
@@ -860,6 +850,27 @@ namespace Inworld
             string jsonToSend = JsonUtility.ToJson(packet);
             OnPacketSent?.Invoke(packet);
             m_Socket.SendAsync(jsonToSend);
+        }
+        public virtual void UpdateConversation(string conversationID = "", List<string> brainNames = null)
+        {
+            if (string.IsNullOrEmpty(conversationID))
+                conversationID = InworldController.CharacterHandler.ConversationID;
+            brainNames ??= InworldController.CharacterHandler.CurrentCharacterNames;
+            if (brainNames?.Count < 1)
+                return;
+            if (!Current.UpdateMultiTargets(conversationID, brainNames))
+                return;
+            Dictionary<string, string> characterTable = GetLiveSessionCharacterDataByFullNames(brainNames);
+            ControlEvent control = new ConversationControlEvent
+            {
+                action = ControlType.CONVERSATION_UPDATE.ToString(),
+                conversationUpdate = new ConversationUpdatePayload
+                {
+                    participants = characterTable.Select(data => new Source(data.Value)).ToList()
+                }
+            };
+            OutgoingPacket rawData = new OutgoingPacket(control, characterTable);
+            PreparePacketToSend(rawData);
         }
 #endregion
 
