@@ -63,12 +63,9 @@ namespace Inworld.Packet
         {
             get
             {
-                string json = JsonUtility.ToJson(this);
+                string json = RemoveTargetFieldInJson(JsonUtility.ToJson(this));
                 if (m_Control is ConversationControlEvent convoCtrl)
-                {
                     m_ControlJson = JsonUtility.ToJson(convoCtrl);
-                    json = RemoveTargetFieldInJson(json);
-                }
                 else if (m_Control is AudioControlEvent audioCtrl)
                     m_ControlJson = RemoveTargetFieldInJson(JsonUtility.ToJson(audioCtrl));
                 else

@@ -713,7 +713,7 @@ namespace Inworld
             OutgoingPacket rawData = new OutgoingPacket(control);
             PreparePacketToSend(rawData, immediate);
             Current.StartAudioSession(rawData.RawPacket.packetId.packetId);
-            InworldAI.Log($"Start talking to {Current.Character?.givenName}");
+            InworldAI.Log($"Start talking to {Current.Name}");
         }
         /// <summary>
         /// Legacy Send AUDIO_SESSION_START control events to server.
@@ -763,7 +763,7 @@ namespace Inworld
             OutgoingPacket rawData = new OutgoingPacket(control);
             PreparePacketToSend(rawData, immediate);
             Current.StopAudioSession();
-            InworldAI.Log($"Stop talking to {Current.Character.givenName}");
+            InworldAI.Log($"Stop talking to {Current.Name}");
         }
         /// <summary>
         /// Legacy Send AUDIO_SESSION_END control events to server to.
@@ -798,8 +798,9 @@ namespace Inworld
         /// Additionally, the sample rate of the wave data has to be 16000, mono channel.
         /// </summary>
         /// <param name="base64">the base64 string of the wave data to send.</param>
+        /// <param name="brainName">the character's full name.</param>
         /// <param name="immediate">if you want to send the data immediately (Need connected first).</param>
-        public virtual void SendAudioTo(string base64, bool immediate = false)
+        public virtual void SendAudioTo(string base64, string brainName = null, bool immediate = false)
         {
             if (string.IsNullOrEmpty(base64))
                 return;
