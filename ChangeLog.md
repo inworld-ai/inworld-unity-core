@@ -1,3 +1,8 @@
+# 3.4.0
+New Feature:
+1. Supported multi agent v2.
+2. Bug fixes.
+
 # 3.3.2
 New Features:
 1. Added regenerating response if players dislike the interaction.
