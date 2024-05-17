@@ -62,6 +62,8 @@ namespace Inworld.Entities
 			if (string.IsNullOrEmpty(conversationID))
 				conversationID = InworldController.CharacterHandler.ConversationID;
 			Conversation.ID = conversationID;
+			if (brainNames == null || brainNames.Count == 0)
+				brainNames = InworldController.CharacterHandler.CurrentCharacterNames;
 			Conversation.BrainNames = brainNames;
 			return Conversation.BrainNames?.Count > 0;
 		}

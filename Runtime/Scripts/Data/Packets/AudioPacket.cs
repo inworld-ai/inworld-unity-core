@@ -74,6 +74,6 @@ namespace Inworld.Packet
                 }
             }
         }
-        public override string ToJson => JsonUtility.ToJson(this); 
+        public override string ToJson => RemoveTargetFieldInJson(JsonUtility.ToJson(this)); 
     }
 }

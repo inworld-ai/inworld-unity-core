@@ -150,7 +150,7 @@ namespace Inworld.Interactions
 		bool _UpdateSessionInfo()
 		{
 			if (Targets == null)
-				return false;
+				return InworldController.Client.Current.IsConversation;
 			foreach (string key in Targets.Keys.ToList().Where(key => !string.IsNullOrEmpty(key)))
 			{
 				if (InworldController.Client.LiveSessionData.TryGetValue(key, out InworldCharacterData value))
@@ -166,6 +166,11 @@ namespace Inworld.Interactions
 
 		void _ComposePacket()
 		{
+			if (Targets == null || Targets.Count == 0)
+			{
+				RawPacket.routing = new Routing();
+				return;
+			}
 			List<string> agentIDs = Targets.Values.Where(c => !string.IsNullOrEmpty(c)).ToList();
 			if (RawPacket == null)
 				return;

@@ -63,16 +63,16 @@ namespace Inworld.Packet
         {
             get
             {
+                string json = JsonUtility.ToJson(this);
                 if (m_Control is ConversationControlEvent convoCtrl)
                 {
                     m_ControlJson = JsonUtility.ToJson(convoCtrl);
+                    json = RemoveTargetFieldInJson(json);
                 }
                 else if (m_Control is AudioControlEvent audioCtrl)
-                    m_ControlJson = JsonUtility.ToJson(audioCtrl);
+                    m_ControlJson = RemoveTargetFieldInJson(JsonUtility.ToJson(audioCtrl));
                 else
-                    m_ControlJson = JsonUtility.ToJson(m_Control);
-                Debug.LogWarning(m_ControlJson);
-                string json = RemoveTargetFieldInJson(JsonUtility.ToJson(this));
+                    m_ControlJson = RemoveTargetFieldInJson(JsonUtility.ToJson(m_Control));
                 json = Regex.Replace(json, @"(?=\}$)", $",\"control\": {m_ControlJson}");
                 return json;
             }

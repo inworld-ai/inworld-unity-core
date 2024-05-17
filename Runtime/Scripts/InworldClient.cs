@@ -34,6 +34,7 @@ namespace Inworld
         [Space(10)]
         [SerializeField] protected Continuation m_Continuation;
         [Space(10)][Header("Advanced:")]
+        [SerializeField] protected bool m_EnableGroupChat = true;
         [SerializeField] protected string m_CustomToken;
         [SerializeField] protected string m_PublicWorkspace;
         [SerializeField] protected string m_GameSessionID;
@@ -79,7 +80,7 @@ namespace Inworld
         /// Gets if group chat is enabled.
         /// This feature is still under development, and will be coming soon.
         /// </summary>
-        public bool EnableGroupChat => false;
+        public bool EnableGroupChat => m_EnableGroupChat;
         /// <summary>
         /// Get/Set the session history.
         /// </summary>
