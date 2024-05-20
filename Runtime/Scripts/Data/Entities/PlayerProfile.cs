@@ -6,6 +6,7 @@
  *************************************************************************************************/
 
 using Inworld.Packet;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,7 @@ namespace Inworld.Entities
         public string id;
         public UserSetting userSettings;
 
+        [JsonIgnore]
         public UserConfigPacket ToPacket => new UserConfigPacket()
         {
             timestamp = InworldDateTime.UtcNow,
@@ -77,7 +79,5 @@ namespace Inworld.Entities
     public class UserConfigPacket : InworldPacket
     {
         public UserConfigEvent sessionControl;
-
-        public override string ToJson => JsonUtility.ToJson(this);
     }
 }

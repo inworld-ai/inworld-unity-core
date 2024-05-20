@@ -36,6 +36,5 @@ namespace Inworld.Packet
             type = "MUTATION";
             mutation = evt;
         }
-        public override string ToJson => RemoveTargetFieldInJson(JsonUtility.ToJson(this)); 
     }
 }

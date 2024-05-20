@@ -42,6 +42,5 @@ namespace Inworld.Packet
             action = evt;
             type = "ACTION";
         }
-        public override string ToJson => RemoveTargetFieldInJson(JsonUtility.ToJson(this)); 
     }
 }

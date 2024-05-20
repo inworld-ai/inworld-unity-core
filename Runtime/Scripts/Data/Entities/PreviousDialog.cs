@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 using Inworld.Packet;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -96,6 +97,7 @@ namespace Inworld.Entities
         // Client should not modify this state!
         public string externallySavedState;
 
+        [JsonIgnore]
         public bool IsValid
         {
             get
@@ -111,7 +113,7 @@ namespace Inworld.Entities
                 }
             }
         }
-        
+        [JsonIgnore]
         public ContinuationPacket ToPacket => new ContinuationPacket
         {
             timestamp = InworldDateTime.UtcNow,
@@ -133,8 +135,6 @@ namespace Inworld.Entities
     public class ContinuationPacket : InworldPacket
     {
         public ContinuationEvent sessionControl;
-
-        public override string ToJson => JsonUtility.ToJson(this);
     }
 
   #endregion

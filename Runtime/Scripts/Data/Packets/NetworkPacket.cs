@@ -7,6 +7,8 @@
 
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 
 namespace Inworld.Packet
@@ -32,27 +34,32 @@ namespace Inworld.Packet
             {
                 new InworldErrorData
                 {
-                    errorType = ErrorType.CLIENT_ERROR.ToString(),
-                    reconnectType = ReconnectionType.UNDEFINED.ToString(),
+                    errorType = ErrorType.CLIENT_ERROR,
+                    reconnectType = ReconnectionType.UNDEFINED,
                     reconnectTime = "",
                     maxRetries = 0
                 }
             };
         }
+        [JsonIgnore]
         public bool IsValid => !string.IsNullOrEmpty(message);
-        public ReconnectionType RetryType  => details != null && details.Count != 0 && Enum.TryParse(details[0].reconnectType, true, out ReconnectionType result) ? result : ReconnectionType.UNDEFINED;
-        public ErrorType ErrorType => details != null && details.Count != 0 && Enum.TryParse(details[0].errorType, true, out ErrorType result) ? result : ErrorType.UNDEFINED;
+        [JsonIgnore]
+        public ReconnectionType RetryType  => details[0]?.reconnectType ?? ReconnectionType.UNDEFINED;
+        [JsonIgnore]
+        public ErrorType ErrorType => details[0]?.errorType ?? ErrorType.UNDEFINED;
 
     }
     [Serializable]
     public class InworldErrorData
     {
-        public string errorType;
-        public string reconnectType;
+        [JsonConverter(typeof(StringEnumConverter))]
+        public ErrorType errorType;
+        [JsonConverter(typeof(StringEnumConverter))]
+        public ReconnectionType reconnectType;
         public string reconnectTime;
         public int maxRetries;
     }
-    [Serializable]
+    [Obsolete("Use custom deserializer based on NewtonSoft.Json")][Serializable]
     public class InworldNetworkPacket : InworldPacket
     {
         public TextEvent text;
@@ -64,13 +71,14 @@ namespace Inworld.Packet
         public EmotionEvent emotion;
         public ActionEvent action;
         public SessionResponseEvent sessionControlResponse;
+        [JsonIgnore]
         public InworldPacket Packet
         {
             get
             {
                 if (text != null && !string.IsNullOrEmpty(text.text))
                     return new TextPacket(this, text);
-                if (control != null && !string.IsNullOrEmpty(control.action))
+                if (control != null && control.action != ControlType.UNKNOWN)
                     return new ControlPacket(this, control);
                 if (dataChunk != null && !string.IsNullOrEmpty(dataChunk.chunk) && dataChunk.type == "AUDIO")
                     return new AudioPacket(this, dataChunk);
@@ -84,18 +92,19 @@ namespace Inworld.Packet
                     return new EmotionPacket(this, emotion);
                 if (action != null && action.narratedAction != null && !string.IsNullOrEmpty(action.narratedAction.content))
                     return new ActionPacket(this, action);
-                if (sessionControlResponse != null)
+                if (sessionControlResponse != null && sessionControlResponse.IsValid)
                     return new SessionResponsePacket(this, sessionControlResponse);
                 return this;
             }
         }
+        [JsonIgnore]
         public PacketType Type
         {
             get
             {
                 if (text != null && !string.IsNullOrEmpty(text.text))
                     return PacketType.TEXT;
-                if (control != null && !string.IsNullOrEmpty(control.action))
+                if (control != null && control.action != ControlType.UNKNOWN)
                     return PacketType.CONTROL;
                 if (dataChunk != null && !string.IsNullOrEmpty(dataChunk.chunk) && dataChunk.type == "AUDIO")
                     return PacketType.AUDIO;

@@ -34,6 +34,5 @@ namespace Inworld.Packet
             type = "EMOTION";
             emotion = evt;
         }
-        public override string ToJson => RemoveTargetFieldInJson(JsonUtility.ToJson(this)); 
     }
 }

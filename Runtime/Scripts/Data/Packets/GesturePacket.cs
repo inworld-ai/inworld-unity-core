@@ -29,6 +29,5 @@ namespace Inworld.Packet
             type = "GESTURE";
             gesture = evt;
         }
-        public override string ToJson => RemoveTargetFieldInJson(JsonUtility.ToJson(this)); 
     }
 }

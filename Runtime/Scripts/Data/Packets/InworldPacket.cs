@@ -4,18 +4,18 @@
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
-using UnityEngine;
 
 namespace Inworld.Packet
 {
-    [Serializable]
     public class Source
     {
-        public string type;
+        [JsonConverter(typeof(StringEnumConverter))]
+        public SourceType type;
         public string name;
 
         public Source(string targetName = "")
@@ -23,20 +23,21 @@ namespace Inworld.Packet
             if (targetName == InworldAI.User.Name)
             {
                 name = targetName;
-                type = SourceType.PLAYER.ToString();
+                type = SourceType.PLAYER;
             }
             else
             {
                 name = targetName;
-                type = targetName == "WORLD" ? SourceType.WORLD.ToString() : SourceType.AGENT.ToString();
+                type = targetName == "WORLD" ? SourceType.WORLD : SourceType.AGENT;
             }
         }
     }
-    [Serializable]
     public class Routing
     {
         public Source source;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public Source target;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public List<Source> targets;
 
         public Routing(string character)
@@ -63,7 +64,6 @@ namespace Inworld.Packet
         }
     }
 
-    [Serializable]
     public class PacketId
     {
         public string packetId = Guid.NewGuid().ToString();    // Unique.
@@ -75,7 +75,6 @@ namespace Inworld.Packet
         public override string ToString() => $"I: {interactionId} U: {utteranceId} P: {packetId}";
     }
 
-    [Serializable]
     public class InworldPacket
     {
         public string timestamp;
@@ -96,15 +95,22 @@ namespace Inworld.Packet
             routing = rhs.routing;
             type = rhs.type;
         }
-        public virtual string ToJson => RemoveTargetFieldInJson(JsonUtility.ToJson(this)); 
-        public SourceType Source => Enum.TryParse(routing?.source?.type, true, out SourceType result) ? result : SourceType.NONE;
+#region NonSerialized Properties
+        [JsonIgnore]
+        public virtual string ToJson => JsonConvert.SerializeObject(this); 
         
-        public SourceType Target => Enum.TryParse(routing?.target?.type, true, out SourceType result) ? result : SourceType.NONE;
+        [JsonIgnore]
+        public SourceType Source => routing?.source?.type ?? SourceType.NONE;
+        [JsonIgnore]
+        public SourceType Target => routing?.target?.type ?? SourceType.NONE;
+        [JsonIgnore]
         public bool IsBroadCast => string.IsNullOrEmpty(routing?.target?.name);
-        public bool NeedFilterTargets => string.IsNullOrEmpty(routing?.target?.name) && (routing?.targets == null || routing.targets.Count == 0);
+        [JsonIgnore]
         public string SourceName => routing?.source?.name;
-        
+        [JsonIgnore]
         public string TargetName => routing?.target?.name;
+#endregion
+
         
         public bool IsSource(string agentID) => !string.IsNullOrEmpty(agentID) && SourceName == agentID;
         
@@ -113,15 +119,5 @@ namespace Inworld.Packet
         public bool Contains(string agentID) => !string.IsNullOrEmpty(agentID) && (routing?.targets?.Any(agent => agent.name == agentID) ?? false);
 
         public bool IsRelated(string agentID) => IsSource(agentID) || IsTarget(agentID) || Contains(agentID);
-
-        //TODO(Yan): Create our own json serializer.
-        public string RemoveTargetFieldInJson(string json)
-        {
-            if (!NeedFilterTargets)
-                return json;
-            json = Regex.Replace(json, @",\s*""target""\s*:\s*{[^}]*},?", "");
-            json = Regex.Replace(json, @"""targets""\s*:\s*\[\s*\],?", "");
-            return json;
-        }
     }
 }

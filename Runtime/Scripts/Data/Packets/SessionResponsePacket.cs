@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 using Inworld.Entities;
+using Newtonsoft.Json;
 using System;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -16,6 +17,9 @@ namespace Inworld.Packet
 	{
 		public LoadSceneResponse loadedScene;
 		public LoadSceneResponse loadedCharacters;
+		
+		[JsonIgnore]
+		public bool IsValid => (loadedScene?.IsValid ?? false) || (loadedCharacters?.IsValid ?? false);
 	}
 
 	[Serializable]
@@ -33,7 +37,6 @@ namespace Inworld.Packet
 			type = "SESSION_RESPONSE";
 			sessionControlResponse = evt;
 		}
-		public override string ToJson => RemoveTargetFieldInJson(JsonUtility.ToJson(this)); 
 	}
 }
 

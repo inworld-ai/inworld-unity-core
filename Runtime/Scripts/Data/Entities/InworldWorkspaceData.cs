@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +25,7 @@ namespace Inworld.Entities
         // YAN: Now charRef in scenes would be updated. No need to list characters.
         public List<InworldSceneData> scenes;
         public List<InworldKeySecret> keySecrets;
+        [JsonIgnore]
         public InworldKeySecret DefaultKey => keySecrets.Count > 0 ? keySecrets[0] : null;
 
         /// <summary>

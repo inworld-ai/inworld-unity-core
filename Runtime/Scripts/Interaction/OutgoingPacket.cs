@@ -88,7 +88,7 @@ namespace Inworld.Interactions
         {
 	        RawPacket = new ControlPacket
 	        {
-		        Control = controlToSend
+		        control = controlToSend
 	        };
 	        PreparePacket();
         }
@@ -96,7 +96,7 @@ namespace Inworld.Interactions
         {
 	        RawPacket = new ControlPacket
 	        {
-		        Control = controlToSend
+		        control = controlToSend
 	        };
 	        PreparePacket(targets);
         }
@@ -113,9 +113,9 @@ namespace Inworld.Interactions
 	        ID = Guid.NewGuid().ToString();
 	        RawPacket = new ControlPacket
 	        {
-		        Control = new ConversationControlEvent
+		        control = new ConversationControlEvent
 		        {
-			        action = ControlType.CONVERSATION_UPDATE.ToString()
+			        action = ControlType.CONVERSATION_UPDATE
 		        }
 	        };
 	        RawPacket.packetId.conversationId = conversationID;
@@ -176,7 +176,7 @@ namespace Inworld.Interactions
 				return;
 			//TODO(Yan): Remove OutgoingPacket after customized Serializer.
 			//			 Then add interface for each InworldPackets for OnCompose.
-			if (RawPacket is ControlPacket controlPacket && controlPacket.Control is ConversationControlEvent convoEvt)
+			if (RawPacket is ControlPacket controlPacket && controlPacket.control is ConversationControlEvent convoEvt)
 			{
 				RawPacket.routing = new Routing();
 				convoEvt.conversationUpdate.participants = Targets.Values.Select(agentID => new Source(agentID)).ToList();

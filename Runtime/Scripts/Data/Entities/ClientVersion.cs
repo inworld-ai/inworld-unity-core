@@ -5,19 +5,18 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 using Inworld.Packet;
-using System;
-using UnityEngine;
+using Newtonsoft.Json;
 
 
 namespace Inworld.Entities
 {
-    [Serializable]
     public class Client
     {
         public string id;
         public string version;
         public string description;
 
+        [JsonIgnore]
         public ClientConfigPacket ToPacket => new ClientConfigPacket
         {
             timestamp = InworldDateTime.UtcNow,
@@ -31,29 +30,23 @@ namespace Inworld.Entities
         };
         public override string ToString() => $"{id}: {version} {description}";
     }
-    [Serializable]
     public class ReleaseData
     {
         public PackageData[] package;
     }
-
-    [Serializable]
     public class PackageData
     {
         public string published_at;
         public string tag_name;
     }
-
-    [Serializable]
+    
     public class ClientConfigEvent
     {
         public Client clientConfiguration;
     }
     
-    [Serializable]
     public class ClientConfigPacket : InworldPacket
     {
         public ClientConfigEvent sessionControl;
-        public override string ToJson => JsonUtility.ToJson(this);
     }
 }

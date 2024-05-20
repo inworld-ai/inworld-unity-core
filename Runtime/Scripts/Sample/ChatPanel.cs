@@ -189,9 +189,9 @@ namespace Inworld.Sample
             if (!m_ChatOptions.narrativeAction || actionPacket.action == null || actionPacket.action.narratedAction == null || string.IsNullOrWhiteSpace(actionPacket.action.narratedAction.content) || !IsUIReady)
                 return;
 
-            switch (actionPacket.routing.source.type.ToUpper())
+            switch (actionPacket.routing.source.type)
             {
-                case "AGENT":
+                case SourceType.AGENT:
                     InworldCharacterData charData = InworldController.Client.GetCharacterDataByID(actionPacket.routing.source.name);
                     if (charData == null)
                         return;
@@ -201,7 +201,7 @@ namespace Inworld.Sample
                     string content = $"<i><color=#AAAAAA>{actionPacket.action.narratedAction.content}</color></i>";
                     InsertBubbleWithPacketInfo(key, actionPacket.packetId, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
                     break;
-                case "PLAYER":
+                case SourceType.PLAYER:
                     // YAN: Player Input does not apply longBubbleMode.
                     //      And Key is always utteranceID.
                     key = actionPacket.packetId.utteranceId;

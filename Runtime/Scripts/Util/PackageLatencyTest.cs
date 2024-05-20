@@ -15,7 +15,7 @@ namespace Inworld.Sample
         [SerializeField] string m_PacketType = "TEXT";
         [SerializeField] bool m_IsEnabled;
         
-        bool IsFromPlayer(InworldPacket packet) => packet.routing.source.type.ToUpper() == "PLAYER";
+        bool IsFromPlayer(InworldPacket packet) => packet.Source == SourceType.PLAYER;
         bool m_LastPacketIsFromPlayer;
         float m_PlayerTime;
         float m_ServerTime;

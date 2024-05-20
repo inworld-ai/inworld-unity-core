@@ -87,14 +87,39 @@ namespace Inworld
     }
     public enum ControlType
     {
-        UNKNOWN,
-        AUDIO_SESSION_START,
-        AUDIO_SESSION_END,
-        INTERACTION_END,
-        WARNING,
-        CONVERSATION_START,
-        CONVERSATION_UPDATE,
-        CONVERSATION_EVENT
+        UNKNOWN = 0,
+        // Speech activity starts, server should expect DataChunk, TextEvent and
+        // EmotionEvent packets after that.
+        AUDIO_SESSION_START = 1,
+        // Speech activity ended.
+        AUDIO_SESSION_END = 2,
+        // Indicates that the server has already sent all TextEvent response packets for the given interaction, and there won't be any more. 
+        // Other types of packets can still be received by the client after it has received this packet.
+        INTERACTION_END = 3,
+        // TTS response playback starts on the client.
+        TTS_PLAYBACK_START = 4,
+        // TTS Response playback ends on the client.
+        TTS_PLAYBACK_END = 5,
+        // TTS response playback is muted on the client.
+        TTS_PLAYBACK_MUTE = 6,
+        // TTS response playback is unmuted on the client.
+        TTS_PLAYBACK_UNMUTE = 7,
+        // Contains warning for client.
+        WARNING = 8,
+        // Indicates that server is going to close the connection.
+        SESSION_END = 9,
+        // Start a conversation
+        CONVERSATION_START = 10,// [deprecated = true];
+        // Update conversation settings. Uses payload_structured type ConversationUpdatePayload
+        CONVERSATION_UPDATE = 12,
+        // Server message to client with conversation id
+        CONVERSATION_STARTED = 13,// [deprecated = true];
+        // Conversation events. Contains payload_structured type ConversationEventPayload
+        CONVERSATION_EVENT = 14,
+        // Contains info about currently loaded scene. For example, scene name, description, loaded agents.
+        CURRENT_SCENE_STATUS = 15,
+        // Session configuration. Uses payload_structured type SessionConfigurationEvent
+        SESSION_CONFIGURATION = 16
     }
     public enum ConversationEventType
     {

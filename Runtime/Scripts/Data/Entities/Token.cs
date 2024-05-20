@@ -66,7 +66,5 @@ namespace Inworld.Entities
     public class SessionControlPacket : InworldPacket
     {
         public SessionControlEvent sessionControl;
-
-        public override string ToJson => JsonUtility.ToJson(this);
     }
 }

@@ -4,6 +4,8 @@
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
+using GluonGui.Dialog;
+using Newtonsoft.Json;
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -20,7 +22,18 @@ namespace Inworld.Packet
     public class PhonemeInfo
     {
         public string phoneme;
-        public float startOffset;
+        public string startOffset;
+
+        [JsonIgnore]
+        public float StartOffset 
+        {
+             get
+             {
+                 if (float.TryParse(startOffset.TrimEnd('s', 'S'), out float result))
+                     return result;
+                 return 0;
+             }
+        }
     }
 
     [Serializable]
@@ -56,6 +69,7 @@ namespace Inworld.Packet
             string phoneme = JsonUtility.ToJson(phonemes);
             File.WriteAllText($"{fileName}.json", phoneme);
         }
+        [JsonIgnore]
         public AudioClip Clip
         {
             get
@@ -74,6 +88,5 @@ namespace Inworld.Packet
                 }
             }
         }
-        public override string ToJson => RemoveTargetFieldInJson(JsonUtility.ToJson(this)); 
     }
 }

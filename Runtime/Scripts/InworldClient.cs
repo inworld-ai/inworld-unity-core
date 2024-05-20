@@ -8,6 +8,7 @@
 using Inworld.Packet;
 using Inworld.Entities;
 using Inworld.Interactions;
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -702,7 +703,7 @@ namespace Inworld
                 return;
             ControlEvent control = new AudioControlEvent
             {
-                action = ControlType.AUDIO_SESSION_START.ToString(),
+                action = ControlType.AUDIO_SESSION_START,
                 audioSessionStart = new AudioSessionPayload
                 {
                     mode = MicrophoneMode.EXPECT_AUDIO_END.ToString()
@@ -730,9 +731,9 @@ namespace Inworld
                 type = "CONTROL",
                 packetId = new PacketId(),
                 routing = new Routing(charID),
-                Control = new AudioControlEvent
+                control = new AudioControlEvent
                 {
-                    action = ControlType.AUDIO_SESSION_START.ToString(),
+                    action = ControlType.AUDIO_SESSION_START,
                     audioSessionStart = new AudioSessionPayload
                     {
                         mode = MicrophoneMode.EXPECT_AUDIO_END.ToString()
@@ -755,7 +756,7 @@ namespace Inworld
                 return;
             ControlEvent control = new ControlEvent
             {
-                action = ControlType.AUDIO_SESSION_END.ToString(),
+                action = ControlType.AUDIO_SESSION_END,
             };
             OutgoingPacket rawData = new OutgoingPacket(control);
             PreparePacketToSend(rawData, immediate);
@@ -778,9 +779,9 @@ namespace Inworld
                 type = "TEXT",
                 packetId = new PacketId(),
                 routing = new Routing(charID),
-                Control = new ControlEvent
+                control = new ControlEvent
                 {
-                    action = ControlType.AUDIO_SESSION_END.ToString(),
+                    action = ControlType.AUDIO_SESSION_END,
                 }
             };
             m_Socket.SendAsync(packet.ToJson);
@@ -860,7 +861,7 @@ namespace Inworld
             Dictionary<string, string> characterTable = GetLiveSessionCharacterDataByFullNames(brainNames);
             ControlEvent control = new ConversationControlEvent
             {
-                action = ControlType.CONVERSATION_UPDATE.ToString(),
+                action = ControlType.CONVERSATION_UPDATE,
                 conversationUpdate = new ConversationUpdatePayload
                 {
                     participants = characterTable.Select(data => new Source(data.Value)).ToList()
@@ -989,7 +990,7 @@ namespace Inworld
         }
         void OnMessageReceived(object sender, MessageEventArgs e)
         {
-            NetworkPacketResponse response = JsonUtility.FromJson<NetworkPacketResponse>(e.Data);
+            NetworkPacketResponse response = JsonConvert.DeserializeObject<NetworkPacketResponse>(e.Data);
             if (response == null || response.result == null)
             {
                 ErrorMessage = e.Data;

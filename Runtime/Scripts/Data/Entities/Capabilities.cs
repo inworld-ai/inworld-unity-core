@@ -6,7 +6,8 @@
  *************************************************************************************************/
 using Inworld.Packet;
 using System;
-using UnityEngine;
+using Newtonsoft.Json;
+
 
 namespace Inworld.Entities
 {
@@ -54,6 +55,7 @@ namespace Inworld.Entities
             debugInfo = rhs.debugInfo;
             multiAgent = rhs.multiAgent;
         }
+        [JsonIgnore]
         public CapabilityPacket ToPacket => new CapabilityPacket
         {
             timestamp = InworldDateTime.UtcNow,
@@ -91,16 +93,12 @@ namespace Inworld.Entities
             return result;
         }
     }
-    [Serializable]
     public class CapabilityEvent
     {
         public Capabilities capabilitiesConfiguration;
     }
-    [Serializable]
     public class CapabilityPacket : InworldPacket
     {
         public CapabilityEvent sessionControl;
-
-        public override string ToJson => JsonUtility.ToJson(this);
     }
 }

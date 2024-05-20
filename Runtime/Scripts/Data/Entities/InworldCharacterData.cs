@@ -4,6 +4,7 @@
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -43,6 +44,7 @@ namespace Inworld.Entities
                 thumbnail = (uwr.downloadHandler as DownloadHandlerTexture)?.texture;
             }
         }
+        [JsonIgnore]
         public string CharacterFileName
         {
             get
@@ -65,6 +67,7 @@ namespace Inworld.Entities
         public float avatarProgress;
         float _ThumbnailProgress => string.IsNullOrEmpty(ThumbnailURL) ? 0.2f : thumbnailProgress * 0.2f;
         float _AvatarProgress => string.IsNullOrEmpty(rpmModelUri) ? 0.8f : avatarProgress * 0.8f;
+        [JsonIgnore]
         public float Progress => _ThumbnailProgress + _AvatarProgress;
         public bool IsAsset(string url)
         {
@@ -78,7 +81,7 @@ namespace Inworld.Entities
                 return true;
             return false;
         }
-
+        [JsonIgnore]
         public string ThumbnailURL // YAN: For AvatarURL, just use rpmModelUri.
         {
             get
@@ -130,7 +133,9 @@ namespace Inworld.Entities
     {
         public string character; // agentID
         public List<CharacterOverLoad> characterOverloads;
+        [JsonIgnore]
         public float Progress => characterOverloads.Count == 1 ? characterOverloads[0].defaultCharacterAssets.Progress : 0;
+        [JsonIgnore]
         public string CharacterFileName
         {
             get

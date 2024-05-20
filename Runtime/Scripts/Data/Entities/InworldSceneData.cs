@@ -6,10 +6,11 @@
  *************************************************************************************************/
 
 using Inworld.Packet;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
+
 
 namespace Inworld.Entities
 {
@@ -20,6 +21,8 @@ namespace Inworld.Entities
         public string displayName;
         public string description;
         public List<CharacterReference> characterReferences;
+        
+        [JsonIgnore]
         public float Progress => characterReferences.Count == 0 ? 1 : characterReferences.Sum(cr => cr.Progress) / characterReferences.Count;
 
         /// <summary>
@@ -96,7 +99,6 @@ namespace Inworld.Entities
                 }
             };
         }
-        public override string ToJson => JsonUtility.ToJson(this);
     }
     [Serializable]
     public class LoadCharactersPacket : InworldPacket
@@ -114,7 +116,6 @@ namespace Inworld.Entities
                 loadCharacters = new LoadCharactersRequest(characterFullName)
             };
         }
-        public override string ToJson => JsonUtility.ToJson(this);
     }
     [Serializable]
     public class LoadSceneResponse
@@ -133,5 +134,7 @@ namespace Inworld.Entities
             }
             return result;
         }
+        [JsonIgnore]
+        public bool IsValid => agents?.Count > 0;
     }
 }
