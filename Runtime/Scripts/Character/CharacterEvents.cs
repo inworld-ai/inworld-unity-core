@@ -8,7 +8,7 @@ using Inworld.Packet;
 using System;
 using UnityEngine.Events;
 
-namespace Inworld.Entities
+namespace Inworld
 {
 	[Serializable]
 	public class CharacterEvents

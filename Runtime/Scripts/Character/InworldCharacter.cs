@@ -184,7 +184,7 @@ namespace Inworld
 
         protected virtual void OnEnable()
         {
-            InworldController.Audio.OnRecordingStart.AddListener(OnAudioCaptureStarted);
+            InworldController.Audio.Event.onRecordingStart.AddListener(OnAudioCaptureStarted);
             InworldController.Client.OnStatusChanged += OnStatusChanged;
         }
 
@@ -192,7 +192,7 @@ namespace Inworld
         {
             if (!InworldController.Instance)
                 return;
-            InworldController.Audio.OnRecordingStart.RemoveListener(OnAudioCaptureStarted);
+            InworldController.Audio.Event.onRecordingStart.RemoveListener(OnAudioCaptureStarted);
             InworldController.CharacterHandler.Unregister(this);
             InworldController.Client.OnStatusChanged -= OnStatusChanged;
         }

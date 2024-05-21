@@ -20,8 +20,8 @@ namespace Inworld.Sample
 		
 		protected virtual void OnEnable()
 		{
-			InworldController.Audio.OnStartCalibrating.AddListener(() => SwitchMic(true));
-			InworldController.Audio.OnStopCalibrating.AddListener(() => SwitchMic(false));
+			InworldController.Audio.Event.onStartCalibrating.AddListener(() => SwitchMic(true));
+			InworldController.Audio.Event.onStopCalibrating.AddListener(() => SwitchMic(false));
 			InworldController.Client.OnErrorReceived += OnErrorReceived;
 			InworldController.Client.OnStatusChanged += OnStatusChanged;
 		}
