@@ -59,7 +59,7 @@ namespace Inworld.Entities
         public CapabilityPacket ToPacket => new CapabilityPacket
         {
             timestamp = InworldDateTime.UtcNow,
-            type = "SESSION_CONTROL",
+            type = PacketType.SESSION_RESPONSE,
             packetId = new PacketId(),
             routing = new Routing("WORLD"),
             sessionControl = new CapabilityEvent

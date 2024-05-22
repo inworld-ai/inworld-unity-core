@@ -13,13 +13,14 @@ using Newtonsoft.Json.Converters;
 
 namespace Inworld.Packet
 {
-    [Serializable]
+
     public class NetworkPacketResponse
     {
-        public InworldNetworkPacket result;
+        [JsonConverter(typeof(PacketDeserializer))]
+        public InworldPacket result;
         public InworldError error;
     }
-    [Serializable]
+
     public class InworldError
     {
         public int code;
@@ -80,7 +81,7 @@ namespace Inworld.Packet
                     return new TextPacket(this, text);
                 if (control != null && control.action != ControlType.UNKNOWN)
                     return new ControlPacket(this, control);
-                if (dataChunk != null && !string.IsNullOrEmpty(dataChunk.chunk) && dataChunk.type == "AUDIO")
+                if (dataChunk != null && !string.IsNullOrEmpty(dataChunk.chunk) && dataChunk.type == DataType.AUDIO)
                     return new AudioPacket(this, dataChunk);
                 if (gesture != null && !string.IsNullOrEmpty(gesture.type))
                     return new GesturePacket(this, gesture);
@@ -106,7 +107,7 @@ namespace Inworld.Packet
                     return PacketType.TEXT;
                 if (control != null && control.action != ControlType.UNKNOWN)
                     return PacketType.CONTROL;
-                if (dataChunk != null && !string.IsNullOrEmpty(dataChunk.chunk) && dataChunk.type == "AUDIO")
+                if (dataChunk != null && !string.IsNullOrEmpty(dataChunk.chunk) && dataChunk.type == DataType.AUDIO)
                     return PacketType.AUDIO;
                 if (gesture != null && !string.IsNullOrEmpty(gesture.type))
                     return PacketType.GESTURE;

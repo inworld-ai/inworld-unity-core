@@ -21,12 +21,12 @@ namespace Inworld.Packet
         
         public GesturePacket()
         {
-            type = "GESTURE";
+            type = PacketType.GESTURE;
             gesture = new GestureEvent();
         }
         public GesturePacket(InworldPacket rhs, GestureEvent evt) : base(rhs)
         {
-            type = "GESTURE";
+            type = PacketType.GESTURE;
             gesture = evt;
         }
     }

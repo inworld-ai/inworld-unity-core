@@ -32,7 +32,7 @@ namespace Inworld.Entities
         public SessionControlPacket ToPacket(string gameSessionID = "") => new SessionControlPacket
         {
             timestamp = InworldDateTime.UtcNow,
-            type = "SESSION_CONTROL",
+            type = PacketType.SESSION_CONTROL,
             packetId = new PacketId(),
             routing = new Routing("WORLD"),
             sessionControl = new SessionControlEvent

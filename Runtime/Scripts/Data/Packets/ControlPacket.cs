@@ -41,15 +41,16 @@ namespace Inworld.Packet
     [Serializable]
     public class ControlPacket : InworldPacket
     {
+        [JsonConverter(typeof(ControlEventDeserializer))]
         public ControlEvent control;
         public ControlPacket()
         {
-            type = "CONTROL";
+            type = PacketType.CONTROL;
             control = new ControlEvent();
         }
         public ControlPacket(InworldPacket rhs, ControlEvent evt) : base(rhs)
         {
-            type = "CONTROL";
+            type = PacketType.CONTROL;
             control = evt;
         }
         [JsonIgnore]

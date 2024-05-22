@@ -28,12 +28,12 @@ namespace Inworld.Packet
         public TextEvent text;
         public TextPacket()
         {
-            type = "TEXT";
+            type = PacketType.TEXT;
             text = new TextEvent();
         }
         public TextPacket(InworldPacket rhs, TextEvent evt) : base(rhs)
         {
-            type = "TEXT";
+            type = PacketType.TEXT;
             text = evt;
         }
     }

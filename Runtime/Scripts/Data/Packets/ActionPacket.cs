@@ -34,13 +34,13 @@ namespace Inworld.Packet
 
         public ActionPacket()
         {
-            type = "ACTION";
+            type = PacketType.ACTION;
             action = new ActionEvent();
         }
         public ActionPacket(InworldPacket rhs, ActionEvent evt) : base(rhs)
         {
             action = evt;
-            type = "ACTION";
+            type = PacketType.ACTION;
         }
     }
 }

@@ -28,12 +28,12 @@ namespace Inworld.Packet
 		
 		public RegenerateResponsePacket()
 		{
-			type = "MUTATION";
+			type = PacketType.MUTATION;
 			mutation = new RegenerateResponseEvent();
 		}
 		public RegenerateResponsePacket(InworldPacket rhs, RegenerateResponseEvent evt) : base(rhs)
 		{
-			type = "MUTATION";
+			type = PacketType.MUTATION;
 			mutation = evt;
 		}
 	}

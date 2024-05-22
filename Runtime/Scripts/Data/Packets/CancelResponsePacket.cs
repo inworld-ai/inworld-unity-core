@@ -28,12 +28,12 @@ namespace Inworld.Packet
         
         public CancelResponsePacket()
         {
-            type = "MUTATION";
+            type = PacketType.MUTATION;
             mutation = new CancelResponseEvent();
         }
         public CancelResponsePacket(InworldPacket rhs, CancelResponseEvent evt) : base(rhs)
         {
-            type = "MUTATION";
+            type = PacketType.MUTATION;
             mutation = evt;
         }
     }

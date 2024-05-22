@@ -490,7 +490,7 @@ namespace Inworld
             InworldPacket packet = new TextPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = "TEXT",
+                type = PacketType.TEXT,
                 packetId = new PacketId(),
                 routing = new Routing(characterID),
                 text = new TextEvent(textToSend)
@@ -528,7 +528,7 @@ namespace Inworld
             InworldPacket packet = new ActionPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = "ACTION",
+                type = PacketType.ACTION,
                 packetId = new PacketId(),
                 routing = new Routing(characterID),
                 action = new ActionEvent
@@ -581,7 +581,7 @@ namespace Inworld
             CancelResponsePacket cancelPacket = new CancelResponsePacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = "CANCEL_RESPONSE",
+                type = PacketType.MUTATION,
                 packetId = new PacketId(),
                 routing = new Routing(characterID),
                 mutation = new CancelResponseEvent
@@ -606,7 +606,7 @@ namespace Inworld
             RegenerateResponsePacket regenPacket = new RegenerateResponsePacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = "REGENERATE_RESPONSE",
+                type = PacketType.MUTATION,
                 packetId = new PacketId(),
                 routing = new Routing(characterID), 
                 mutation = new RegenerateResponseEvent
@@ -633,7 +633,7 @@ namespace Inworld
             ApplyResponsePacket regenPacket = new ApplyResponsePacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = "APPLY_RESPONSE",
+                type = PacketType.MUTATION,
                 packetId = new PacketId(),
                 routing = new Routing(characterID),
                 mutation = new ApplyResponseEvent
@@ -678,7 +678,7 @@ namespace Inworld
             InworldPacket packet = new CustomPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = "CUSTOM",
+                type = PacketType.CUSTOM,
                 packetId = new PacketId(),
                 routing = new Routing(charID),
                 custom = new CustomEvent(triggerName, parameters)
@@ -728,7 +728,7 @@ namespace Inworld
             InworldPacket packet = new ControlPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = "CONTROL",
+                type = PacketType.CONTROL,
                 packetId = new PacketId(),
                 routing = new Routing(charID),
                 control = new AudioControlEvent
@@ -776,7 +776,7 @@ namespace Inworld
             InworldPacket packet = new ControlPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = "TEXT",
+                type = PacketType.TEXT,
                 packetId = new PacketId(),
                 routing = new Routing(charID),
                 control = new ControlEvent
@@ -803,7 +803,7 @@ namespace Inworld
                 return;
             DataChunk dataChunk = new DataChunk
             {
-                type = "AUDIO",
+                type = DataType.AUDIO,
                 chunk = base64
             };
             OutgoingPacket output = new OutgoingPacket(dataChunk);
@@ -837,12 +837,12 @@ namespace Inworld
             InworldPacket packet = new AudioPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = "AUDIO",
+                type = PacketType.AUDIO,
                 packetId = new PacketId(),
                 routing = new Routing(charID),
                 dataChunk = new DataChunk
                 {
-                    type = "AUDIO",
+                    type = DataType.AUDIO,
                     chunk = base64
                 }
             };
@@ -1001,10 +1001,10 @@ namespace Inworld
                 Error = response.error;
                 return;
             }
-            InworldNetworkPacket packetReceived = response.result;
-            if (packetReceived.Type == PacketType.SESSION_RESPONSE)
+            InworldPacket packetReceived = response.result;
+            if (packetReceived.type == PacketType.SESSION_RESPONSE)
             {
-                if (packetReceived.Packet is SessionResponsePacket sessionResponse)
+                if (packetReceived is SessionResponsePacket sessionResponse)
                 {
                     m_CurrentSceneData = new LoadSceneResponse();
                     if (sessionResponse.sessionControlResponse?.loadedScene?.agents?.Count > 0)
@@ -1016,14 +1016,14 @@ namespace Inworld
                 }
                 return;
             }
-            if (packetReceived.Type == PacketType.CONTROL)
+            if (packetReceived.type == PacketType.CONTROL)
             {
-                if (packetReceived.Packet is ControlPacket controlPacket)
+                if (packetReceived is ControlPacket controlPacket)
                 {
                     switch (controlPacket.Action)
                     {
                         case ControlType.WARNING:
-                            InworldAI.LogWarning(packetReceived.control.description);
+                            InworldAI.LogWarning(controlPacket.control.description);
                             return;
                         case ControlType.INTERACTION_END:
                             _FinishInteraction(controlPacket.packetId.correlationId);
@@ -1031,13 +1031,13 @@ namespace Inworld
                     }
                 }
             }
-            if (packetReceived.Packet.Source == SourceType.WORLD && packetReceived.Packet.Target == SourceType.PLAYER)
-                OnGlobalPacketReceived?.Invoke(packetReceived.Packet);
-            if (packetReceived.Type == PacketType.UNKNOWN)
+            if (packetReceived.Source == SourceType.WORLD && packetReceived.Target == SourceType.PLAYER)
+                OnGlobalPacketReceived?.Invoke(packetReceived);
+            if (packetReceived.type == PacketType.UNKNOWN)
             {
                 InworldAI.LogWarning($"Received Unknown {e.Data}");
             }
-            OnPacketReceived?.Invoke(packetReceived.Packet);
+            OnPacketReceived?.Invoke(packetReceived);
         }
         void OnSocketClosed(object sender, CloseEventArgs e)
         {

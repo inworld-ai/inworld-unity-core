@@ -143,11 +143,23 @@ namespace Inworld
         GESTURE,
         CUSTOM,
         CANCEL_RESPONSE,
+        MUTATION,
         EMOTION,
         ACTION,
+        RELATION,
+        SESSION_CONTROL,
         SESSION_RESPONSE
     }
-
+    public enum DataType
+    {
+        UNSPECIFIED = 0,
+        // Chunk contains audio data.
+        AUDIO = 1,
+        // Chunk with state data (bytes).
+        STATE = 4,
+        // Inspect data for active session which sent as data chunk
+        INSPECT = 7,
+    }
     public enum MicSampleMode
     {
         NO_MIC,

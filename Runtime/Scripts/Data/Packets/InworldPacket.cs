@@ -78,7 +78,8 @@ namespace Inworld.Packet
     public class InworldPacket
     {
         public string timestamp;
-        public string type;
+        [JsonConverter(typeof(StringEnumConverter))]
+        public PacketType type;
         public PacketId packetId;
         public Routing routing;
 

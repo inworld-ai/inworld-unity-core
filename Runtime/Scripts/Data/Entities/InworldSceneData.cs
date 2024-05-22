@@ -88,7 +88,7 @@ namespace Inworld.Entities
         public LoadScenePacket(string sceneFullName)
         {
             timestamp = InworldDateTime.UtcNow;
-            type = "MUTATION";
+            type = PacketType.MUTATION;
             packetId = new PacketId();
             routing = new Routing("WORLD");
             mutation = new LoadSceneEvent
@@ -108,7 +108,7 @@ namespace Inworld.Entities
         public LoadCharactersPacket(List<string> characterFullName)
         {
             timestamp = InworldDateTime.UtcNow;
-            type = "MUTATION";
+            type = PacketType.MUTATION;
             packetId = new PacketId();
             routing = new Routing();
             mutation = new LoadCharactersEvent
