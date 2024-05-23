@@ -20,6 +20,19 @@ namespace Inworld.Entities
         public string name;
         public string id;
         public UserSetting userSettings;
+        
+        [JsonIgnore]
+        public UserConfigPacket ToPacket => new UserConfigPacket
+        {
+            timestamp = InworldDateTime.UtcNow,
+            type = PacketType.SESSION_CONTROL,
+            packetId = new PacketId(),
+            routing = new Routing("WORLD"),
+            sessionControl = new UserConfigEvent
+            {
+                userConfiguration = this
+            }
+        };
         public override string ToString()
         {
             string result = $"{name}: {id}";
@@ -54,5 +67,10 @@ namespace Inworld.Entities
     {
         public string fieldId;
         public string fieldValue;
+    }
+    [Serializable]
+    public class UserConfigPacket : InworldPacket
+    {
+        public UserConfigEvent sessionControl;
     }
 }

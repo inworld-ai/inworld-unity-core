@@ -276,7 +276,15 @@ namespace Inworld
         /// <param name="gameSessionID">Add your customized gameSessionID for better user data control.</param>
         public virtual IEnumerator PrepareSession(bool loadHistory = true, string gameSessionID = "")
         {
-            SendSessionConfig(loadHistory, gameSessionID);
+            SendCapabilities();
+            yield return null;
+            SendSessionConfig(m_GameSessionID);
+            yield return null;
+            SendClientConfig();
+            yield return null;
+            SendUserConfig();
+            yield return null;
+            SendHistory();
             yield return null;
             LoadScene(m_SceneFullName);
         }
@@ -442,31 +450,59 @@ namespace Inworld
         }
         /// <summary>
         /// Send Capabilities to Inworld Server.
-        /// Deprecated. Use SendSessionConfig instead.
+        /// It should be sent immediately after session started to enable all the conversations. 
         /// </summary>
-        [Obsolete]
         public virtual void SendCapabilities()
         {
-            SendSessionConfig(false, m_GameSessionID);
+            InworldAI.Log($"Sending Capabilities: {InworldAI.Capabilities}");
+            m_Socket.SendAsync(InworldAI.Capabilities.ToPacket.ToJson);
+        }
+        /// <summary>
+        /// Send Session Config to Inworld Server.
+        /// It should be sent right after sending Capabilities.
+        ///
+        /// In Unity SDK by default, we won't send customized game session ID.
+        /// For developers. You can save and load your own game session ID
+        /// </summary>
+        public virtual void SendSessionConfig(string gameSessionID = "")
+        {
+            InworldAI.Log($"Sending Session Info."); 
+            m_Socket.SendAsync(m_Token.ToPacket(gameSessionID).ToJson);
+        }
+        /// <summary>
+        /// Send Client Config to Inworld Server.
+        /// It should be sent right after sending Session Config. 
+        /// </summary>
+        public virtual void SendClientConfig()
+        {
+            InworldAI.Log($"Sending Client Info: {InworldAI.UnitySDK}");
+            m_Socket.SendAsync(InworldAI.UnitySDK.ToPacket.ToJson);
         }
         /// <summary>
         /// Send User Config to Inworld Server.
-        /// Deprecated. Use SendSessionConfig instead.
+        /// It should be sent right after sending Client Config. 
         /// </summary>
-        [Obsolete]
         public virtual void SendUserConfig()
         {
-            SendSessionConfig(false, m_GameSessionID);
+            InworldAI.Log($"Sending User Config: {InworldAI.User.Request}");
+            m_Socket.SendAsync(InworldAI.User.Request.ToPacket.ToJson);
         }
         /// <summary>
         /// Send the previous dialog (New version) to specific scene.
         /// Can be supported by either previous state (base64) or previous dialog (actor: text)
-        /// Deprecated. Use SendSessionConfig instead.
         /// </summary>
-        [Obsolete]
         public virtual void SendHistory()
         {
-            SendSessionConfig(true, m_GameSessionID);
+            if (!m_Continuation.IsValid)
+            {
+                if (string.IsNullOrEmpty(SessionHistory))
+                    return;
+                m_Continuation.continuationType = ContinuationType.CONTINUATION_TYPE_EXTERNALLY_SAVED_STATE;
+                m_Continuation.externallySavedState = SessionHistory;
+            }
+            string jsonToSend = m_Continuation.ToPacket.ToJson;
+            InworldAI.Log($"Send previous history... {jsonToSend}");
+            m_Socket.SendAsync(jsonToSend);
         }
         /// <summary>
         /// New Send messages to an InworldCharacter in this current scene.

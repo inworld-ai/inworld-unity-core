@@ -29,6 +29,17 @@ namespace Inworld.Entities
                 return DateTime.UtcNow < InworldDateTime.ToDateTime(expirationTime);
             }
         }
+        public SessionControlPacket ToPacket(string gameSessionID = "") => new SessionControlPacket
+        {
+            timestamp = InworldDateTime.UtcNow,
+            type = PacketType.SESSION_CONTROL,
+            packetId = new PacketId(),
+            routing = new Routing("WORLD"),
+            sessionControl = new LegacySessionControlEvent
+            {
+                sessionConfiguration = new SessionConfiguration(string.IsNullOrEmpty(gameSessionID) ? sessionId : gameSessionID)
+            }
+        };
     }
     [Serializable]
     public class AccessTokenRequest
@@ -44,5 +55,14 @@ namespace Inworld.Entities
         {
             gameSessionId = sessionID;
         }
+    }
+    [Serializable]
+    public class SessionControlPacket : InworldPacket
+    {
+        public LegacySessionControlEvent sessionControl;
+    }
+    public class LegacySessionControlEvent 
+    {
+        public SessionConfiguration sessionConfiguration;
     }
 }
