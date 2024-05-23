@@ -22,7 +22,7 @@ namespace Inworld.Interactions
 		public bool IsEmpty { get; }
 		public Dictionary<string, string> Targets { get; private set; } // Key: BrainName; Val: AgentID
 		public InworldPacket RawPacket { get; protected set; }
-
+ 
 		void PreparePacket()
 		{
 			// ReSharper disable Unity.PerformanceCriticalCodeInvocation
@@ -163,7 +163,7 @@ namespace Inworld.Interactions
 			}
 			return Targets.Count > 0 && !Targets.Values.Any(string.IsNullOrEmpty);
 		}
-
+ 
 		void _ComposePacket()
 		{
 			if (Targets == null || Targets.Count == 0)

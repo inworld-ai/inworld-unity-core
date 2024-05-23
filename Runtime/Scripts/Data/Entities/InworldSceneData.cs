@@ -5,7 +5,6 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
-using Inworld.Packet;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -50,42 +49,4 @@ namespace Inworld.Entities
         public List<InworldSceneData> scenes;
         public string nextPageToken;
     }
-    [Obsolete]
-    public class LoadScenePacket : InworldPacket
-    {
-        public LoadSceneEvent mutation;
-
-        public LoadScenePacket(string sceneFullName)
-        {
-            timestamp = InworldDateTime.UtcNow;
-            type = PacketType.MUTATION;
-            packetId = new PacketId();
-            routing = new Routing("WORLD");
-            mutation = new LoadSceneEvent
-            {
-                loadScene = new LoadSceneRequest
-                {
-                    name = sceneFullName
-                }
-            };
-        }
-    }
-    [Obsolete]
-    public class LoadCharactersPacket : InworldPacket
-    {
-        public LoadCharactersEvent mutation;
-
-        public LoadCharactersPacket(List<string> characterFullName)
-        {
-            timestamp = InworldDateTime.UtcNow;
-            type = PacketType.MUTATION;
-            packetId = new PacketId();
-            routing = new Routing();
-            mutation = new LoadCharactersEvent
-            {
-                loadCharacters = new LoadCharactersRequest(characterFullName)
-            };
-        }
-    }
-
 }
