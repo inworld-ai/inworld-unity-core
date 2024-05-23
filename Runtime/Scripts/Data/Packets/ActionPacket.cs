@@ -25,7 +25,7 @@ namespace Inworld.Packet
             };
         }
     }
-    public class ActionPacket : InworldPacket
+    public sealed class ActionPacket : InworldPacket
     {
         public ActionEvent action;
 
@@ -33,6 +33,12 @@ namespace Inworld.Packet
         {
             type = PacketType.ACTION;
             action = new ActionEvent();
+        }
+        public ActionPacket(string actionToSend)
+        {
+            type = PacketType.ACTION;
+            action = new ActionEvent(actionToSend);
+            PreProcess();
         }
         public ActionPacket(InworldPacket rhs, ActionEvent evt) : base(rhs)
         {

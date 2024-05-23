@@ -94,7 +94,7 @@ namespace Inworld.Packet
 	{
 		public RegenerateResponse regenerateResponse;
 	}
-	public class MutationPacket : InworldPacket
+	public sealed class MutationPacket : InworldPacket
 	{
 		[JsonConverter(typeof(MutationEventDeserializer))]
 		public MutationEvent mutation;
@@ -103,6 +103,17 @@ namespace Inworld.Packet
 		{
 			type = PacketType.MUTATION;
 			mutation = new MutationEvent();
+		}
+		public MutationPacket(MutationEvent evt)
+		{
+			mutation = evt;
+			type = PacketType.MUTATION;
+			PreProcess();
+		}
+		public MutationPacket(InworldPacket rhs, MutationEvent evt) : base(rhs)
+		{
+			mutation = evt;
+			type = PacketType.MUTATION;
 		}
 		public static string LoadScene(string sceneFullName) => new MutationPacket
 		{
@@ -130,11 +141,5 @@ namespace Inworld.Packet
 				loadCharacters = new LoadCharactersRequest(characterFullName)
 			}
 		}.ToJson;
-		
-		public MutationPacket(InworldPacket rhs, MutationEvent evt) : base(rhs)
-		{
-			mutation = evt;
-			type = PacketType.MUTATION;
-		}
 	}
 }

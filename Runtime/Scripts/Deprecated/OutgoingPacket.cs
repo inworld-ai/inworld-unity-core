@@ -12,9 +12,9 @@ using System.Collections.Generic;
 using System.Linq;
 
 
-
 namespace Inworld.Interactions
 {
+	[Obsolete]
 	public class OutgoingPacket : IContainable
 	{
 		public string ID { get; set; }	// YAN: This ID is correlation ID.
@@ -174,8 +174,6 @@ namespace Inworld.Interactions
 			List<string> agentIDs = Targets.Values.Where(c => !string.IsNullOrEmpty(c)).ToList();
 			if (RawPacket == null)
 				return;
-			//TODO(Yan): Remove OutgoingPacket after customized Serializer.
-			//			 Then add interface for each InworldPackets for OnCompose.
 			if (RawPacket is ControlPacket controlPacket && controlPacket.control is ConversationControlEvent convoEvt)
 			{
 				RawPacket.routing = new Routing();

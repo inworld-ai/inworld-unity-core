@@ -10,6 +10,7 @@ using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Inworld.Packet
 {
@@ -103,7 +104,7 @@ namespace Inworld.Packet
         public string sceneDescription;
         public string sceneDisplayName;
     }
-    public class ControlPacket : InworldPacket
+    public sealed class ControlPacket : InworldPacket
     {
         [JsonConverter(typeof(ControlEventDeserializer))]
         public ControlEvent control;
@@ -112,10 +113,30 @@ namespace Inworld.Packet
             type = PacketType.CONTROL;
             control = new ControlEvent();
         }
+        public ControlPacket(ControlEvent evt)
+        {
+            type = PacketType.CONTROL;
+            control = evt;
+            PreProcess();
+        }
+        public ControlPacket(ControlEvent evt, Dictionary<string, string> targets)
+        {
+            type = PacketType.CONTROL;
+            control = evt;
+            PreProcess(targets);
+        }
         public ControlPacket(InworldPacket rhs, ControlEvent evt) : base(rhs)
         {
             type = PacketType.CONTROL;
             control = evt;
+        }
+        protected override void UpdateRouting()
+        {
+            base.UpdateRouting();
+            if (control is not ConversationControlEvent convoEvt)
+                return;
+            routing = new Routing();
+            convoEvt.conversationUpdate.participants = Targets.Values.Where(agentID => !string.IsNullOrEmpty(agentID)).Select(agentID => new Source(agentID)).ToList();
         }
         [JsonIgnore]
         public ControlType Action => control?.action ?? ControlType.UNKNOWN;

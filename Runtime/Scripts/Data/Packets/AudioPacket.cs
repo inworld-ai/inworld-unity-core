@@ -36,7 +36,7 @@ namespace Inworld.Packet
     }
 
     [Serializable]
-    public class AudioPacket : InworldPacket
+    public sealed class AudioPacket : InworldPacket
     {
         public DataChunk dataChunk;
         
@@ -47,6 +47,12 @@ namespace Inworld.Packet
             {
                 type = DataType.AUDIO
             };
+        }
+        public AudioPacket(DataChunk chunk)
+        {
+            type = PacketType.AUDIO;
+            dataChunk = chunk;
+            PreProcess();
         }
         public AudioPacket(InworldPacket rhs, DataChunk chunk) : base(rhs)
         {

@@ -23,13 +23,19 @@ namespace Inworld.Packet
         }
     }
     [Serializable]
-    public class TextPacket : InworldPacket
+    public sealed class TextPacket : InworldPacket
     {
         public TextEvent text;
         public TextPacket()
         {
             type = PacketType.TEXT;
             text = new TextEvent();
+        }
+        public TextPacket(string textToSend)
+        {
+            type = PacketType.TEXT;
+            text = new TextEvent(textToSend);
+            PreProcess();
         }
         public TextPacket(InworldPacket rhs, TextEvent evt) : base(rhs)
         {

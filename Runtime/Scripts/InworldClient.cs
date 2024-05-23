@@ -11,6 +11,7 @@ using Inworld.Interactions;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 using System.Linq;
@@ -55,8 +56,8 @@ namespace Inworld
         // key by character's brain ID. Value contains its live session ID.
         protected readonly Dictionary<string, InworldCharacterData> m_LiveSessionData = new Dictionary<string, InworldCharacterData>();
         protected readonly Dictionary<string, Feedback> m_Feedbacks = new Dictionary<string, Feedback>();
-        protected readonly IndexQueue<OutgoingPacket> m_Prepared = new IndexQueue<OutgoingPacket>();
-        protected readonly IndexQueue<OutgoingPacket> m_Sent = new IndexQueue<OutgoingPacket>();
+        protected readonly ConcurrentQueue<InworldPacket> m_Prepared = new ConcurrentQueue<InworldPacket>();
+        protected readonly List<InworldPacket> m_Sent = new List<InworldPacket>();
         protected WebSocket m_Socket;
         protected LiveInfo m_LiveInfo = new LiveInfo();
         protected const string k_DisconnectMsg = "The remote party closed the WebSocket connection without completing the close handshake.";
@@ -255,7 +256,7 @@ namespace Inworld
         {
             if (m_Prepared.Count == 0)
                 return null;
-            List<string> characterFullNames = m_Prepared[0].Targets.Keys.ToList();
+            List<string> characterFullNames = m_Prepared.FirstOrDefault()?.Targets.Keys.ToList();
             List<string> result = new List<string>();
             foreach (InworldWorkspaceData wsData in InworldAI.User.Workspace)
             {
@@ -303,11 +304,11 @@ namespace Inworld
         /// </summary>
         public virtual void SendPackets()
         {
-            OutgoingPacket rawData = m_Prepared.Dequeue(true);
-            if (rawData == null)
+            if (!m_Prepared.TryDequeue(out InworldPacket pkt))
                 return;
-            m_Socket.SendAsync(rawData.RawPacket.ToJson);
-            m_Sent.Enqueue(rawData);
+            pkt.PrepareToSend();
+            m_Socket.SendAsync(pkt.ToJson);
+            m_Sent.Add(pkt);
         }
         /// <summary>
         /// Gets the access token. Would be implemented by child class.
@@ -373,7 +374,7 @@ namespace Inworld
             }
             else
             {
-                List<string> result = AutoSceneSearch ? GetSceneNameByCharacter() : m_Prepared[0].Targets.Keys.ToList();
+                List<string> result = AutoSceneSearch ? GetSceneNameByCharacter() : m_Prepared.FirstOrDefault()?.Targets.Keys.ToList();
                 if (result == null || result.Count == 0)
                 {
                     InworldAI.LogException("Characters not found in the workspace");
@@ -475,8 +476,8 @@ namespace Inworld
                 return;
             if (!Current.UpdateLiveInfo(brainName))
                 return;
-            OutgoingPacket rawData = new OutgoingPacket(new TextEvent(textToSend));
-            PreparePacketToSend(rawData, immediate);
+            InworldPacket rawPkt = new TextPacket(textToSend);
+            PreparePacketToSend(rawPkt, immediate);
         }
         /// <summary>
         /// Legacy Send messages to an InworldCharacter in this current scene.
@@ -513,8 +514,8 @@ namespace Inworld
                 return;
             if (!Current.UpdateLiveInfo(brainName))
                 return;
-            OutgoingPacket rawData = new OutgoingPacket(new ActionEvent(narrativeAction));
-            PreparePacketToSend(rawData, immediate);
+            InworldPacket rawPkt = new ActionPacket(narrativeAction);
+            PreparePacketToSend(rawPkt, immediate);
         }
         /// <summary>
         /// Legacy Send a narrative action to an InworldCharacter in this current scene.
@@ -565,8 +566,8 @@ namespace Inworld
                     utteranceId = new List<string> {utteranceID}
                 }
             };
-            OutgoingPacket rawData = new OutgoingPacket(mutation);
-            PreparePacketToSend(rawData, immediate);
+            InworldPacket rawPkt = new MutationPacket(mutation);
+            PreparePacketToSend(rawPkt, immediate);
         }
         /// <summary>
         /// Legacy Send the CancelResponse Event to InworldServer to interrupt the character's speaking.
@@ -662,8 +663,8 @@ namespace Inworld
                 return;
             if (!Current.UpdateLiveInfo(brainName))
                 return;
-            OutgoingPacket rawData = new OutgoingPacket(new CustomEvent(triggerName, parameters));
-            PreparePacketToSend(rawData, immediate);
+            InworldPacket rawPkt = new CustomPacket(triggerName, parameters);
+            PreparePacketToSend(rawPkt, immediate);
         }
         /// <summary>
         /// Legacy Send the trigger to an InworldCharacter in the current scene.
@@ -683,7 +684,6 @@ namespace Inworld
                 routing = new Routing(charID),
                 custom = new CustomEvent(triggerName, parameters)
             };
-            string jsonToSend = JsonUtility.ToJson(packet);
             InworldAI.Log($"Send Trigger {triggerName}");
             m_Socket.SendAsync(packet.ToJson);
         }
@@ -709,9 +709,9 @@ namespace Inworld
                     mode = MicrophoneMode.EXPECT_AUDIO_END.ToString()
                 }
             };
-            OutgoingPacket rawData = new OutgoingPacket(control);
-            PreparePacketToSend(rawData, immediate);
-            Current.StartAudioSession(rawData.RawPacket.packetId.packetId);
+            InworldPacket rawPkt = new ControlPacket(control);
+            PreparePacketToSend(rawPkt, immediate);
+            Current.StartAudioSession(rawPkt.packetId.packetId);
             InworldAI.Log($"Start talking to {Current.Name}");
         }
         /// <summary>
@@ -758,8 +758,8 @@ namespace Inworld
             {
                 action = ControlType.AUDIO_SESSION_END,
             };
-            OutgoingPacket rawData = new OutgoingPacket(control);
-            PreparePacketToSend(rawData, immediate);
+            InworldPacket rawPkt = new ControlPacket(control);
+            PreparePacketToSend(rawPkt, immediate);
             Current.StopAudioSession();
             InworldAI.Log($"Stop talking to {Current.Name}");
         }
@@ -806,16 +806,13 @@ namespace Inworld
                 type = DataType.AUDIO,
                 chunk = base64
             };
-            OutgoingPacket output = new OutgoingPacket(dataChunk);
+            InworldPacket output = new AudioPacket(dataChunk);
             if (!immediate)
                 m_Prepared.Enqueue(output);
-            else if (Status != InworldConnectionStatus.Connected)
-                return;
-            else
+            else if (Status == InworldConnectionStatus.Connected)
             {
-                output.OnDequeue();
-                if (!string.IsNullOrEmpty(output.RawPacket?.routing?.target?.name))
-                    m_Socket.SendAsync(output.RawPacket.ToJson);
+                output.PrepareToSend();
+                m_Socket.SendAsync(output.ToJson);
             }
         }
 
@@ -867,8 +864,8 @@ namespace Inworld
                     participants = characterTable.Select(data => new Source(data.Value)).ToList()
                 }
             };
-            OutgoingPacket rawData = new OutgoingPacket(control, characterTable);
-            PreparePacketToSend(rawData);
+            InworldPacket rawPkt = new ControlPacket(control, characterTable);
+            PreparePacketToSend(rawPkt);
         }
 #endregion
 
@@ -893,7 +890,7 @@ namespace Inworld
                     }
                 }
                 if (m_Sent.Count > m_MaxWaitingListSize)
-                    m_Sent.Dequeue();
+                    m_Sent.RemoveAt(0);
                 yield return new WaitForSecondsRealtime(0.1f);
             }
         }
@@ -1071,19 +1068,19 @@ namespace Inworld
         }
         
         
-        protected void PreparePacketToSend(OutgoingPacket rawData, bool immediate = false, bool needCallback = true)
+        protected void PreparePacketToSend(InworldPacket rawPkt, bool immediate = false, bool needCallback = true)
         {
             if (!immediate)
-                m_Prepared.Enqueue(rawData);
+                m_Prepared.Enqueue(rawPkt);
             else if (Status != InworldConnectionStatus.Connected)
                 return;
             else
             {
-                rawData.OnDequeue();
-                m_Socket.SendAsync(rawData.RawPacket.ToJson);
+                rawPkt.PrepareToSend();
+                m_Socket.SendAsync(rawPkt.ToJson);
             }
             if (needCallback)
-                OnPacketSent?.Invoke(rawData.RawPacket);
+                OnPacketSent?.Invoke(rawPkt);
         }
         protected IEnumerator _GetHistoryAsync(string sceneFullName)
         {
@@ -1147,16 +1144,7 @@ namespace Inworld
         }
         void _FinishInteraction(string correlationID)
         {
-            List<OutgoingPacket> toRemove = new List<OutgoingPacket>();
-            for (int i = 0; i < m_Sent.Count; i++)
-            {
-                if (m_Sent[i].ID == correlationID)
-                    toRemove.Add(m_Sent[i]);
-            }
-            foreach (OutgoingPacket packet in toRemove)
-            {
-                m_Sent.Remove(packet);
-            }
+            m_Sent.RemoveAll(p => p.packetId.correlationId == correlationID);
         }
 #endregion
     }
