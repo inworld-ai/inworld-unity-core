@@ -10,7 +10,6 @@ using System.Collections.Generic;
 
 namespace Inworld.Entities
 {
-
 	[Serializable]
 	public class Feedback
 	{

@@ -121,6 +121,34 @@ namespace Inworld
         // Session configuration. Uses payload_structured type SessionConfigurationEvent
         SESSION_CONFIGURATION = 16
     }
+    public enum SpaffCode
+    {
+        NEUTRAL,
+        DISGUST,
+        CONTEMPT,
+        BELLIGERENCE,
+        DOMINEERING,
+        CRITICISM,
+        ANGER,
+        TENSION,
+        TENSE_HUMOR,
+        DEFENSIVENESS,
+        WHINING,
+        SADNESS ,
+        STONEWALLING,
+        INTEREST,
+        VALIDATION,
+        AFFECTION,
+        HUMOR,
+        SURPRISE,
+        JOY
+    }
+    public enum Strength
+    {
+        WEAK,
+        NEUTRAL,
+        STRONG
+    }
     public enum ConversationEventType
     {
         EVICTED,
