@@ -143,8 +143,8 @@ namespace Inworld.Test
 			m_Conversation.Clear();
 			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "How are you?");
 			yield return ConversationCheck(10);
-			string text_response = ((TextPacket)m_Conversation.FirstOrDefault(p => p.type?.ToUpper() == "TEXT")).text.text;
-			Assert.IsTrue(text_response == "Hey there, I'm doing well.");
+			string textResponse = ((TextPacket)m_Conversation.FirstOrDefault(p => p.type?.ToUpper() == "TEXT")).text.text;
+			Assert.IsTrue(textResponse == "Hey there, I'm doing well.");
 		}
 
 		[UnityTest]
@@ -153,8 +153,25 @@ namespace Inworld.Test
 			m_Conversation.Clear();
 			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "You're feeling sad");
 			yield return ConversationCheck(10);
-			string emotion_result = ((EmotionPacket)m_Conversation.FirstOrDefault(p => p.type?.ToUpper() == "EMOTION")).emotion.ToString();
-			Assert.IsTrue(emotion_result == "STRONG SADNESS");
+			string emotionResult = ((EmotionPacket)m_Conversation.FirstOrDefault(p => p.type?.ToUpper() == "EMOTION")).emotion.ToString();
+			Assert.IsTrue(emotionResult == "STRONG SADNESS");
+		}
+
+		[UnityTest]
+		public IEnumerator InworldRuntimeTest_ReconnectionTest()
+		{
+			m_Conversation.Clear();
+			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Hello");
+			yield return ConversationCheck(10);
+			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "TEXT"));
+			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "AUDIO"));
+			InworldController.Client.Disconnect();
+			m_Conversation.Clear();
+			yield return InitTest();
+			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Hello");
+			yield return ConversationCheck(10);
+			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "TEXT"));
+			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "AUDIO"));		
 		}
 	}
 }
