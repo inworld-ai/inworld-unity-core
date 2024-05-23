@@ -9,6 +9,7 @@ using Inworld.Entities;
 using Inworld.Packet;
 using Inworld.UI;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -77,44 +78,33 @@ namespace Inworld.Sample
                 case CustomPacket customPacket:
                     HandleTrigger(customPacket);
                     break;
-                case CancelResponsePacket mutationPacket:
-                    RemoveBubbles(mutationPacket);
-                    break;
                 case AudioPacket audioPacket: 
                     HandleAudio(audioPacket);
                     break;
                 case ControlPacket controlEvent:
                     HandleControl(controlEvent);
                     break;
-                case RegenerateResponsePacket regenerateResponsePacket:
-                    RemoveBubbles(regenerateResponsePacket);
+                case MutationPacket mutationPacket:
+                    RemoveBubbles(mutationPacket);
                     break;
                 default:
                     InworldAI.LogWarning($"Received unknown {incomingPacket.type}");
                     break;
             }
         }
-        protected virtual void RemoveBubbles(RegenerateResponsePacket regenerateResponsePacket)
+        protected virtual void RemoveBubbles(MutationPacket mutationPacket)
         {
-            RegenerateResponse bubbleToRemove = regenerateResponsePacket?.mutation?.regenerateResponse;
-            if (bubbleToRemove == null)
+            CancelResponse response = new CancelResponse();
+            if (mutationPacket?.mutation is RegenerateResponseEvent regenEvt)
+                response.interactionId = regenEvt.regenerateResponse.interactionId;
+            if (mutationPacket?.mutation is CancelResponseEvent cancelEvt)
+                response = cancelEvt.cancelResponses;
+            if (string.IsNullOrEmpty(response.interactionId))
                 return;
             if (m_ChatOptions.longBubbleMode)
-            {
-                RemoveBubble(bubbleToRemove.interactionId);
-            }
-        }
-        protected virtual void RemoveBubbles(CancelResponsePacket mutationPacket)
-        {
-            CancelResponse bubbleToRemove = mutationPacket?.mutation?.cancelResponses;
-            if (bubbleToRemove == null)
-                return;
-            if (m_ChatOptions.longBubbleMode)
-            {
-                RemoveBubble(bubbleToRemove.interactionId);
-            }
+                RemoveBubble(response.interactionId);
             else
-                bubbleToRemove.utteranceId.ForEach(RemoveBubble);
+                response.utteranceId.ForEach(RemoveBubble);
         }
         protected virtual void HandleAudio(AudioPacket audioPacket)
         {

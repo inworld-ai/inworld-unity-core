@@ -9,12 +9,10 @@ using UnityEngine;
 
 namespace Inworld.Packet
 {
-    [Serializable]
     public class NarrativeAction
     {
         public string content;
     }
-    [Serializable]
     public class ActionEvent
     {
         public NarrativeAction narratedAction;
@@ -27,7 +25,6 @@ namespace Inworld.Packet
             };
         }
     }
-    [Serializable]
     public class ActionPacket : InworldPacket
     {
         public ActionEvent action;

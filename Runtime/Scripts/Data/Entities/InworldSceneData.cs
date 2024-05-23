@@ -50,37 +50,7 @@ namespace Inworld.Entities
         public List<InworldSceneData> scenes;
         public string nextPageToken;
     }
-    
-    [Serializable]
-    public class LoadSceneRequest
-    {
-        public string name;
-    }
-    [Serializable]
-    public class LoadCharactersRequest
-    {
-        public List<CharacterName> name;
-
-        public LoadCharactersRequest(List<string> charFullNames)
-        {
-            name = new List<CharacterName>();
-            foreach (string charName in charFullNames)
-            {
-                name.Add(new CharacterName(charName));
-            }
-        }
-    }
-    [Serializable]
-    public class LoadSceneEvent
-    {
-        public LoadSceneRequest loadScene;
-    }
-    [Serializable]
-    public class LoadCharactersEvent
-    {
-        public LoadCharactersRequest loadCharacters;
-    }
-    [Serializable]
+    [Obsolete]
     public class LoadScenePacket : InworldPacket
     {
         public LoadSceneEvent mutation;
@@ -100,7 +70,7 @@ namespace Inworld.Entities
             };
         }
     }
-    [Serializable]
+    [Obsolete]
     public class LoadCharactersPacket : InworldPacket
     {
         public LoadCharactersEvent mutation;

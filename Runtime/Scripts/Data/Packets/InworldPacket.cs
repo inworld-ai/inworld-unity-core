@@ -51,11 +51,11 @@ namespace Inworld.Packet
 
             if (characters == null || characters.Count == 0)
                 return;
-            if (characters.Count == 1)
-            {
-                target = new Source(characters[0]);
-                return; // TODO(YAN): Always setup targets works. But need to check AEC.
-            }
+            // if (characters.Count == 1)
+            // {
+            //     target = new Source(characters[0]);
+            //     return; // TODO(YAN): Always setup targets works. But need to check AEC.
+            // }
             targets = new List<Source>();
             foreach (string characterID in characters)
             {
@@ -111,8 +111,6 @@ namespace Inworld.Packet
         [JsonIgnore]
         public string TargetName => routing?.target?.name;
 #endregion
-
-        
         public bool IsSource(string agentID) => !string.IsNullOrEmpty(agentID) && SourceName == agentID;
         
         public bool IsTarget(string agentID) => !string.IsNullOrEmpty(agentID) && TargetName == agentID;

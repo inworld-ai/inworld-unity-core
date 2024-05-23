@@ -272,18 +272,11 @@ namespace Inworld
         /// <summary>
         /// Prepare the session. If the session is freshly established. Please call this.
         /// </summary>
-        /// <returns></returns>
-        public virtual IEnumerator PrepareSession()
+        /// <param name="loadHistory">check if you're trying to load the history</param>
+        /// <param name="gameSessionID">Add your customized gameSessionID for better user data control.</param>
+        public virtual IEnumerator PrepareSession(bool loadHistory = true, string gameSessionID = "")
         {
-            SendCapabilities();
-            yield return null;
-            SendSessionConfig(m_GameSessionID);
-            yield return null;
-            SendClientConfig();
-            yield return null;
-            SendUserConfig();
-            yield return null;
-            SendHistory();
+            SendSessionConfig(loadHistory, gameSessionID);
             yield return null;
             LoadScene(m_SceneFullName);
         }
@@ -382,7 +375,7 @@ namespace Inworld
             {
                 InworldAI.Log($"Load Scene: {sceneFullName}");
                 m_SceneFullName = sceneFullName;
-                m_Socket.SendAsync(new LoadScenePacket(m_SceneFullName).ToJson);
+                m_Socket.SendAsync(MutationPacket.LoadScene(m_SceneFullName));
             }
             else
             {
@@ -396,71 +389,84 @@ namespace Inworld
                 {
                     m_SceneFullName = result[0];
                     InworldAI.Log($"Load Scene: {m_SceneFullName}");
-                    m_Socket.SendAsync(new LoadScenePacket(m_SceneFullName).ToJson);
+                    m_Socket.SendAsync(MutationPacket.LoadScene(m_SceneFullName));
                 }
                 else
                 {
                     InworldAI.Log($"Load Characters directly.");
-                    m_Socket.SendAsync(new LoadCharactersPacket(result).ToJson);
+                    m_Socket.SendAsync(MutationPacket.LoadCharacters(result));
                 }
             }
         }
+        public virtual void SendSessionConfig(bool loadHistory = true, string gameSessionID = "")
+        {
+            if (loadHistory)
+            {
+                if (!m_Continuation.IsValid && !string.IsNullOrEmpty(SessionHistory))
+                {
+                    m_Continuation.continuationType = ContinuationType.CONTINUATION_TYPE_EXTERNALLY_SAVED_STATE;
+                    m_Continuation.externallySavedState = SessionHistory;
+                }
+            }
+            m_GameSessionID = string.IsNullOrEmpty(gameSessionID) ? Token.sessionId : gameSessionID;
+
+            ControlPacket ctrlPacket = new ControlPacket
+            {
+                timestamp = InworldDateTime.UtcNow,
+                type = PacketType.CONTROL,
+                packetId = new PacketId(),
+                routing = new Routing("WORLD"),
+                control = new SessionControlEvent
+                {
+                    sessionConfiguration = new SessionConfigurationPayload
+                    {
+                        capabilitiesConfiguration = InworldAI.Capabilities,
+                        sessionConfiguration = new SessionConfiguration(m_GameSessionID),
+                        clientConfiguration = InworldAI.UnitySDK,
+                        userConfiguration = InworldAI.User.Request,
+                        continuation = loadHistory ? m_Continuation : null
+                    }
+                }
+            };
+            if (InworldAI.IsDebugMode)
+            {
+                InworldAI.Log($"Sending Capabilities: {InworldAI.Capabilities}");
+                InworldAI.Log($"Sending Session Info. {m_GameSessionID}"); 
+                InworldAI.Log($"Sending Client Config: {InworldAI.UnitySDK}");
+                InworldAI.Log($"Sending User Config: {InworldAI.User.Request}");
+                if (loadHistory)
+                    InworldAI.Log("Sending History data.");
+            }
+            InworldAI.Log("Prepare Session...");
+            m_Socket.SendAsync(ctrlPacket.ToJson);
+        }
         /// <summary>
         /// Send Capabilities to Inworld Server.
-        /// It should be sent immediately after session started to enable all the conversations. 
+        /// Deprecated. Use SendSessionConfig instead.
         /// </summary>
+        [Obsolete]
         public virtual void SendCapabilities()
         {
-            InworldAI.Log($"Sending Capabilities: {InworldAI.Capabilities}");
-            m_Socket.SendAsync(InworldAI.Capabilities.ToPacket.ToJson);
-        }
-        /// <summary>
-        /// Send Session Config to Inworld Server.
-        /// It should be sent right after sending Capabilities.
-        ///
-        /// In Unity SDK by default, we won't send customized game session ID.
-        /// For developers. You can save and load your own game session ID
-        /// </summary>
-        public virtual void SendSessionConfig(string gameSessionID = "")
-        {
-            string jsonToSend = JsonUtility.ToJson(m_Token.ToPacket(gameSessionID)); 
-            InworldAI.Log($"Sending Session Info."); 
-            m_Socket.SendAsync(jsonToSend);
-        }
-        /// <summary>
-        /// Send Client Config to Inworld Server.
-        /// It should be sent right after sending Session Config. 
-        /// </summary>
-        public virtual void SendClientConfig()
-        {
-            InworldAI.Log($"Sending Client Info: {InworldAI.UnitySDK}");
-            m_Socket.SendAsync(InworldAI.UnitySDK.ToPacket.ToJson);
+            SendSessionConfig(false, m_GameSessionID);
         }
         /// <summary>
         /// Send User Config to Inworld Server.
-        /// It should be sent right after sending Client Config. 
+        /// Deprecated. Use SendSessionConfig instead.
         /// </summary>
+        [Obsolete]
         public virtual void SendUserConfig()
         {
-            InworldAI.Log($"Sending User Config: {InworldAI.User.Request}");
-            m_Socket.SendAsync(InworldAI.User.Request.ToPacket.ToJson);
+            SendSessionConfig(false, m_GameSessionID);
         }
         /// <summary>
         /// Send the previous dialog (New version) to specific scene.
         /// Can be supported by either previous state (base64) or previous dialog (actor: text)
+        /// Deprecated. Use SendSessionConfig instead.
         /// </summary>
+        [Obsolete]
         public virtual void SendHistory()
         {
-            if (!m_Continuation.IsValid)
-            {
-                if (string.IsNullOrEmpty(SessionHistory))
-                    return;
-                m_Continuation.continuationType = ContinuationType.CONTINUATION_TYPE_EXTERNALLY_SAVED_STATE;
-                m_Continuation.externallySavedState = SessionHistory;
-            }
-            string jsonToSend = m_Continuation.ToPacket.ToJson;
-            InworldAI.Log($"Send previous history... {jsonToSend}");
-            m_Socket.SendAsync(jsonToSend);
+            SendSessionConfig(true, m_GameSessionID);
         }
         /// <summary>
         /// New Send messages to an InworldCharacter in this current scene.
@@ -578,7 +584,7 @@ namespace Inworld
         {
             if (string.IsNullOrEmpty(characterID))
                 return;
-            CancelResponsePacket cancelPacket = new CancelResponsePacket
+            MutationPacket cancelPacket = new MutationPacket
             {
                 timestamp = InworldDateTime.UtcNow,
                 type = PacketType.MUTATION,
@@ -603,7 +609,7 @@ namespace Inworld
         /// <param name="interactionID"></param>
         public virtual void SendRegenerateEvent(string characterID, string interactionID)
         {
-            RegenerateResponsePacket regenPacket = new RegenerateResponsePacket
+            MutationPacket regenPacket = new MutationPacket
             {
                 timestamp = InworldDateTime.UtcNow,
                 type = PacketType.MUTATION,
@@ -630,7 +636,7 @@ namespace Inworld
         {
             if (string.IsNullOrEmpty(characterID))
                 return;
-            ApplyResponsePacket regenPacket = new ApplyResponsePacket
+            MutationPacket regenPacket = new MutationPacket
             {
                 timestamp = InworldDateTime.UtcNow,
                 type = PacketType.MUTATION,
@@ -1027,6 +1033,9 @@ namespace Inworld
                             return;
                         case ControlType.INTERACTION_END:
                             _FinishInteraction(controlPacket.packetId.correlationId);
+                            break;
+                        case ControlType.CURRENT_SCENE_STATUS:
+                            Debug.LogError(e.Data);
                             break;
                     }
                 }

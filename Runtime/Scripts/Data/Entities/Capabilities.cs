@@ -55,18 +55,6 @@ namespace Inworld.Entities
             debugInfo = rhs.debugInfo;
             multiAgent = rhs.multiAgent;
         }
-        [JsonIgnore]
-        public CapabilityPacket ToPacket => new CapabilityPacket
-        {
-            timestamp = InworldDateTime.UtcNow,
-            type = PacketType.SESSION_RESPONSE,
-            packetId = new PacketId(),
-            routing = new Routing("WORLD"),
-            sessionControl = new CapabilityEvent
-            {
-                capabilitiesConfiguration = this
-            }
-        };
         public override string ToString()
         {
             string result = "";
@@ -92,13 +80,5 @@ namespace Inworld.Entities
                 result += "MULTIAGENT";
             return result;
         }
-    }
-    public class CapabilityEvent
-    {
-        public Capabilities capabilitiesConfiguration;
-    }
-    public class CapabilityPacket : InworldPacket
-    {
-        public CapabilityEvent sessionControl;
     }
 }

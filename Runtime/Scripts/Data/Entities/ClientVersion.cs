@@ -6,6 +6,7 @@
  *************************************************************************************************/
 using Inworld.Packet;
 using Newtonsoft.Json;
+using System;
 
 
 namespace Inworld.Entities
@@ -16,18 +17,6 @@ namespace Inworld.Entities
         public string version;
         public string description;
 
-        [JsonIgnore]
-        public ClientConfigPacket ToPacket => new ClientConfigPacket
-        {
-            timestamp = InworldDateTime.UtcNow,
-            type = PacketType.SESSION_CONTROL,
-            packetId = new PacketId(),
-            routing = new Routing("WORLD"),
-            sessionControl = new ClientConfigEvent
-            {
-                clientConfiguration = this
-            }
-        };
         public override string ToString() => $"{id}: {version} {description}";
     }
     public class ReleaseData
@@ -38,15 +27,5 @@ namespace Inworld.Entities
     {
         public string published_at;
         public string tag_name;
-    }
-    
-    public class ClientConfigEvent
-    {
-        public Client clientConfiguration;
-    }
-    
-    public class ClientConfigPacket : InworldPacket
-    {
-        public ClientConfigEvent sessionControl;
     }
 }

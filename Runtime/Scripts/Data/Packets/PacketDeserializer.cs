@@ -12,27 +12,6 @@ using UnityEngine;
 
 namespace Inworld.Packet
 {
-	public class ControlEventDeserializer : JsonConverter
-	{
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			// Not used. 
-		}
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			JObject jo = JObject.Load(reader);
-			if (jo["audioSessionStart"] != null)
-				return jo.ToObject<AudioControlEvent>(serializer);
-			if (jo["conversationUpdate"] != null)
-				return jo.ToObject<ConversationControlEvent>(serializer);
-			return jo.ToObject<ControlEvent>(serializer);
-		}
-		public override bool CanConvert(Type objectType)
-		{
-			return objectType == typeof(ControlEvent);
-		}
-		public override bool CanWrite => false; // YAN: Use default serializer.
-	}
 	public class PacketDeserializer : JsonConverter
 	{
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)

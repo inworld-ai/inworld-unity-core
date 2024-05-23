@@ -70,7 +70,7 @@ namespace Inworld.Interactions
         }
         public OutgoingPacket(CancelResponseEvent mutationToSend)
         {
-	        RawPacket = new CancelResponsePacket
+	        RawPacket = new MutationPacket
 	        {
 		        mutation = mutationToSend
 	        };
