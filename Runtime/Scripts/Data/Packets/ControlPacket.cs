@@ -28,6 +28,8 @@ namespace Inworld.Packet
                 return jo.ToObject<ConversationControlEvent>(serializer);
             if (jo["sessionControl"] != null)
                 return jo.ToObject<SessionControlEvent>(serializer);
+            if (jo["currentSceneStatus"] != null)
+                return jo.ToObject<CurrentSceneStatusEvent>(serializer);
             return jo.ToObject<ControlEvent>(serializer);
         }
         public override bool CanConvert(Type objectType)
@@ -45,6 +47,11 @@ namespace Inworld.Packet
     public class AudioControlEvent : ControlEvent
     {
         public AudioSessionPayload audioSessionStart;
+
+        public AudioControlEvent()
+        {
+            action = ControlType.AUDIO_SESSION_START;
+        }
     }
     public class AudioSessionPayload
     {
@@ -53,6 +60,11 @@ namespace Inworld.Packet
     public class ConversationControlEvent : ControlEvent
     {
         public ConversationUpdatePayload conversationUpdate;
+
+        public ConversationControlEvent()
+        {
+            action = ControlType.CONVERSATION_UPDATE;
+        }
     }
     public class ConversationUpdatePayload
     {
@@ -61,6 +73,11 @@ namespace Inworld.Packet
     public class SessionControlEvent : ControlEvent
     {
         public SessionConfigurationPayload sessionConfiguration;
+
+        public SessionControlEvent()
+        {
+            action = ControlType.SESSION_CONFIGURATION;
+        }
     }
     public class SessionConfigurationPayload
     {
@@ -71,18 +88,20 @@ namespace Inworld.Packet
         [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public Continuation continuation;
     }
-    public class UserConfigEvent
+    public class CurrentSceneStatusEvent : ControlEvent
     {
-        public UserRequest userConfiguration;
+        public CurrentSceneStatusPayload currentSceneStatus;
+        public CurrentSceneStatusEvent()
+        {
+            action = ControlType.CURRENT_SCENE_STATUS;
+        }
     }
-        
-    public class ClientConfigEvent
+    public class CurrentSceneStatusPayload
     {
-        public Client clientConfiguration;
-    }
-    public class CapabilityEvent
-    {
-        public Capabilities capabilitiesConfiguration;
+        public List<InworldCharacterData> agents;
+        public string sceneName;
+        public string sceneDescription;
+        public string sceneDisplayName;
     }
     public class ControlPacket : InworldPacket
     {

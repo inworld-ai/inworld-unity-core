@@ -87,24 +87,5 @@ namespace Inworld.Entities
             };
         }
     }
-    [Serializable]
-    public class LoadSceneResponse
-    {
-        public List<InworldCharacterData> agents = new List<InworldCharacterData>();
 
-        public List<string> UpdateRegisteredCharacter(ref List<InworldCharacterData> outData)
-        {
-            List<string> result = new List<string>();
-            foreach (InworldCharacterData charData in outData)
-            {
-                string registeredID = agents.FirstOrDefault(a => a.brainName == charData.brainName)?.agentId;
-                if (string.IsNullOrEmpty(registeredID))
-                    result.Add(charData.givenName);
-                charData.agentId = registeredID;
-            }
-            return result;
-        }
-        [JsonIgnore]
-        public bool IsValid => agents?.Count > 0;
-    }
 }

@@ -59,7 +59,6 @@ namespace Inworld
         protected readonly IndexQueue<OutgoingPacket> m_Sent = new IndexQueue<OutgoingPacket>();
         protected WebSocket m_Socket;
         protected LiveInfo m_LiveInfo = new LiveInfo();
-        protected LoadSceneResponse m_CurrentSceneData;
         protected const string k_DisconnectMsg = "The remote party closed the WebSocket connection without completing the close handshake.";
         protected Token m_Token;
         protected IEnumerator m_OutgoingCoroutine;
@@ -324,11 +323,6 @@ namespace Inworld
             else
                 GetAccessToken();
         }
-        /// <summary>
-        /// Gets the live session info once load scene completed.
-        /// The returned LoadSceneResponse contains the session ID and all the live session ID for each InworldCharacters in this InworldScene.
-        /// </summary>
-        public virtual LoadSceneResponse GetLiveSessionInfo() => m_CurrentSceneData;
         /// <summary>
         /// Use the input json string of token instead of API key/secret to load scene.
         /// This token can be fetched by other applications such as InworldWebSDK.
@@ -903,11 +897,11 @@ namespace Inworld
                 yield return new WaitForSecondsRealtime(0.1f);
             }
         }
-        protected virtual void _RegisterLiveSession(LoadSceneResponse loadSceneResponse)
+        protected virtual void _RegisterLiveSession(List<InworldCharacterData> agents)
         {
             m_LiveSessionData.Clear();
             // YAN: Fetch all the characterData in the current session.
-            foreach (InworldCharacterData agent in loadSceneResponse.agents.Where(agent => !string.IsNullOrEmpty(agent.agentId) && !string.IsNullOrEmpty(agent.brainName)))
+            foreach (InworldCharacterData agent in agents.Where(agent => !string.IsNullOrEmpty(agent.agentId) && !string.IsNullOrEmpty(agent.brainName)))
             {
                 m_LiveSessionData[agent.brainName] = agent;
                 StartCoroutine(agent.UpdateThumbnail());
@@ -994,6 +988,51 @@ namespace Inworld
             InworldAI.Log($"Connect {m_Token.sessionId}");
             StartCoroutine(PrepareSession());
         }
+        /// <summary>
+        /// Handle the raw packets received from server.
+        /// </summary>
+        /// <param name="receivedPacket"></param>
+        /// <returns>True if need dispatch, False if error or discard.</returns>
+        bool _HandleRawPackets(InworldPacket receivedPacket)
+        {
+            switch (receivedPacket.type)
+            {
+                case PacketType.UNKNOWN:
+                    InworldAI.LogWarning($"Received Unknown {receivedPacket}");
+                    return false;
+                case PacketType.SESSION_RESPONSE:
+                    // Deprecated.
+                    return false;
+                case PacketType.CONTROL:
+                {
+                    if (receivedPacket is ControlPacket controlPacket)
+                    {
+                        switch (controlPacket.Action)
+                        {
+                            case ControlType.WARNING:
+                                InworldAI.LogWarning(controlPacket.control.description);
+                                return false;
+                            case ControlType.INTERACTION_END:
+                                _FinishInteraction(controlPacket.packetId.correlationId);
+                                break;
+                            case ControlType.CURRENT_SCENE_STATUS:
+                                if (controlPacket.control is CurrentSceneStatusEvent currentSceneStatusEvent)
+                                {
+                                    _RegisterLiveSession(currentSceneStatusEvent.currentSceneStatus.agents);
+                                    Status = InworldConnectionStatus.Connected;
+                                    return false;
+                                }
+                                InworldAI.LogError($"Load Scene Error: {controlPacket.control}");
+                                break;
+                        }
+                    }
+                    break;
+                }
+                default:
+                    return true;
+            }
+            return true;
+        }
         void OnMessageReceived(object sender, MessageEventArgs e)
         {
             NetworkPacketResponse response = JsonConvert.DeserializeObject<NetworkPacketResponse>(e.Data);
@@ -1008,44 +1047,10 @@ namespace Inworld
                 return;
             }
             InworldPacket packetReceived = response.result;
-            if (packetReceived.type == PacketType.SESSION_RESPONSE)
-            {
-                if (packetReceived is SessionResponsePacket sessionResponse)
-                {
-                    m_CurrentSceneData = new LoadSceneResponse();
-                    if (sessionResponse.sessionControlResponse?.loadedScene?.agents?.Count > 0)
-                        m_CurrentSceneData.agents.AddRange(sessionResponse.sessionControlResponse.loadedScene.agents);
-                    if (sessionResponse.sessionControlResponse?.loadedCharacters?.agents?.Count > 0)
-                        m_CurrentSceneData.agents.AddRange(sessionResponse.sessionControlResponse.loadedCharacters.agents);
-                    _RegisterLiveSession(m_CurrentSceneData);
-                    Status = InworldConnectionStatus.Connected;
-                }
+            if (!_HandleRawPackets(packetReceived))
                 return;
-            }
-            if (packetReceived.type == PacketType.CONTROL)
-            {
-                if (packetReceived is ControlPacket controlPacket)
-                {
-                    switch (controlPacket.Action)
-                    {
-                        case ControlType.WARNING:
-                            InworldAI.LogWarning(controlPacket.control.description);
-                            return;
-                        case ControlType.INTERACTION_END:
-                            _FinishInteraction(controlPacket.packetId.correlationId);
-                            break;
-                        case ControlType.CURRENT_SCENE_STATUS:
-                            Debug.LogError(e.Data);
-                            break;
-                    }
-                }
-            }
             if (packetReceived.Source == SourceType.WORLD && packetReceived.Target == SourceType.PLAYER)
                 OnGlobalPacketReceived?.Invoke(packetReceived);
-            if (packetReceived.type == PacketType.UNKNOWN)
-            {
-                InworldAI.LogWarning($"Received Unknown {e.Data}");
-            }
             OnPacketReceived?.Invoke(packetReceived);
         }
         void OnSocketClosed(object sender, CloseEventArgs e)
