@@ -116,7 +116,7 @@ namespace Inworld
             {
                 if (CharacterHandler && CharacterHandler.CurrentCharacter)
                     return CharacterHandler.CurrentCharacter;
-                return CharacterHandler.CurrentCharacters.Count > 0 ? CharacterHandler.CurrentCharacters[0] : null;
+                return null;
             }
 
             set
@@ -215,13 +215,8 @@ namespace Inworld
         /// <param name="text">the message to send.</param>
         public void SendText(string text)
         {
-            if (CharacterHandler.CurrentCharacter)
-                CharacterHandler.CurrentCharacter.SendText(text);
-            else
-            {
-                CancelResponses();
-                m_Client.SendTextTo(text, CharacterHandler.CurrentCharacter.BrainName);
-            }
+            CancelResponses();
+            m_Client.SendTextTo(text, CharacterHandler.CurrentCharacter? CharacterHandler.CurrentCharacter.BrainName : "");
         }
         /// <summary>
         /// Send a narrative action to an InworldCharacter in this current scene.
@@ -230,10 +225,8 @@ namespace Inworld
         /// <param name="narrativeAction">the narrative action to send.</param>
         public void SendNarrativeAction(string narrativeAction)
         {
-            if (CharacterHandler.CurrentCharacter)
-                CharacterHandler.CurrentCharacter.SendNarrative(narrativeAction);
-            else
-                m_Client.SendNarrativeActionTo(narrativeAction, CharacterHandler.CurrentCharacter.BrainName);
+            CancelResponses();
+            m_Client.SendNarrativeActionTo(narrativeAction, CharacterHandler.CurrentCharacter? CharacterHandler.CurrentCharacter.BrainName : "");
         }
         /// <summary>
         /// Cancel all the current character's generating responses.
@@ -242,9 +235,7 @@ namespace Inworld
         /// </summary>
         public void CancelResponses()
         {
-            if (CharacterHandler.CurrentCharacter)
-                CharacterHandler.CurrentCharacter.CancelResponse();
-            else if (CharacterHandler.CurrentCharacters.Count > 0)
+            if (CharacterHandler.CurrentCharacters.Count > 0)
                 CharacterHandler.CurrentCharacters.ForEach(c => c.CancelResponse());
         }
         /// <summary>
@@ -254,7 +245,7 @@ namespace Inworld
         /// <param name="utteranceID">the handle of the current utterance that needs to be cancelled.</param>
         public void SendCancelEvent(string interactionID, string utteranceID = "")
         {
-            m_Client.SendCancelEventTo(interactionID, utteranceID, CharacterHandler.CurrentCharacter.BrainName);
+            m_Client.SendCancelEventTo(interactionID, utteranceID, SourceType.WORLD.ToString());
         } 
         /// <summary>
         /// Send the trigger to the whole session.

@@ -36,6 +36,6 @@ namespace Inworld.Packet
             type = "TEXT";
             text = evt;
         }
-        public override string ToJson => JsonUtility.ToJson(this); 
+        public override string ToJson => RemoveTargetFieldInJson(JsonUtility.ToJson(this)); 
     }
 }

@@ -41,6 +41,17 @@ namespace Inworld.Interactions
 			}
 			RawPacket.packetId.correlationId = ID;
 		}
+		// YAN: Only for packets that needs to explicitly set multiple targets (Like start conversation).
+		//		Usually for conversation packets, do not need to call this.
+		void PreparePacket(Dictionary<string, string> targets)
+		{
+			ID = Guid.NewGuid().ToString();
+			LiveInfo liveInfo = InworldController.Client.Current;
+			RawPacket.packetId.conversationId = liveInfo.Conversation.ID;
+			Targets = targets;
+			RawPacket.routing = new Routing(targets.Values.ToList());
+			RawPacket.packetId.correlationId = ID;
+		}
         public OutgoingPacket(TextEvent txtToSend) 
         {
 	        RawPacket = new TextPacket
@@ -77,9 +88,17 @@ namespace Inworld.Interactions
         {
 	        RawPacket = new ControlPacket
 	        {
-		        control = controlToSend
+		        Control = controlToSend
 	        };
 	        PreparePacket();
+        }
+        public OutgoingPacket(ControlEvent controlToSend, Dictionary<string, string> targets)
+        {
+	        RawPacket = new ControlPacket
+	        {
+		        Control = controlToSend
+	        };
+	        PreparePacket(targets);
         }
         public OutgoingPacket(DataChunk chunkToSend)
         {
@@ -89,7 +108,18 @@ namespace Inworld.Interactions
 	        };
 	        PreparePacket();
         }
-
+        public OutgoingPacket(string conversationID, List<string> brainNames)
+        {
+	        ID = Guid.NewGuid().ToString();
+	        RawPacket = new ControlPacket
+	        {
+		        Control = new ConversationControlEvent
+		        {
+			        action = ControlType.CONVERSATION_UPDATE.ToString()
+		        }
+	        };
+	        RawPacket.packetId.conversationId = conversationID;
+        }
         public bool IsCharacterRegistered => !Targets.Values.Any(string.IsNullOrEmpty);
         
 		public bool Contains(InworldPacket packet)
@@ -113,7 +143,6 @@ namespace Inworld.Interactions
 			}
 			return false;
 		}
-		
 		/// <summary>
 		/// Update the characters in this conversation with updated ID.
 		/// </summary>
@@ -121,7 +150,7 @@ namespace Inworld.Interactions
 		bool _UpdateSessionInfo()
 		{
 			if (Targets == null)
-				return false;
+				return InworldController.Client.Current.IsConversation;
 			foreach (string key in Targets.Keys.ToList().Where(key => !string.IsNullOrEmpty(key)))
 			{
 				if (InworldController.Client.LiveSessionData.TryGetValue(key, out InworldCharacterData value))
@@ -137,10 +166,23 @@ namespace Inworld.Interactions
 
 		void _ComposePacket()
 		{
+			if (Targets == null || Targets.Count == 0)
+			{
+				RawPacket.routing = new Routing();
+				return;
+			}
 			List<string> agentIDs = Targets.Values.Where(c => !string.IsNullOrEmpty(c)).ToList();
 			if (RawPacket == null)
 				return;
-			RawPacket.routing = new Routing(agentIDs);
+			//TODO(Yan): Remove OutgoingPacket after customized Serializer.
+			//			 Then add interface for each InworldPackets for OnCompose.
+			if (RawPacket is ControlPacket controlPacket && controlPacket.Control is ConversationControlEvent convoEvt)
+			{
+				RawPacket.routing = new Routing();
+				convoEvt.conversationUpdate.participants = Targets.Values.Select(agentID => new Source(agentID)).ToList();
+			}
+			else
+				RawPacket.routing = new Routing(agentIDs);
 		}
 	}
 }

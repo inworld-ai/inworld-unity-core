@@ -85,7 +85,7 @@ namespace Inworld.Packet
             type = "RELATION";
             debugInfo = evt;
         }
-        public override string ToJson => JsonUtility.ToJson(this); 
+        public override string ToJson => RemoveTargetFieldInJson(JsonUtility.ToJson(this)); 
         public string Relation => debugInfo.relation.relationState.GetUpdate(debugInfo.relation.relationUpdate);
     }
 }

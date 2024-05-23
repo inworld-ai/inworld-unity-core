@@ -33,7 +33,7 @@ namespace Inworld.Packet
 			type = "SESSION_RESPONSE";
 			sessionControlResponse = evt;
 		}
-		public override string ToJson => JsonUtility.ToJson(this); 
+		public override string ToJson => RemoveTargetFieldInJson(JsonUtility.ToJson(this)); 
 	}
 }
 

@@ -31,6 +31,7 @@ namespace Inworld.Test
 		{
 			Object.Instantiate(InworldAI.ControllerPrefab);
 			Assert.NotNull(InworldController.Instance);
+			InworldController.Audio.AutoDetectPlayerSpeaking = false;
 			m_Conversation = new List<InworldPacket>();
 			InworldController.Client.OnStatusChanged += OnClientStatusChanged;
 			InworldController.Client.OnPacketReceived += OnPacketReceived;

@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace Inworld.Packet
@@ -52,7 +53,7 @@ namespace Inworld.Packet
             if (characters.Count == 1)
             {
                 target = new Source(characters[0]);
-                return;
+                return; // TODO(YAN): Always setup targets works. But need to check AEC.
             }
             targets = new List<Source>();
             foreach (string characterID in characters)
@@ -95,13 +96,12 @@ namespace Inworld.Packet
             routing = rhs.routing;
             type = rhs.type;
         }
-        public virtual string ToJson => JsonUtility.ToJson(this); 
+        public virtual string ToJson => RemoveTargetFieldInJson(JsonUtility.ToJson(this)); 
         public SourceType Source => Enum.TryParse(routing?.source?.type, true, out SourceType result) ? result : SourceType.NONE;
         
         public SourceType Target => Enum.TryParse(routing?.target?.type, true, out SourceType result) ? result : SourceType.NONE;
-
         public bool IsBroadCast => string.IsNullOrEmpty(routing?.target?.name);
-
+        public bool NeedFilterTargets => string.IsNullOrEmpty(routing?.target?.name) && (routing?.targets == null || routing.targets.Count == 0);
         public string SourceName => routing?.source?.name;
         
         public string TargetName => routing?.target?.name;
@@ -113,5 +113,15 @@ namespace Inworld.Packet
         public bool Contains(string agentID) => !string.IsNullOrEmpty(agentID) && (routing?.targets?.Any(agent => agent.name == agentID) ?? false);
 
         public bool IsRelated(string agentID) => IsSource(agentID) || IsTarget(agentID) || Contains(agentID);
+
+        //TODO(Yan): Create our own json serializer.
+        public string RemoveTargetFieldInJson(string json)
+        {
+            if (!NeedFilterTargets)
+                return json;
+            json = Regex.Replace(json, @",\s*""target""\s*:\s*{[^}]*},?", "");
+            json = Regex.Replace(json, @"""targets""\s*:\s*\[\s*\],?", "");
+            return json;
+        }
     }
 }

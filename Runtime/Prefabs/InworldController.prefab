@@ -65,15 +65,17 @@ MonoBehaviour:
   m_SceneFullName: 
   m_APIKey: 2og83K3KNs8ImVaoL93pVNPc0XzKk9XV
   m_APISecret: 5aRjDzBGPf5PTzd25rHFiazxIyqZ88n1qLjJlQV2ZQA31nmx62QcQta9q24R8GT7
-  m_CustomToken: 
-  m_PublicWorkspace: 
   m_AutoScene: 0
+  m_MaxWaitingListSize: 100
   m_Continuation:
     continuationType: 0
     dialogHistory:
       history: []
     externallySavedState: 
-  m_MaxWaitingListSize: 100
+  m_EnableGroupChat: 0
+  m_CustomToken: 
+  m_PublicWorkspace: 
+  m_GameSessionID: 
 --- !u!114 &4769464275635075730
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -86,7 +88,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4f92db331c103a4aa88a10e82275245, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_ManualAudioHandling: 1
 --- !u!114 &3989058389384028254
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -100,9 +101,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SamplingMode: 4
+  m_PushToTalkKey: 0
   m_PlayerVolumeThreshold: 2
   m_BufferSeconds: 1
+  m_AudioToPushCapacity: 100
   m_DeviceName: 
+  m_DetectPlayerSpeaking: 1
+  OnStartCalibrating:
+    m_PersistentCalls:
+      m_Calls: []
+  OnStopCalibrating:
+    m_PersistentCalls:
+      m_Calls: []
   OnRecordingStart:
     m_PersistentCalls:
       m_Calls: []

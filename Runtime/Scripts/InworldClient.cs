@@ -34,6 +34,7 @@ namespace Inworld
         [Space(10)]
         [SerializeField] protected Continuation m_Continuation;
         [Space(10)][Header("Advanced:")]
+        [SerializeField] protected bool m_EnableGroupChat = true;
         [SerializeField] protected string m_CustomToken;
         [SerializeField] protected string m_PublicWorkspace;
         [SerializeField] protected string m_GameSessionID;
@@ -79,7 +80,7 @@ namespace Inworld
         /// Gets if group chat is enabled.
         /// This feature is still under development, and will be coming soon.
         /// </summary>
-        public bool EnableGroupChat => false;
+        public bool EnableGroupChat => m_EnableGroupChat;
         /// <summary>
         /// Get/Set the session history.
         /// </summary>
@@ -493,9 +494,8 @@ namespace Inworld
                 routing = new Routing(characterID),
                 text = new TextEvent(textToSend)
             };
-            string jsonToSend = JsonUtility.ToJson(packet);
             OnPacketSent?.Invoke(packet);
-            m_Socket.SendAsync(jsonToSend);
+            m_Socket.SendAsync(packet.ToJson);
         }
         /// <summary>
         /// New Send narrative action to an InworldCharacter in this current scene.
@@ -538,9 +538,8 @@ namespace Inworld
                     }
                 }
             };
-            string jsonToSend = JsonUtility.ToJson(packet);
             OnPacketSent?.Invoke(packet);
-            m_Socket.SendAsync(jsonToSend);
+            m_Socket.SendAsync(packet.ToJson);
         }
         /// <summary>
         /// New Send the CancelResponse Event to InworldServer to interrupt the character's speaking.
@@ -594,7 +593,7 @@ namespace Inworld
                 }
             };
             OnPacketSent?.Invoke(cancelPacket); 
-            m_Socket.SendAsync(JsonUtility.ToJson(cancelPacket));
+            m_Socket.SendAsync(cancelPacket.ToJson);
         }
         /// <summary>
         /// Immediately send regenerate response to the specific interaction
@@ -618,7 +617,7 @@ namespace Inworld
                 }
             };
             OnPacketSent?.Invoke(regenPacket); 
-            m_Socket.SendAsync(JsonUtility.ToJson(regenPacket));
+            m_Socket.SendAsync(regenPacket.ToJson);
         }
         /// <summary>
         /// Select a packet from all the responses to continue conversation.
@@ -645,7 +644,7 @@ namespace Inworld
                 }
             };
             OnPacketSent?.Invoke(regenPacket); 
-            m_Socket.SendAsync(JsonUtility.ToJson(regenPacket));
+            m_Socket.SendAsync(regenPacket.ToJson);
         }
         /// <summary>
         /// New Send the trigger to an InworldCharacter in the current scene.
@@ -685,7 +684,7 @@ namespace Inworld
             };
             string jsonToSend = JsonUtility.ToJson(packet);
             InworldAI.Log($"Send Trigger {triggerName}");
-            m_Socket.SendAsync(jsonToSend);
+            m_Socket.SendAsync(packet.ToJson);
         }
         /// <summary>
         /// New Send AUDIO_SESSION_START control events to server.
@@ -701,7 +700,7 @@ namespace Inworld
             StopAudioTo();
             if (!Current.UpdateLiveInfo(brainName))
                 return;
-            ControlEvent control = new ControlEvent
+            ControlEvent control = new AudioControlEvent
             {
                 action = ControlType.AUDIO_SESSION_START.ToString(),
                 audioSessionStart = new AudioSessionPayload
@@ -712,7 +711,7 @@ namespace Inworld
             OutgoingPacket rawData = new OutgoingPacket(control);
             PreparePacketToSend(rawData, immediate);
             Current.StartAudioSession(rawData.RawPacket.packetId.packetId);
-            InworldAI.Log($"Start talking to {Current.Character?.givenName}");
+            InworldAI.Log($"Start talking to {Current.Name}");
         }
         /// <summary>
         /// Legacy Send AUDIO_SESSION_START control events to server.
@@ -728,10 +727,10 @@ namespace Inworld
             InworldPacket packet = new ControlPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = "TEXT",
+                type = "CONTROL",
                 packetId = new PacketId(),
                 routing = new Routing(charID),
-                control = new ControlEvent
+                Control = new AudioControlEvent
                 {
                     action = ControlType.AUDIO_SESSION_START.ToString(),
                     audioSessionStart = new AudioSessionPayload
@@ -740,8 +739,7 @@ namespace Inworld
                     }
                 }
             };
-            string jsonToSend = JsonUtility.ToJson(packet);
-            m_Socket.SendAsync(jsonToSend);
+            m_Socket.SendAsync(packet.ToJson);
         }
         /// <summary>
         /// New Send AUDIO_SESSION_END control events to server to.
@@ -758,15 +756,11 @@ namespace Inworld
             ControlEvent control = new ControlEvent
             {
                 action = ControlType.AUDIO_SESSION_END.ToString(),
-                audioSessionStart = new AudioSessionPayload
-                {
-                    mode = MicrophoneMode.UNSPECIFIED.ToString()
-                }
             };
             OutgoingPacket rawData = new OutgoingPacket(control);
             PreparePacketToSend(rawData, immediate);
             Current.StopAudioSession();
-            InworldAI.Log($"Stop talking to {Current.Character.givenName}");
+            InworldAI.Log($"Stop talking to {Current.Name}");
         }
         /// <summary>
         /// Legacy Send AUDIO_SESSION_END control events to server to.
@@ -784,17 +778,12 @@ namespace Inworld
                 type = "TEXT",
                 packetId = new PacketId(),
                 routing = new Routing(charID),
-                control = new ControlEvent
+                Control = new ControlEvent
                 {
                     action = ControlType.AUDIO_SESSION_END.ToString(),
-                    audioSessionStart = new AudioSessionPayload
-                    {
-                        mode = MicrophoneMode.UNSPECIFIED.ToString()
-                    }
                 }
             };
-            string jsonToSend = JsonUtility.ToJson(packet);
-            m_Socket.SendAsync(jsonToSend);
+            m_Socket.SendAsync(packet.ToJson);
         }
         /// <summary>
         /// New Send the wav data to server to a specific character.
@@ -805,11 +794,10 @@ namespace Inworld
         /// Additionally, the sample rate of the wave data has to be 16000, mono channel.
         /// </summary>
         /// <param name="base64">the base64 string of the wave data to send.</param>
+        /// <param name="brainName">the character's full name.</param>
         /// <param name="immediate">if you want to send the data immediately (Need connected first).</param>
-        public virtual void SendAudioTo(string base64, bool immediate = false)
+        public virtual void SendAudioTo(string base64, string brainName = null, bool immediate = false)
         {
-            if (Status != InworldConnectionStatus.Connected)
-                return;
             if (string.IsNullOrEmpty(base64))
                 return;
             DataChunk dataChunk = new DataChunk
@@ -857,9 +845,29 @@ namespace Inworld
                     chunk = base64
                 }
             };
-            string jsonToSend = JsonUtility.ToJson(packet);
             OnPacketSent?.Invoke(packet);
-            m_Socket.SendAsync(jsonToSend);
+            m_Socket.SendAsync(packet.ToJson);
+        }
+        public virtual void UpdateConversation(string conversationID = "", List<string> brainNames = null)
+        {
+            if (string.IsNullOrEmpty(conversationID))
+                conversationID = InworldController.CharacterHandler.ConversationID;
+            brainNames ??= InworldController.CharacterHandler.CurrentCharacterNames;
+            if (brainNames?.Count < 1)
+                return;
+            if (!Current.UpdateMultiTargets(conversationID, brainNames))
+                return;
+            Dictionary<string, string> characterTable = GetLiveSessionCharacterDataByFullNames(brainNames);
+            ControlEvent control = new ConversationControlEvent
+            {
+                action = ControlType.CONVERSATION_UPDATE.ToString(),
+                conversationUpdate = new ConversationUpdatePayload
+                {
+                    participants = characterTable.Select(data => new Source(data.Value)).ToList()
+                }
+            };
+            OutgoingPacket rawData = new OutgoingPacket(control, characterTable);
+            PreparePacketToSend(rawData);
         }
 #endregion
 
@@ -1048,7 +1056,7 @@ namespace Inworld
         }
         
         
-        protected void PreparePacketToSend(OutgoingPacket rawData, bool immediate = false)
+        protected void PreparePacketToSend(OutgoingPacket rawData, bool immediate = false, bool needCallback = true)
         {
             if (!immediate)
                 m_Prepared.Enqueue(rawData);
@@ -1059,7 +1067,8 @@ namespace Inworld
                 rawData.OnDequeue();
                 m_Socket.SendAsync(rawData.RawPacket.ToJson);
             }
-            OnPacketSent?.Invoke(rawData.RawPacket);
+            if (needCallback)
+                OnPacketSent?.Invoke(rawData.RawPacket);
         }
         protected IEnumerator _GetHistoryAsync(string sceneFullName)
         {

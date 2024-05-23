@@ -21,7 +21,7 @@ namespace Inworld.Entities
 					m_ConversationID = InworldController.CharacterHandler.ConversationID;
 				return m_ConversationID;
 			}
-
+			set => m_ConversationID = value;
 		}
 		public ConversationEventType Status { get; set; } = ConversationEventType.EVICTED;
 		public List<string> BrainNames { get; set; } = new List<string>();
@@ -34,8 +34,11 @@ namespace Inworld.Entities
 		public bool IsSameSession(string brainName)
 		{
 			if (string.IsNullOrEmpty(brainName))
-				return IsConversation;
-			return !IsConversation && brainName == Target;
+			{
+				if (InworldController.CharacterHandler)
+					return InworldController.CharacterHandler.ConversationID == Target;
+			}
+			return brainName == Target;
 		}
 		public bool HasStarted => !string.IsNullOrEmpty(ID) && !string.IsNullOrEmpty(Target);
 	}
@@ -48,28 +51,33 @@ namespace Inworld.Entities
 		public InworldCharacterData Character { get; set; } = new InworldCharacterData();
 		public Conversation Conversation { get; set; } = new Conversation();
 		public AudioSession AudioSession { get; set; } = new AudioSession();
-		
 		public bool UpdateLiveInfo(string brainName)
 		{
 			return string.IsNullOrEmpty(brainName) ? UpdateMultiTargets() : UpdateSingleTarget(brainName);
 		}
-		protected bool UpdateMultiTargets()
+		// ReSharper disable Unity.PerformanceAnalysis
+		// As InworldController.CharacterHandler would return directly in most cases.
+		public bool UpdateMultiTargets(string conversationID = "", List<string> brainNames = null)
 		{
-			Character = null;
 			IsConversation = true;
-			//TODO(Yan): Implemented in the next version.
-			return false;
+			if (string.IsNullOrEmpty(conversationID) && InworldController.CharacterHandler)
+				conversationID = InworldController.CharacterHandler.ConversationID;
+			Conversation.ID = conversationID;
+			if ((brainNames == null || brainNames.Count == 0) && InworldController.CharacterHandler)
+				brainNames = InworldController.CharacterHandler.CurrentCharacterNames;
+			Conversation.BrainNames = brainNames;
+			return Conversation.BrainNames?.Count > 0;
 		}
 		// ReSharper disable Unity.PerformanceAnalysis
 		// As InworldController.CharacterHandler would return directly in most cases.
-		protected bool UpdateSingleTarget(string brainName)
+		public bool UpdateSingleTarget(string brainName)
 		{
 			if (string.IsNullOrEmpty(brainName))
 				return false;
 			IsConversation = false;
 			if (brainName == SourceType.WORLD.ToString())
 				return true;
-			if (brainName != Character?.brainName)
+			if (brainName != Character?.brainName && InworldController.CharacterHandler)
 				Character = InworldController.CharacterHandler.GetCharacterByBrainName(brainName)?.Data;
 			return Character != null;
 		}
@@ -80,17 +88,20 @@ namespace Inworld.Entities
 			{
 				m_IsConversation = value;
 				AudioSession.IsConversation = value;
+				if (m_IsConversation)
+					Character = null;
 			}
 		}
 		public void StartAudioSession(string packetID)
 		{
 			AudioSession.ID = packetID;
-			AudioSession.Target = IsConversation ? InworldController.CharacterHandler.ConversationID : Character.brainName;
+			AudioSession.Target = IsConversation ? InworldController.CharacterHandler ? InworldController.CharacterHandler.ConversationID : "" : Character?.brainName;
 		}
 		public void StopAudioSession()
 		{
 			AudioSession.ID = "";
 			AudioSession.Target = "";
 		}
+		public string Name => IsConversation ? "the Chat group" : Character?.givenName;
 	}
 }
