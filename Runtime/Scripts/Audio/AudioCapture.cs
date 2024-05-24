@@ -301,7 +301,7 @@ namespace Inworld
         {
             if (InworldController.Client.Status != InworldConnectionStatus.Connected)
                 return;
-            if (!InworldController.Client.Current.IsConversation && chunk.targetName != InworldController.Client.Current.Character.brainName)
+            if (!InworldController.Client.Current.IsConversation && chunk.targetName != InworldController.Client.Current.Character?.brainName)
             {
                 InworldController.Client.Current.Character = InworldController.CharacterHandler.GetCharacterByBrainName(chunk.targetName)?.Data;
             }
