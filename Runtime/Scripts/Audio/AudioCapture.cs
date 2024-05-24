@@ -410,20 +410,22 @@ namespace Inworld
                 yield break;
             IsPlayerSpeaking = CalculateSNR() > m_PlayerVolumeThreshold;
             IsCapturing = IsRecording || AutoDetectPlayerSpeaking && IsPlayerSpeaking;
-            string charName = InworldController.CharacterHandler.CurrentCharacter ? InworldController.CharacterHandler.CurrentCharacter.BrainName : "";
-            byte[] output = Output(nSize * m_Recording.channels);
-            string audioData = Convert.ToBase64String(output);
             if (IsCapturing)
+            {
+                string charName = InworldController.CharacterHandler.CurrentCharacter ? InworldController.CharacterHandler.CurrentCharacter.BrainName : "";
+                byte[] output = Output(nSize * m_Recording.channels);
+                string audioData = Convert.ToBase64String(output);
                 m_AudioToPush.Enqueue(new AudioChunk
                 {
                     chunk = audioData,
                     targetName = charName
                 });
+            }
             yield return new WaitForSecondsRealtime(0.1f);
         }
         protected virtual IEnumerator OutputData()
         {
-            if (InworldController.Client.Status == InworldConnectionStatus.Connected)
+            if (InworldController.Client && InworldController.Client.Status == InworldConnectionStatus.Connected)
                 PushAudioImmediate();
             if (m_AudioToPush.Count > m_AudioToPushCapacity)
                 m_AudioToPush.TryDequeue(out AudioChunk chunk);
@@ -447,7 +449,7 @@ namespace Inworld
             if (!WebGLGetAudioData(m_LastPosition))
                 return -1;
 #else
-            if (!m_Recording.GetData(m_InputBuffer, m_LastPosition))
+            if (!m_Recording || !m_Recording.GetData(m_InputBuffer, m_LastPosition))
                 return -1;
 #endif
             m_LastPosition = m_nPosition % m_BufferSize;
