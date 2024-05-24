@@ -7,7 +7,6 @@
 
 using Inworld.Packet;
 using Inworld.Entities;
-using Inworld.Interactions;
 using Newtonsoft.Json;
 using System;
 using System.Collections;

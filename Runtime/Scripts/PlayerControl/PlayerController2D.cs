@@ -5,8 +5,6 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
-using UnityEngine;
-using UnityEngine.UI;
 namespace Inworld.Sample
 {
     public class PlayerController2D : PlayerController

@@ -8,7 +8,6 @@
 using UnityEngine;
 using Inworld.Entities;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine.Networking;
 
 namespace Inworld.UI

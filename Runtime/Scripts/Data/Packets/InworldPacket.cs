@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 namespace Inworld.Packet
 {
+	[Serializable]
 	public class Source
 	{
 		public string name;

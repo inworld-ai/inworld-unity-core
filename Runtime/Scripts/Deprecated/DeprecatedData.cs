@@ -6,7 +6,7 @@
  *************************************************************************************************/
 using System;
 using System.Collections.Generic;
-using UnityEngine;
+
 namespace Inworld.Packet
 {
     [Serializable][Obsolete]
