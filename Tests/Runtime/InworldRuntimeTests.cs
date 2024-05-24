@@ -177,5 +177,26 @@ namespace Inworld.Test
 			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "TEXT"));
 			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "AUDIO"));		
 		}
+
+		[UnityTest]
+		public IEnumerator InworldRuntimeTest_InterleaveTextAudio()
+		{
+			m_Conversation.Clear();
+			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Hello");
+			yield return ConversationCheck(10);
+			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "TEXT"));
+			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "AUDIO"));
+			m_Conversation.Clear();
+			string agentID = InworldController.Client.LiveSessionData.Values.First().agentId;
+			InworldController.Client.StartAudio(agentID); ;
+			yield return new WaitForSeconds(0.1f);
+			InworldController.Audio.IsPlayerSpeaking = true;
+			InworldController.Client.SendAudio(agentID, k_AudioChunk);
+			yield return new WaitForSeconds(0.1f);
+			InworldController.Client.StopAudio(agentID);
+			yield return ConversationCheck(10);
+			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "TEXT"));
+			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "AUDIO"));
+		}
 	}
 }
