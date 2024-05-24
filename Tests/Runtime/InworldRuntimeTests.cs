@@ -167,7 +167,11 @@ namespace Inworld.Test
 			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "AUDIO"));
 			InworldController.Client.Disconnect();
 			m_Conversation.Clear();
+			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Hello");
+			Assert.IsFalse(m_Conversation.Any(p => p.type?.ToUpper() == "TEXT"));
+			Assert.IsFalse(m_Conversation.Any(p => p.type?.ToUpper() == "AUDIO"));
 			yield return InitTest();
+			m_Conversation.Clear();
 			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Hello");
 			yield return ConversationCheck(10);
 			Assert.IsTrue(m_Conversation.Any(p => p.type?.ToUpper() == "TEXT"));
