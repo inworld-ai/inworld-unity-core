@@ -267,7 +267,13 @@ namespace Inworld
             if (Client.Status != InworldConnectionStatus.Connected)
                 InworldAI.LogException($"Tried to send trigger to {charID}, but not connected to server.");
             if (string.IsNullOrEmpty(charID))
-                m_Client.SendTriggerTo(triggerName, parameters, CurrentCharacter.BrainName);
+            {
+                if (CurrentCharacter)
+                    m_Client.SendTriggerTo(triggerName, parameters, CurrentCharacter.BrainName);
+                else
+                    m_Client.SendTriggerTo(triggerName, parameters);
+            }
+                
             else
                 m_Client.SendTrigger(charID, triggerName, parameters);
         }
