@@ -111,7 +111,7 @@ namespace Inworld
         ///     Returns the priority of the character.
         ///     the higher the Priority is, the character is more likely responding to player.
         /// </summary>
-        public float Priority { get; set; }
+        public float Priority { get; set; } = float.MaxValue;
         /// <summary>
         /// Register the character in the character list.
         /// Get the live session ID for an Inworld character.
@@ -248,18 +248,10 @@ namespace Inworld
                 case CustomPacket customPacket:
                     HandleTrigger(customPacket);
                     break;
-                case MutationPacket mutationPacket:
-                    HandleCancelResponse(mutationPacket);
-                    break;
                 default:
                     Debug.LogError($"Received Unknown {incomingPacket}");
                     break;
             }
-        }
-        protected virtual void HandleCancelResponse(MutationPacket mutationPacket)
-        {
-            // Server will not send CancelResponsePacket to client.
-            // For the client side's request, it's solved already.
         }
         protected virtual void HandleRelation(CustomPacket relationPacket)
         {

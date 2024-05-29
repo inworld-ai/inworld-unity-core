@@ -38,7 +38,8 @@ namespace Inworld
         ///
         /// To do so, save those conversation ID and use them correspondingly.
         /// </summary>
-        public virtual void StartNewConversation(string conversationID = null) => m_ConversationID = string.IsNullOrEmpty(conversationID) ? Guid.NewGuid().ToString() : conversationID;
+        public virtual void StartNewConversation(string conversationID = null) 
+            => m_ConversationID = string.IsNullOrEmpty(conversationID) ? Guid.NewGuid().ToString() : conversationID;
 
         public string ConversationID
         {
