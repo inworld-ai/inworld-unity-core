@@ -4,75 +4,141 @@
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
+using Inworld.Entities;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using UnityEngine;
+using System.Linq;
 
 namespace Inworld.Packet
 {
-    [Serializable]
+    public class ControlEventDeserializer : JsonConverter
+    {
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            // Not used. 
+        }
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            JObject jo = JObject.Load(reader);
+            if (jo["audioSessionStart"] != null)
+                return jo.ToObject<AudioControlEvent>(serializer);
+            if (jo["conversationUpdate"] != null)
+                return jo.ToObject<ConversationControlEvent>(serializer);
+            if (jo["sessionControl"] != null)
+                return jo.ToObject<SessionControlEvent>(serializer);
+            if (jo["currentSceneStatus"] != null)
+                return jo.ToObject<CurrentSceneStatusEvent>(serializer);
+            return jo.ToObject<ControlEvent>(serializer);
+        }
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType == typeof(ControlEvent);
+        }
+        public override bool CanWrite => false; // YAN: Use default serializer.
+    }
+    public class ControlEvent
+    {
+        [JsonConverter(typeof(StringEnumConverter))]
+        public ControlType action;
+        public string description;
+    }
+    public class AudioControlEvent : ControlEvent
+    {
+        public AudioSessionPayload audioSessionStart;
+
+        public AudioControlEvent()
+        {
+            action = ControlType.AUDIO_SESSION_START;
+        }
+    }
     public class AudioSessionPayload
     {
         public string mode;
     }
-    [Serializable]
-    public class ControlEvent
-    {
-        public string action;
-        public string description;
-    }
-    [Serializable]
-    public class AudioControlEvent : ControlEvent
-    {
-        public AudioSessionPayload audioSessionStart;
-    }
-    [Serializable]
     public class ConversationControlEvent : ControlEvent
     {
         public ConversationUpdatePayload conversationUpdate;
+
+        public ConversationControlEvent()
+        {
+            action = ControlType.CONVERSATION_UPDATE;
+        }
     }
-    [Serializable]
     public class ConversationUpdatePayload
     {
         public List<Source> participants;
     }
-    [Serializable]
-    public class ControlPacket : InworldPacket
+    public class SessionControlEvent : ControlEvent
     {
-        string m_ControlJson;
-        ControlEvent m_Control;
+        public SessionConfigurationPayload sessionConfiguration;
+
+        public SessionControlEvent()
+        {
+            action = ControlType.SESSION_CONFIGURATION;
+        }
+    }
+    public class SessionConfigurationPayload
+    {
+        public SessionConfiguration sessionConfiguration;
+        public UserRequest userConfiguration;
+        public Client clientConfiguration;
+        public Capabilities capabilitiesConfiguration;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        public Continuation continuation;
+    }
+    public class CurrentSceneStatusEvent : ControlEvent
+    {
+        public CurrentSceneStatusPayload currentSceneStatus;
+        public CurrentSceneStatusEvent()
+        {
+            action = ControlType.CURRENT_SCENE_STATUS;
+        }
+    }
+    public class CurrentSceneStatusPayload
+    {
+        public List<InworldCharacterData> agents;
+        public string sceneName;
+        public string sceneDescription;
+        public string sceneDisplayName;
+    }
+    public sealed class ControlPacket : InworldPacket
+    {
+        [JsonConverter(typeof(ControlEventDeserializer))]
+        public ControlEvent control;
         public ControlPacket()
         {
-            type = "CONTROL";
-            m_Control = new ControlEvent();
+            type = PacketType.CONTROL;
+            control = new ControlEvent();
+        }
+        public ControlPacket(ControlEvent evt)
+        {
+            type = PacketType.CONTROL;
+            control = evt;
+            PreProcess();
+        }
+        public ControlPacket(ControlEvent evt, Dictionary<string, string> targets)
+        {
+            type = PacketType.CONTROL;
+            control = evt;
+            PreProcess(targets);
         }
         public ControlPacket(InworldPacket rhs, ControlEvent evt) : base(rhs)
         {
-            type = "CONTROL";
-            m_Control = evt;
+            type = PacketType.CONTROL;
+            control = evt;
         }
-        public ControlEvent Control
+        protected override void UpdateRouting()
         {
-            get => m_Control;
-            set => m_Control = value;
+            base.UpdateRouting();
+            if (control is not ConversationControlEvent convoEvt)
+                return;
+            routing = new Routing();
+            convoEvt.conversationUpdate.participants = Targets.Values.Where(agentID => !string.IsNullOrEmpty(agentID)).Select(agentID => new Source(agentID)).ToList();
         }
-        public ControlType Action => Enum.TryParse(m_Control.action, true, out ControlType result) ? result : ControlType.UNKNOWN;
-
-        public override string ToJson
-        {
-            get
-            {
-                string json = RemoveTargetFieldInJson(JsonUtility.ToJson(this));
-                if (m_Control is ConversationControlEvent convoCtrl)
-                    m_ControlJson = JsonUtility.ToJson(convoCtrl);
-                else if (m_Control is AudioControlEvent audioCtrl)
-                    m_ControlJson = RemoveTargetFieldInJson(JsonUtility.ToJson(audioCtrl));
-                else
-                    m_ControlJson = RemoveTargetFieldInJson(JsonUtility.ToJson(m_Control));
-                json = Regex.Replace(json, @"(?=\}$)", $",\"control\": {m_ControlJson}");
-                return json;
-            }
-        }
+        [JsonIgnore]
+        public ControlType Action => control?.action ?? ControlType.UNKNOWN;
     }
 }

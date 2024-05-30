@@ -8,8 +8,7 @@ using Inworld.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
-using UnityEngine;
+
 namespace Inworld.Packet
 {
     [Serializable]
@@ -46,18 +45,24 @@ namespace Inworld.Packet
         }
     }
     [Serializable]
-    public class CustomPacket : InworldPacket
+    public sealed class CustomPacket : InworldPacket
     {
         public CustomEvent custom;
 
         public CustomPacket()
         {
-            type = "CUSTOM";
+            type = PacketType.CUSTOM;
             custom = new CustomEvent();
+        }
+        public CustomPacket(string triggerName, Dictionary<string, string> parameters = null)
+        {
+            type = PacketType.CUSTOM;
+            custom = new CustomEvent(triggerName, parameters);
+            PreProcess();
         }
         public CustomPacket(InworldPacket rhs, CustomEvent evt) : base(rhs)
         {
-            type = "CUSTOM";
+            type = PacketType.CUSTOM;
             custom = evt;
         }
         public string TriggerName
@@ -82,15 +87,9 @@ namespace Inworld.Packet
                 string result = TriggerName;
                 if (custom.parameters == null || custom.parameters.Count == 0)
                     return result;
-                foreach (TriggerParameter param in custom.parameters)
-                {
-                    result += $" {param.name}: {param.value} ";
-                }
-                return result;
+                return custom.parameters.Aggregate(result, (current, param) => current + $" {param.name}: {param.value} ");
             }
         }
         public InworldMessage Message => InworldMessenger.ProcessPacket(this);
-        
-        public override string ToJson => RemoveTargetFieldInJson(JsonUtility.ToJson(this)); 
     }
 }

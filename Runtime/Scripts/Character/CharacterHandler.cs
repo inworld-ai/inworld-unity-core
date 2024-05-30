@@ -5,12 +5,10 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Networking;
-using Inworld.Entities;
+
 
 namespace Inworld
 {
@@ -40,7 +38,8 @@ namespace Inworld
         ///
         /// To do so, save those conversation ID and use them correspondingly.
         /// </summary>
-        public virtual void StartNewConversation(string conversationID = null) => m_ConversationID = string.IsNullOrEmpty(conversationID) ? Guid.NewGuid().ToString() : conversationID;
+        public virtual void StartNewConversation(string conversationID = null) 
+            => m_ConversationID = string.IsNullOrEmpty(conversationID) ? Guid.NewGuid().ToString() : conversationID;
 
         public string ConversationID
         {

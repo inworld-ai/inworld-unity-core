@@ -12,9 +12,9 @@ using System.Collections.Generic;
 using System.Linq;
 
 
-
 namespace Inworld.Interactions
 {
+	[Obsolete]
 	public class OutgoingPacket : IContainable
 	{
 		public string ID { get; set; }	// YAN: This ID is correlation ID.
@@ -22,7 +22,7 @@ namespace Inworld.Interactions
 		public bool IsEmpty { get; }
 		public Dictionary<string, string> Targets { get; private set; } // Key: BrainName; Val: AgentID
 		public InworldPacket RawPacket { get; protected set; }
-
+ 
 		void PreparePacket()
 		{
 			// ReSharper disable Unity.PerformanceCriticalCodeInvocation
@@ -70,7 +70,7 @@ namespace Inworld.Interactions
         }
         public OutgoingPacket(CancelResponseEvent mutationToSend)
         {
-	        RawPacket = new CancelResponsePacket
+	        RawPacket = new MutationPacket
 	        {
 		        mutation = mutationToSend
 	        };
@@ -88,7 +88,7 @@ namespace Inworld.Interactions
         {
 	        RawPacket = new ControlPacket
 	        {
-		        Control = controlToSend
+		        control = controlToSend
 	        };
 	        PreparePacket();
         }
@@ -96,7 +96,7 @@ namespace Inworld.Interactions
         {
 	        RawPacket = new ControlPacket
 	        {
-		        Control = controlToSend
+		        control = controlToSend
 	        };
 	        PreparePacket(targets);
         }
@@ -113,9 +113,9 @@ namespace Inworld.Interactions
 	        ID = Guid.NewGuid().ToString();
 	        RawPacket = new ControlPacket
 	        {
-		        Control = new ConversationControlEvent
+		        control = new ConversationControlEvent
 		        {
-			        action = ControlType.CONVERSATION_UPDATE.ToString()
+			        action = ControlType.CONVERSATION_UPDATE
 		        }
 	        };
 	        RawPacket.packetId.conversationId = conversationID;
@@ -163,7 +163,7 @@ namespace Inworld.Interactions
 			}
 			return Targets.Count > 0 && !Targets.Values.Any(string.IsNullOrEmpty);
 		}
-
+ 
 		void _ComposePacket()
 		{
 			if (Targets == null || Targets.Count == 0)
@@ -174,9 +174,7 @@ namespace Inworld.Interactions
 			List<string> agentIDs = Targets.Values.Where(c => !string.IsNullOrEmpty(c)).ToList();
 			if (RawPacket == null)
 				return;
-			//TODO(Yan): Remove OutgoingPacket after customized Serializer.
-			//			 Then add interface for each InworldPackets for OnCompose.
-			if (RawPacket is ControlPacket controlPacket && controlPacket.Control is ConversationControlEvent convoEvt)
+			if (RawPacket is ControlPacket controlPacket && controlPacket.control is ConversationControlEvent convoEvt)
 			{
 				RawPacket.routing = new Routing();
 				convoEvt.conversationUpdate.participants = Targets.Values.Select(agentID => new Source(agentID)).ToList();

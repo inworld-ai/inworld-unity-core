@@ -4,17 +4,13 @@
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
-using System;
-using UnityEngine;
 
 namespace Inworld.Packet
 {
-    [Serializable]
     public class NarrativeAction
     {
         public string content;
     }
-    [Serializable]
     public class ActionEvent
     {
         public NarrativeAction narratedAction;
@@ -27,21 +23,25 @@ namespace Inworld.Packet
             };
         }
     }
-    [Serializable]
-    public class ActionPacket : InworldPacket
+    public sealed class ActionPacket : InworldPacket
     {
         public ActionEvent action;
 
         public ActionPacket()
         {
-            type = "ACTION";
+            type = PacketType.ACTION;
             action = new ActionEvent();
+        }
+        public ActionPacket(string actionToSend)
+        {
+            type = PacketType.ACTION;
+            action = new ActionEvent(actionToSend);
+            PreProcess();
         }
         public ActionPacket(InworldPacket rhs, ActionEvent evt) : base(rhs)
         {
             action = evt;
-            type = "ACTION";
+            type = PacketType.ACTION;
         }
-        public override string ToJson => RemoveTargetFieldInJson(JsonUtility.ToJson(this)); 
     }
 }

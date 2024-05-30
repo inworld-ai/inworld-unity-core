@@ -4,8 +4,9 @@
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
+using Newtonsoft.Json;
 using System;
-using UnityEngine;
+
 
 namespace Inworld.Packet
 {
@@ -77,15 +78,15 @@ namespace Inworld.Packet
         
         public RelationPacket()
         {
-            type = "RELATION";
+            type = PacketType.RELATION;
             debugInfo = new RelationEvent();
         }
         public RelationPacket(InworldPacket rhs, RelationEvent evt) : base(rhs)
         {
-            type = "RELATION";
+            type = PacketType.RELATION;
             debugInfo = evt;
         }
-        public override string ToJson => RemoveTargetFieldInJson(JsonUtility.ToJson(this)); 
+        [JsonIgnore]
         public string Relation => debugInfo.relation.relationState.GetUpdate(debugInfo.relation.relationUpdate);
     }
 }

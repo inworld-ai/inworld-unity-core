@@ -5,7 +5,6 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
-using Inworld.Sample;
 using Inworld.Entities;
 
 #if UNITY_EDITOR

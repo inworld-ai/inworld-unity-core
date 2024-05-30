@@ -4,9 +4,8 @@
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
-using Inworld.Packet;
+
 using System;
-using UnityEngine;
 
 namespace Inworld.Entities
 {
@@ -54,17 +53,6 @@ namespace Inworld.Entities
             debugInfo = rhs.debugInfo;
             multiAgent = rhs.multiAgent;
         }
-        public CapabilityPacket ToPacket => new CapabilityPacket
-        {
-            timestamp = InworldDateTime.UtcNow,
-            type = "SESSION_CONTROL",
-            packetId = new PacketId(),
-            routing = new Routing("WORLD"),
-            sessionControl = new CapabilityEvent
-            {
-                capabilitiesConfiguration = this
-            }
-        };
         public override string ToString()
         {
             string result = "";
@@ -90,17 +78,5 @@ namespace Inworld.Entities
                 result += "MULTIAGENT";
             return result;
         }
-    }
-    [Serializable]
-    public class CapabilityEvent
-    {
-        public Capabilities capabilitiesConfiguration;
-    }
-    [Serializable]
-    public class CapabilityPacket : InworldPacket
-    {
-        public CapabilityEvent sessionControl;
-
-        public override string ToJson => JsonUtility.ToJson(this);
     }
 }

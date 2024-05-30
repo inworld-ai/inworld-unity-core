@@ -5,7 +5,8 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 using System;
-using UnityEngine;
+
+
 namespace Inworld.Packet
 {
     [Serializable]
@@ -23,19 +24,24 @@ namespace Inworld.Packet
         }
     }
     [Serializable]
-    public class TextPacket : InworldPacket
+    public sealed class TextPacket : InworldPacket
     {
         public TextEvent text;
         public TextPacket()
         {
-            type = "TEXT";
+            type = PacketType.TEXT;
             text = new TextEvent();
+        }
+        public TextPacket(string textToSend)
+        {
+            type = PacketType.TEXT;
+            text = new TextEvent(textToSend);
+            PreProcess();
         }
         public TextPacket(InworldPacket rhs, TextEvent evt) : base(rhs)
         {
-            type = "TEXT";
+            type = PacketType.TEXT;
             text = evt;
         }
-        public override string ToJson => RemoveTargetFieldInJson(JsonUtility.ToJson(this)); 
     }
 }

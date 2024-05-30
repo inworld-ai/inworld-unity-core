@@ -4,6 +4,7 @@
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
+using Newtonsoft.Json;
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -20,25 +21,42 @@ namespace Inworld.Packet
     public class PhonemeInfo
     {
         public string phoneme;
-        public float startOffset;
+        public string startOffset;
+
+        [JsonIgnore]
+        public float StartOffset 
+        {
+             get
+             {
+                 if (float.TryParse(startOffset.TrimEnd('s', 'S'), out float result))
+                     return result;
+                 return 0;
+             }
+        }
     }
 
     [Serializable]
-    public class AudioPacket : InworldPacket
+    public sealed class AudioPacket : InworldPacket
     {
         public DataChunk dataChunk;
         
         public AudioPacket()
         {
-            type = "AUDIO";
+            type = PacketType.AUDIO;
             dataChunk = new DataChunk
             {
-                type = "AUDIO"
+                type = DataType.AUDIO
             };
+        }
+        public AudioPacket(DataChunk chunk)
+        {
+            type = PacketType.AUDIO;
+            dataChunk = chunk;
+            PreProcess();
         }
         public AudioPacket(InworldPacket rhs, DataChunk chunk) : base(rhs)
         {
-            type = "AUDIO";
+            type = PacketType.AUDIO;
             dataChunk = chunk;
         }
         /// <summary>
@@ -56,6 +74,7 @@ namespace Inworld.Packet
             string phoneme = JsonUtility.ToJson(phonemes);
             File.WriteAllText($"{fileName}.json", phoneme);
         }
+        [JsonIgnore]
         public AudioClip Clip
         {
             get
@@ -74,6 +93,5 @@ namespace Inworld.Packet
                 }
             }
         }
-        public override string ToJson => RemoveTargetFieldInJson(JsonUtility.ToJson(this)); 
     }
 }

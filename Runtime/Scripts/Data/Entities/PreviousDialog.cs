@@ -5,57 +5,51 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 using Inworld.Packet;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using UnityEngine;
+
 
 namespace Inworld.Entities
 {
 #region Legacy
-    [Serializable]
+    [Serializable][Obsolete]
     public enum PreviousTalker
     {
         UNKNOWN,
         PLAYER,
         CHARACTER
     }
-    [Serializable]
-    public class PreviousSessionResponse
-    {
-        public string state;
-        public string creationTime;
-    }
-    [Serializable]
+    [Serializable][Obsolete]
     public class SessionContinuation
     {
         public PreviousDialog previousDialog;
         public string previousState;
     }
-    [Serializable]
+    [Serializable][Obsolete]
     public class PreviousDialog
     {
         public PreviousDialogPhrase[] phrases;
     }
-    [Serializable]
+    [Serializable][Obsolete]
     public class PreviousDialogPhrase
     {
         public PreviousTalker talker; 
         public string phrase;
     }
-    [Serializable]
+    [Serializable][Obsolete]
     public class SessionContinuationContinuationInfo
     {
         public string millisPassed;
     }
-#endregion
+#endregion 
 
 #region New
-
     [Serializable]
-    public class Actor
+    public class PreviousSessionResponse
     {
-        public SourceType type;
-        public string name;
+        public string state;
+        public string creationTime;
     }
     [Serializable]
     public class ContinuationInfo
@@ -72,7 +66,7 @@ namespace Inworld.Entities
     [Serializable]
     public class HistoryItem
     {
-        public Actor actor;
+        public Source actor;
         public string text;
     }
     [Serializable]
@@ -96,6 +90,7 @@ namespace Inworld.Entities
         // Client should not modify this state!
         public string externallySavedState;
 
+        [JsonIgnore]
         public bool IsValid
         {
             get
@@ -111,11 +106,11 @@ namespace Inworld.Entities
                 }
             }
         }
-        
+        [JsonIgnore]
         public ContinuationPacket ToPacket => new ContinuationPacket
         {
             timestamp = InworldDateTime.UtcNow,
-            type = "SESSION_CONTROL",
+            type = PacketType.SESSION_CONTROL,
             packetId = new PacketId(),
             routing = new Routing("WORLD"),
             sessionControl = new ContinuationEvent
@@ -133,8 +128,6 @@ namespace Inworld.Entities
     public class ContinuationPacket : InworldPacket
     {
         public ContinuationEvent sessionControl;
-
-        public override string ToJson => JsonUtility.ToJson(this);
     }
 
   #endregion

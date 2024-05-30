@@ -5,11 +5,11 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
-using Inworld.Packet;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
+
 
 namespace Inworld.Entities
 {
@@ -20,6 +20,8 @@ namespace Inworld.Entities
         public string displayName;
         public string description;
         public List<CharacterReference> characterReferences;
+        
+        [JsonIgnore]
         public float Progress => characterReferences.Count == 0 ? 1 : characterReferences.Sum(cr => cr.Progress) / characterReferences.Count;
 
         /// <summary>
@@ -46,92 +48,5 @@ namespace Inworld.Entities
     {
         public List<InworldSceneData> scenes;
         public string nextPageToken;
-    }
-    
-    [Serializable]
-    public class LoadSceneRequest
-    {
-        public string name;
-    }
-    [Serializable]
-    public class LoadCharactersRequest
-    {
-        public List<CharacterName> name;
-
-        public LoadCharactersRequest(List<string> charFullNames)
-        {
-            name = new List<CharacterName>();
-            foreach (string charName in charFullNames)
-            {
-                name.Add(new CharacterName(charName));
-            }
-        }
-    }
-    [Serializable]
-    public class LoadSceneEvent
-    {
-        public LoadSceneRequest loadScene;
-    }
-    [Serializable]
-    public class LoadCharactersEvent
-    {
-        public LoadCharactersRequest loadCharacters;
-    }
-    [Serializable]
-    public class LoadScenePacket : InworldPacket
-    {
-        public LoadSceneEvent mutation;
-
-        public LoadScenePacket(string sceneFullName)
-        {
-            timestamp = InworldDateTime.UtcNow;
-            type = "MUTATION";
-            packetId = new PacketId();
-            routing = new Routing("WORLD");
-            mutation = new LoadSceneEvent
-            {
-                loadScene = new LoadSceneRequest
-                {
-                    name = sceneFullName
-                }
-            };
-        }
-        public override string ToJson => JsonUtility.ToJson(this);
-    }
-    [Serializable]
-    public class LoadCharactersPacket : InworldPacket
-    {
-        public LoadCharactersEvent mutation;
-
-        public LoadCharactersPacket(List<string> characterFullName)
-        {
-            timestamp = InworldDateTime.UtcNow;
-            type = "MUTATION";
-            packetId = new PacketId();
-            routing = new Routing();
-            mutation = new LoadCharactersEvent
-            {
-                loadCharacters = new LoadCharactersRequest(characterFullName)
-            };
-        }
-        public override string ToJson => JsonUtility.ToJson(this);
-    }
-    [Serializable]
-    public class LoadSceneResponse
-    {
-        public List<InworldCharacterData> agents = new List<InworldCharacterData>();
-
-        public List<string> UpdateRegisteredCharacter(ref List<InworldCharacterData> outData)
-        {
-            List<string> result = new List<string>();
-            foreach (InworldCharacterData charData in outData)
-            {
-                string registeredID = agents.FirstOrDefault(a => a.brainName == charData.brainName)?.agentId;
-                if (string.IsNullOrEmpty(registeredID))
-                    result.Add(charData.givenName);
-                charData.agentId = registeredID;
-            }
-            return result;
-        }
     }
 }

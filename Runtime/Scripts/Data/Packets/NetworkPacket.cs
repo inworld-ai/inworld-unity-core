@@ -7,17 +7,20 @@
 
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 
 namespace Inworld.Packet
 {
-    [Serializable]
+
     public class NetworkPacketResponse
     {
-        public InworldNetworkPacket result;
+        [JsonConverter(typeof(PacketDeserializer))]
+        public InworldPacket result;
         public InworldError error;
     }
-    [Serializable]
+
     public class InworldError
     {
         public int code;
@@ -32,87 +35,29 @@ namespace Inworld.Packet
             {
                 new InworldErrorData
                 {
-                    errorType = ErrorType.CLIENT_ERROR.ToString(),
-                    reconnectType = ReconnectionType.UNDEFINED.ToString(),
+                    errorType = ErrorType.CLIENT_ERROR,
+                    reconnectType = ReconnectionType.UNDEFINED,
                     reconnectTime = "",
                     maxRetries = 0
                 }
             };
         }
+        [JsonIgnore]
         public bool IsValid => !string.IsNullOrEmpty(message);
-        public ReconnectionType RetryType  => details != null && details.Count != 0 && Enum.TryParse(details[0].reconnectType, true, out ReconnectionType result) ? result : ReconnectionType.UNDEFINED;
-        public ErrorType ErrorType => details != null && details.Count != 0 && Enum.TryParse(details[0].errorType, true, out ErrorType result) ? result : ErrorType.UNDEFINED;
+        [JsonIgnore]
+        public ReconnectionType RetryType  => details[0]?.reconnectType ?? ReconnectionType.UNDEFINED;
+        [JsonIgnore]
+        public ErrorType ErrorType => details[0]?.errorType ?? ErrorType.UNDEFINED;
 
     }
     [Serializable]
     public class InworldErrorData
     {
-        public string errorType;
-        public string reconnectType;
+        [JsonConverter(typeof(StringEnumConverter))]
+        public ErrorType errorType;
+        [JsonConverter(typeof(StringEnumConverter))]
+        public ReconnectionType reconnectType;
         public string reconnectTime;
         public int maxRetries;
-    }
-    [Serializable]
-    public class InworldNetworkPacket : InworldPacket
-    {
-        public TextEvent text;
-        public ControlEvent control;
-        public DataChunk dataChunk;
-        public GestureEvent gesture;
-        public CustomEvent custom;
-        public CancelResponseEvent mutation;
-        public EmotionEvent emotion;
-        public ActionEvent action;
-        public SessionResponseEvent sessionControlResponse;
-        public InworldPacket Packet
-        {
-            get
-            {
-                if (text != null && !string.IsNullOrEmpty(text.text))
-                    return new TextPacket(this, text);
-                if (control != null && !string.IsNullOrEmpty(control.action))
-                    return new ControlPacket(this, control);
-                if (dataChunk != null && !string.IsNullOrEmpty(dataChunk.chunk) && dataChunk.type == "AUDIO")
-                    return new AudioPacket(this, dataChunk);
-                if (gesture != null && !string.IsNullOrEmpty(gesture.type))
-                    return new GesturePacket(this, gesture);
-                if (custom != null && !string.IsNullOrEmpty(custom.name))
-                    return new CustomPacket(this, custom);
-                if (mutation != null && !string.IsNullOrEmpty(mutation.cancelResponses?.interactionId))
-                    return new CancelResponsePacket(this, mutation);
-                if (emotion != null && !string.IsNullOrEmpty(emotion.behavior))
-                    return new EmotionPacket(this, emotion);
-                if (action != null && action.narratedAction != null && !string.IsNullOrEmpty(action.narratedAction.content))
-                    return new ActionPacket(this, action);
-                if (sessionControlResponse != null)
-                    return new SessionResponsePacket(this, sessionControlResponse);
-                return this;
-            }
-        }
-        public PacketType Type
-        {
-            get
-            {
-                if (text != null && !string.IsNullOrEmpty(text.text))
-                    return PacketType.TEXT;
-                if (control != null && !string.IsNullOrEmpty(control.action))
-                    return PacketType.CONTROL;
-                if (dataChunk != null && !string.IsNullOrEmpty(dataChunk.chunk) && dataChunk.type == "AUDIO")
-                    return PacketType.AUDIO;
-                if (gesture != null && !string.IsNullOrEmpty(gesture.type))
-                    return PacketType.GESTURE;
-                if (custom != null && !string.IsNullOrEmpty(custom.name))
-                    return PacketType.CUSTOM;
-                if (mutation != null && !string.IsNullOrEmpty(mutation.cancelResponses?.interactionId))
-                    return PacketType.CANCEL_RESPONSE;
-                if (emotion != null && !string.IsNullOrEmpty(emotion.behavior))
-                    return PacketType.EMOTION;
-                if (action != null && action.narratedAction != null && !string.IsNullOrEmpty(action.narratedAction.content))
-                    return PacketType.ACTION;
-                if (sessionControlResponse != null)
-                    return PacketType.SESSION_RESPONSE;
-                return PacketType.UNKNOWN;
-            }
-        }
     }
 }

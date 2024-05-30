@@ -10,7 +10,6 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using UnityEngine;
-using UnityEngine.Events;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -38,12 +37,8 @@ namespace Inworld
         [SerializeField] protected int m_AudioToPushCapacity = 100;
         [SerializeField] protected string m_DeviceName;
         [SerializeField] protected bool m_DetectPlayerSpeaking = true;
-        public UnityEvent OnStartCalibrating;
-        public UnityEvent OnStopCalibrating;
-        public UnityEvent OnRecordingStart;
-        public UnityEvent OnRecordingEnd;
-        public UnityEvent OnPlayerStartSpeaking;
-        public UnityEvent OnPlayerStopSpeaking;
+        [Space(10)]
+        [SerializeField] protected AudioEvent m_AudioEvent;
         
 #region Variables
         protected float m_CharacterVolume = 1f;
@@ -74,6 +69,10 @@ namespace Inworld
 #endregion
         
 #region Properties
+        /// <summary>
+        /// Gets the event handler of AudioCapture.
+        /// </summary>
+        public AudioEvent Event => m_AudioEvent;
         /// <summary>
         /// Gets/Sets the current playing audio source.
         /// </summary>
@@ -164,9 +163,9 @@ namespace Inworld
                     return;
                 m_IsPlayerSpeaking = value;
                 if (m_IsPlayerSpeaking)
-                    OnPlayerStartSpeaking?.Invoke();
+                    Event.onPlayerStartSpeaking?.Invoke();
                 else
-                    OnPlayerStopSpeaking?.Invoke();
+                    Event.onPlayerStopSpeaking?.Invoke();
             }
         }
         /// <summary>
@@ -182,12 +181,12 @@ namespace Inworld
                 m_IsCapturing = value;
                 if (m_IsCapturing)
                 {
-                    OnRecordingStart?.Invoke();
+                    Event.onRecordingStart?.Invoke();
                     StartAudio();
                 }
                 else
                 {
-                    OnRecordingEnd?.Invoke();
+                    Event.onRecordingEnd?.Invoke();
                     StopAudio();
                 }
             }
@@ -302,7 +301,7 @@ namespace Inworld
         {
             if (InworldController.Client.Status != InworldConnectionStatus.Connected)
                 return;
-            if (!InworldController.Client.Current.IsConversation && chunk.targetName != InworldController.Client.Current.Character.brainName)
+            if (!InworldController.Client.Current.IsConversation && chunk.targetName != InworldController.Client.Current.Character?.brainName)
             {
                 InworldController.Client.Current.Character = InworldController.CharacterHandler.GetCharacterByBrainName(chunk.targetName)?.Data;
             }
@@ -326,7 +325,7 @@ namespace Inworld
             if (!Microphone.IsRecording(m_DeviceName))
                 StartMicrophone(m_DeviceName);
 #endif
-            OnStartCalibrating?.Invoke();
+            Event.onStartCalibrating?.Invoke();
             while (m_BackgroundNoise == 0 || m_CalibratingTime < m_BufferSeconds)
             {
                 int nSize = GetAudioData();
@@ -336,7 +335,7 @@ namespace Inworld
                 if (rms > m_BackgroundNoise)
                     m_BackgroundNoise = rms;
             }
-            OnStopCalibrating?.Invoke();
+            Event.onStopCalibrating?.Invoke();
         }
 #endregion
 
@@ -411,20 +410,22 @@ namespace Inworld
                 yield break;
             IsPlayerSpeaking = CalculateSNR() > m_PlayerVolumeThreshold;
             IsCapturing = IsRecording || AutoDetectPlayerSpeaking && IsPlayerSpeaking;
-            string charName = InworldController.CharacterHandler.CurrentCharacter ? InworldController.CharacterHandler.CurrentCharacter.BrainName : "";
-            byte[] output = Output(nSize * m_Recording.channels);
-            string audioData = Convert.ToBase64String(output);
             if (IsCapturing)
+            {
+                string charName = InworldController.CharacterHandler.CurrentCharacter ? InworldController.CharacterHandler.CurrentCharacter.BrainName : "";
+                byte[] output = Output(nSize * m_Recording.channels);
+                string audioData = Convert.ToBase64String(output);
                 m_AudioToPush.Enqueue(new AudioChunk
                 {
                     chunk = audioData,
                     targetName = charName
                 });
+            }
             yield return new WaitForSecondsRealtime(0.1f);
         }
         protected virtual IEnumerator OutputData()
         {
-            if (InworldController.Client.Status == InworldConnectionStatus.Connected)
+            if (InworldController.Client && InworldController.Client.Status == InworldConnectionStatus.Connected)
                 PushAudioImmediate();
             if (m_AudioToPush.Count > m_AudioToPushCapacity)
                 m_AudioToPush.TryDequeue(out AudioChunk chunk);
@@ -448,7 +449,7 @@ namespace Inworld
             if (!WebGLGetAudioData(m_LastPosition))
                 return -1;
 #else
-            if (!m_Recording.GetData(m_InputBuffer, m_LastPosition))
+            if (!m_Recording || !m_Recording.GetData(m_InputBuffer, m_LastPosition))
                 return -1;
 #endif
             m_LastPosition = m_nPosition % m_BufferSize;
