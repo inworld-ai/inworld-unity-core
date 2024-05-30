@@ -23,8 +23,7 @@ namespace Inworld
     {
         InworldCharacter m_CurrentCharacter;
         string m_ConversationID;
-        public event Action<InworldCharacter> OnCharacterListJoined;
-        public event Action<InworldCharacter> OnCharacterListLeft;
+        [SerializeField] ConversationEvents m_Events;
         
         // The Character List only lists the interactable characters. 
         // Although InworldCharacter also has InworldCharacterData, its agentID won't be always updated. Please check m_LiveSession
@@ -32,15 +31,14 @@ namespace Inworld
         protected readonly List<InworldCharacter> m_CharacterList = new List<InworldCharacter>();
 
         /// <summary>
-        /// Start a new conversation.
-        /// In Unity SDK by default, we only use one single conversation for handling all the characters.
-        /// But it's able to handle multiple conversations by developers.
-        ///
-        /// To do so, save those conversation ID and use them correspondingly.
+        /// Gets the conversation Events.
         /// </summary>
-        public virtual void StartNewConversation(string conversationID = null) 
-            => m_ConversationID = string.IsNullOrEmpty(conversationID) ? Guid.NewGuid().ToString() : conversationID;
+        public ConversationEvents Event => m_Events;
 
+        /// <summary>
+        /// Gets the conversation ID.
+        /// It'll create one if not exist.
+        /// </summary>
         public string ConversationID
         {
             get
@@ -95,6 +93,16 @@ namespace Inworld
         public virtual CharSelectingMethod SelectingMethod { get; set; } = CharSelectingMethod.Manual;
 
         /// <summary>
+        /// Start a new conversation.
+        /// In Unity SDK by default, we only use one single conversation for handling all the characters.
+        /// But it's able to handle multiple conversations by developers.
+        ///
+        /// To do so, save those conversation ID and use them correspondingly.
+        /// </summary>
+        public virtual void StartNewConversation(string conversationID = null) 
+            => m_ConversationID = string.IsNullOrEmpty(conversationID) ? Guid.NewGuid().ToString() : conversationID;
+        
+        /// <summary>
         ///     Change the method of how to select character.
         /// </summary>
         public virtual void ChangeSelectingMethod() {}
@@ -124,7 +132,7 @@ namespace Inworld
         {
             if (m_CharacterList.Contains(character))
                 return;
-            OnCharacterListJoined?.Invoke(character);
+            Event.onCharacterListJoined?.Invoke(character);
             m_CharacterList.Add(character);
             InworldController.Client.UpdateConversation();
         }
@@ -142,7 +150,7 @@ namespace Inworld
             if (!m_CharacterList.Contains(character))
                 return;
             m_CharacterList.Remove(character);
-            OnCharacterListLeft?.Invoke(character); 
+            Event.onCharacterListLeft?.Invoke(character); 
             InworldController.Client.UpdateConversation();
         }
          /// <summary>
@@ -154,7 +162,7 @@ namespace Inworld
                  return;
              CurrentCharacter = null;
              foreach (InworldCharacter character in m_CharacterList)
-                 OnCharacterListLeft?.Invoke(character); 
+                 Event.onCharacterListLeft?.Invoke(character); 
              m_CharacterList.Clear();
          }
     }

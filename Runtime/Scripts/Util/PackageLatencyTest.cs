@@ -21,16 +21,16 @@ namespace Inworld.Sample
         float m_ServerTime;
         void OnEnable()
         {
-            InworldController.CharacterHandler.OnCharacterListJoined += OnCharacterJoined;
-            InworldController.CharacterHandler.OnCharacterListLeft += OnCharacterLeft;
+            InworldController.CharacterHandler.Event.onCharacterListJoined.AddListener(OnCharacterJoined);
+            InworldController.CharacterHandler.Event.onCharacterListLeft.AddListener(OnCharacterLeft);
         }
 
         void OnDisable()
         {
             if (!InworldController.Instance)
                 return;
-            InworldController.CharacterHandler.OnCharacterListJoined -= OnCharacterJoined;
-            InworldController.CharacterHandler.OnCharacterListLeft -= OnCharacterLeft;
+            InworldController.CharacterHandler.Event.onCharacterListJoined.RemoveListener(OnCharacterJoined);
+            InworldController.CharacterHandler.Event.onCharacterListLeft.RemoveListener(OnCharacterLeft);
         }
         protected virtual void OnCharacterJoined(InworldCharacter character)
         {

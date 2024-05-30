@@ -72,15 +72,15 @@ namespace Inworld.Sample
 
         protected virtual void OnEnable()
         {
-            InworldController.CharacterHandler.OnCharacterListJoined += OnCharacterJoined;
-            InworldController.CharacterHandler.OnCharacterListLeft += OnCharacterLeft;
+            InworldController.CharacterHandler.Event.onCharacterListJoined.AddListener(OnCharacterJoined);
+            InworldController.CharacterHandler.Event.onCharacterListLeft.AddListener(OnCharacterLeft);
         }
         protected virtual void OnDisable()
         {
             if (!InworldController.Instance)
                 return;
-            InworldController.CharacterHandler.OnCharacterListJoined -= OnCharacterJoined;
-            InworldController.CharacterHandler.OnCharacterListLeft -= OnCharacterLeft;
+            InworldController.CharacterHandler.Event.onCharacterListJoined.RemoveListener(OnCharacterJoined);
+            InworldController.CharacterHandler.Event.onCharacterListLeft.RemoveListener(OnCharacterLeft);
         }
 
 
