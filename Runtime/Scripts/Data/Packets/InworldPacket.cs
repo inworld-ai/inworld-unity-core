@@ -52,11 +52,6 @@ namespace Inworld.Packet
 
 			if (characters == null || characters.Count == 0)
 				return;
-			// if (characters.Count == 1)
-			// {
-			//     target = new Source(characters[0]);
-			//     return; // TODO(YAN): Always setup targets works. But need to check AEC.
-			// }
 			targets = new List<Source>();
 			foreach (string characterID in characters)
 			{
