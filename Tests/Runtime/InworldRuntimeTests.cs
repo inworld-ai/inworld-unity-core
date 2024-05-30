@@ -30,6 +30,8 @@ namespace Inworld.Test
 		const string k_PlayerName = "Player";
 		const string k_LocationName = "Testing Space";
 		const string k_CharacterName = "Testing Quinn";
+		const string k_RepeatableGoal = "inworld.goal.activated.test_repeatable";
+		const string k_UnrepeatableGoal = "inworld.goal.activated.test_unrepeatable";
 		
 		[UnitySetUp]
 		public IEnumerator InitEnv()
@@ -250,6 +252,32 @@ namespace Inworld.Test
 				}
 			}
 			Assert.IsTrue(nameFound);
+		}
+		
+		[UnityTest]
+		public IEnumerator InworldRuntimeTest_GoalsRepeatable()
+		{
+			m_Conversation.Clear();
+			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Repeatable");
+			yield return ConversationCheck(10);
+			Assert.IsTrue(m_Conversation.Any(p => p is CustomPacket customPacket && customPacket.Trigger == k_RepeatableGoal));
+			m_Conversation.Clear();
+			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Repeatable");
+			yield return ConversationCheck(10);
+			Assert.IsTrue(m_Conversation.Any(p => p is CustomPacket customPacket && customPacket.Trigger == k_RepeatableGoal));
+		}
+		
+		[UnityTest]
+		public IEnumerator InworldRuntimeTest_GoalsUnrepeatable()
+		{
+			m_Conversation.Clear();
+			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Unrepeatable");
+			yield return ConversationCheck(10);
+			Assert.IsTrue(m_Conversation.Any(p => p is CustomPacket customPacket && customPacket.Trigger == k_UnrepeatableGoal));
+			m_Conversation.Clear();
+			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Unrepeatable");
+			yield return ConversationCheck(10);
+			Assert.IsFalse(m_Conversation.Any(p => p is CustomPacket customPacket && customPacket.Trigger == k_UnrepeatableGoal));
 		}
 	}
 }
