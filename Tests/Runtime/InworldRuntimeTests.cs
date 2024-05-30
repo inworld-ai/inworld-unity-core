@@ -219,7 +219,6 @@ namespace Inworld.Test
 					if (currentText.Contains(k_PlayerName)){
 						nameFound = true;
 					}
-					Debug.Log(currentText);
 				}
 			}
 			Assert.IsTrue(nameFound);
@@ -239,7 +238,6 @@ namespace Inworld.Test
 					if (currentText.Contains(k_LocationName)){
 						locationFound = true;
 					}
-					Debug.Log(currentText);
 				}
 			}
 			Assert.IsTrue(locationFound);
@@ -259,7 +257,6 @@ namespace Inworld.Test
 					if (currentText.Contains(k_CharacterName)){
 						nameFound = true;
 					}
-					Debug.Log(currentText);
 				}
 			}
 			Assert.IsTrue(nameFound);
