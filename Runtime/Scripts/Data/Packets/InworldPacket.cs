@@ -132,8 +132,6 @@ namespace Inworld.Packet
 		[JsonIgnore]
 		public SourceType Source => routing?.source?.type ?? SourceType.NONE;
 		[JsonIgnore]
-		public SourceType Target => routing?.target?.type ?? SourceType.NONE;
-		[JsonIgnore]
 		public bool IsBroadCast => string.IsNullOrEmpty(routing?.target?.name);
 		[JsonIgnore]
 		public string SourceName => routing?.source?.name;
@@ -216,7 +214,9 @@ namespace Inworld.Packet
 
 		public bool IsRelated(string agentID)
 		{
-			return IsSource(agentID) || IsTarget(agentID) || Contains(agentID);
+			if (Source == SourceType.PLAYER)
+				return !string.IsNullOrEmpty(packetId.conversationId) || IsTarget(agentID);
+			return IsSource(agentID);
 		}
 	}
 }

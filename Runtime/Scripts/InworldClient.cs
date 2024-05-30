@@ -1047,7 +1047,7 @@ namespace Inworld
             InworldPacket packetReceived = response.result;
             if (!_HandleRawPackets(packetReceived))
                 return;
-            if (packetReceived.Source == SourceType.WORLD && packetReceived.Target == SourceType.PLAYER)
+            if (packetReceived.Source == SourceType.WORLD)
                 OnGlobalPacketReceived?.Invoke(packetReceived);
             OnPacketReceived?.Invoke(packetReceived);
         }
