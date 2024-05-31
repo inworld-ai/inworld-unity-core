@@ -64,6 +64,10 @@ namespace Inworld
         protected IEnumerator m_OutgoingCoroutine;
         protected InworldConnectionStatus m_Status;
         protected InworldError m_Error;
+        float m_Reconnect;
+        int m_CurrentReconnectThreshold = 1;
+        int m_ReconnectThreshold = 1;
+
 #endregion
 
 #region Properties
@@ -149,9 +153,7 @@ namespace Inworld
                     m_Error = null;
                     return;
                 }
-                m_Error = new InworldError(value);
-                InworldAI.LogError(m_Error.message);
-                OnErrorReceived?.Invoke(m_Error);
+                Error = new InworldError(value);
             }
         }
         /// <summary>
@@ -170,8 +172,9 @@ namespace Inworld
                 }
                 InworldAI.LogError(m_Error.message);
                 OnErrorReceived?.Invoke(m_Error);
-                if (m_Error.RetryType == ReconnectionType.NO_RETRY)
-                    Status = InworldConnectionStatus.Error; 
+                m_CurrentReconnectThreshold *= 2;
+                m_Reconnect = m_CurrentReconnectThreshold;
+                Status = InworldConnectionStatus.Error; 
             }
         }
         internal string APIKey
@@ -200,7 +203,18 @@ namespace Inworld
         protected virtual void OnEnable()
         {
             m_OutgoingCoroutine = OutgoingCoroutine();
+            m_CurrentReconnectThreshold = m_ReconnectThreshold;
             StartCoroutine(m_OutgoingCoroutine);
+        }
+        void Update()
+        {
+            if (Status == InworldConnectionStatus.Error)
+                m_Reconnect = m_Reconnect - Time.unscaledDeltaTime < 0 ? 0 : m_Reconnect - Time.unscaledDeltaTime;
+            if (Status == InworldConnectionStatus.Error && m_Reconnect <= 0)
+            {
+                m_Reconnect = m_CurrentReconnectThreshold;
+                Status = InworldConnectionStatus.Idle;
+            }
         }
         void OnDestroy()
         {
@@ -856,6 +870,8 @@ namespace Inworld
                 return;
             if (!Current.UpdateMultiTargets(conversationID, brainNames))
                 return;
+            if (!EnableGroupChat)
+                return;
             Dictionary<string, string> characterTable = GetLiveSessionCharacterDataByFullNames(brainNames);
             ControlEvent control = new ConversationControlEvent
             {
@@ -1017,7 +1033,9 @@ namespace Inworld
                                 if (controlPacket.control is CurrentSceneStatusEvent currentSceneStatusEvent)
                                 {
                                     _RegisterLiveSession(currentSceneStatusEvent.currentSceneStatus.agents);
+                                    UpdateConversation();
                                     Status = InworldConnectionStatus.Connected;
+                                    m_ReconnectThreshold = m_CurrentReconnectThreshold = 1;
                                     return false;
                                 }
                                 InworldAI.LogError($"Load Scene Error: {controlPacket.control}");
@@ -1054,7 +1072,6 @@ namespace Inworld
         void OnSocketClosed(object sender, CloseEventArgs e)
         {
             InworldAI.Log($"Closed: StatusCode: {e.StatusCode}, Reason: {e.Reason}");
-            Status = InworldConnectionStatus.Idle;
         }
         void OnSocketError(object sender, ErrorEventArgs e)
         {

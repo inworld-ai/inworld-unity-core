@@ -14,6 +14,7 @@ namespace Inworld.Sample
 	public class StatusPanel: MonoBehaviour
 	{
 		[SerializeField] GameObject m_Board;
+		[SerializeField] GameObject m_ErrorBoard;
 		[SerializeField] TMP_Text m_Indicator;
 		[SerializeField] TMP_Text m_Error;
 		[SerializeField] GameObject m_NoMic;
@@ -35,7 +36,10 @@ namespace Inworld.Sample
 		}
 		void OnErrorReceived(InworldError error)
 		{
-			m_Board.SetActive(true);
+			if (m_ErrorBoard)
+				m_ErrorBoard.SetActive(true);
+			if (!m_Error)
+				return;
 			m_Error.gameObject.SetActive(true);
 			m_Error.text = error.message;
 		}
