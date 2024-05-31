@@ -46,6 +46,8 @@ namespace Inworld.Interactions
         {
             foreach (InworldPacket p in m_Packets.Values)
             {
+                if (p.Source == SourceType.PLAYER)
+                    return false;
                 if (p is TextPacket || p is AudioPacket)
                     return true;
             }

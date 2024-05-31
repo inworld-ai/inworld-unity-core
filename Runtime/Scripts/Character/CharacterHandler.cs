@@ -4,6 +4,7 @@
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
+using Inworld.Packet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -164,6 +165,23 @@ namespace Inworld
              foreach (InworldCharacter character in m_CharacterList)
                  Event.onCharacterListLeft?.Invoke(character); 
              m_CharacterList.Clear();
+         }
+         
+         protected virtual void OnEnable()
+         {
+             InworldController.Client.OnPacketReceived += ReceivePacket;
+         }
+         void ReceivePacket(InworldPacket packet)
+         {
+             if (packet is ControlPacket controlPacket && controlPacket.Action == ControlType.CONVERSATION_EVENT)
+             {
+                 Event.onConversationUpdated?.Invoke();
+             }
+         }
+         protected virtual void OnDisable()
+         {
+             if (InworldController.Instance)
+                 InworldController.Client.OnPacketReceived -= ReceivePacket;
          }
     }
 }

@@ -255,7 +255,7 @@ namespace Inworld
         {
             if (m_Prepared.Count == 0)
                 return null;
-            List<string> characterFullNames = m_Prepared.FirstOrDefault()?.Targets.Keys.ToList();
+            List<string> characterFullNames = m_Prepared.FirstOrDefault()?.OutgoingTargets.Keys.ToList();
             List<string> result = new List<string>();
             foreach (InworldWorkspaceData wsData in InworldAI.User.Workspace)
             {
@@ -373,7 +373,7 @@ namespace Inworld
             }
             else
             {
-                List<string> result = AutoSceneSearch ? GetSceneNameByCharacter() : m_Prepared.FirstOrDefault()?.Targets.Keys.ToList();
+                List<string> result = AutoSceneSearch ? GetSceneNameByCharacter() : m_Prepared.FirstOrDefault()?.OutgoingTargets.Keys.ToList();
                 if (result == null || result.Count == 0)
                 {
                     InworldAI.LogException("Characters not found in the workspace");

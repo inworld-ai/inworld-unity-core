@@ -238,6 +238,7 @@ namespace Inworld
                     HandleLipSync(audioPacket);
                     break;
                 case ControlPacket controlPacket: // Interaction_End
+                    HandleControl(controlPacket);
                     break;
                 case TextPacket textPacket:
                     HandleText(textPacket);
@@ -251,6 +252,15 @@ namespace Inworld
                 default:
                     Debug.LogError($"Received Unknown {incomingPacket}");
                     break;
+            }
+        }
+        protected virtual void HandleControl(ControlPacket controlPacket)
+        {
+            if (controlPacket.Action == ControlType.INTERACTION_END)
+            {
+                if (m_VerboseLog)
+                    InworldAI.Log($"{Name} Received Interaction End");
+                Event.onInteractionEnd?.Invoke(BrainName);
             }
         }
         protected virtual void HandleRelation(CustomPacket relationPacket)

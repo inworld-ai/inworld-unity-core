@@ -18,7 +18,8 @@ namespace Inworld
 		public UnityEvent<string> onCharacterDeselected;			
 		public UnityEvent<string> onCharacterDestroyed;
 		public UnityEvent<string> onBeginSpeaking; 
-		public UnityEvent<string> onEndSpeaking; 
+		public UnityEvent<string> onEndSpeaking;
+		public UnityEvent<string> onInteractionEnd;
 		public UnityEvent<InworldPacket> onPacketReceived; 
 		public UnityEvent<string, string> onCharacterSpeaks;
 		public UnityEvent<string, string> onEmotionChanged;
