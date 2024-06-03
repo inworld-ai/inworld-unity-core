@@ -136,7 +136,7 @@ namespace Inworld.Packet
             if (control is not ConversationControlEvent convoEvt)
                 return;
             routing = new Routing();
-            convoEvt.conversationUpdate.participants = Targets.Values.Where(agentID => !string.IsNullOrEmpty(agentID)).Select(agentID => new Source(agentID)).ToList();
+            convoEvt.conversationUpdate.participants = OutgoingTargets.Values.Where(agentID => !string.IsNullOrEmpty(agentID)).Select(agentID => new Source(agentID)).ToList();
         }
         [JsonIgnore]
         public ControlType Action => control?.action ?? ControlType.UNKNOWN;

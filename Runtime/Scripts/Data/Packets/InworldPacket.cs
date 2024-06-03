@@ -10,6 +10,7 @@ using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.UI;
 namespace Inworld.Packet
 {
 	[Serializable]
@@ -106,7 +107,7 @@ namespace Inworld.Packet
 				packetId.conversationId = liveInfo.Conversation.ID;
 			else
 			{
-				Targets = new Dictionary<string, string>
+				OutgoingTargets = new Dictionary<string, string>
 				{
 					[liveInfo.Character.brainName] = liveInfo.Character.agentId
 				};
@@ -121,12 +122,14 @@ namespace Inworld.Packet
         ///     Value is its agent ID [Nullable] (We'll fetch it in the UpdateSessionInfo)
         /// </summary>
         [JsonIgnore]
-		public Dictionary<string, string> Targets { get; set; } = new Dictionary<string, string>();
+		public Dictionary<string, string> OutgoingTargets { get; set; } = new Dictionary<string, string>();
 		[JsonIgnore]
 		public virtual string ToJson => JsonConvert.SerializeObject(this);
 		[JsonIgnore]
 		public SourceType Source => routing?.source?.type ?? SourceType.NONE;
 		[JsonIgnore]
+		// YAN: For now we can also differentiate if the conversationID is null.
+		//		But for the future integration, setting target would be allowed with the conversation.
 		public bool IsBroadCast => string.IsNullOrEmpty(routing?.target?.name);
 		[JsonIgnore]
 		public string SourceName => routing?.source?.name;
@@ -141,7 +144,7 @@ namespace Inworld.Packet
 			packetId.correlationId = Guid.NewGuid().ToString();
 			LiveInfo liveInfo = InworldController.Client.Current;
 			packetId.conversationId = liveInfo.Conversation.ID;
-			Targets = targets;
+			OutgoingTargets = targets;
 			routing = new Routing(targets.Values.ToList());
 		}
         /// <summary>
@@ -159,29 +162,29 @@ namespace Inworld.Packet
         /// <returns>The brain name of the characters not found in the current session.</returns>
         protected virtual bool UpdateSessionInfo()
 		{
-			if (Targets == null || Targets.Count == 0)
+			if (OutgoingTargets == null || OutgoingTargets.Count == 0)
 			{
 				if (!InworldController.Client.Current.IsConversation)
 					return false;
 				routing = new Routing();
 				return true;
 			}
-			foreach (string key in Targets.Keys.ToList().Where(key => !string.IsNullOrEmpty(key)))
+			foreach (string key in OutgoingTargets.Keys.ToList().Where(key => !string.IsNullOrEmpty(key)))
 			{
 				if (InworldController.Client.LiveSessionData.TryGetValue(key, out InworldCharacterData value))
-					Targets[key] = value.agentId;
+					OutgoingTargets[key] = value.agentId;
 				else
 				{
 					if (InworldAI.IsDebugMode)
 						InworldAI.LogWarning($"{key} is not in the current session.");
 				}
 			}
-			return Targets.Count > 0 && Targets.Values.Any(id => !string.IsNullOrEmpty(id));
+			return OutgoingTargets.Count > 0 && OutgoingTargets.Values.Any(id => !string.IsNullOrEmpty(id));
 		}
 
 		protected virtual void UpdateRouting()
 		{
-			if (Targets == null || Targets.Count == 0)
+			if (OutgoingTargets == null || OutgoingTargets.Count == 0)
 			{
 				// Conversation
 				packetId.conversationId = string.IsNullOrEmpty(packetId.conversationId)
@@ -189,29 +192,21 @@ namespace Inworld.Packet
 					: packetId.conversationId;
 				return;
 			}
-			List<string> agentIDs = Targets.Values.Where(c => !string.IsNullOrEmpty(c)).ToList();
+			List<string> agentIDs = OutgoingTargets.Values.Where(c => !string.IsNullOrEmpty(c)).ToList();
 			routing = new Routing(agentIDs);
 		}
 		public bool IsSource(string agentID)
 		{
 			return !string.IsNullOrEmpty(agentID) && SourceName == agentID;
 		}
+		
 
 		public bool IsTarget(string agentID)
 		{
-			return !string.IsNullOrEmpty(agentID) && TargetName == agentID;
+			return !string.IsNullOrEmpty(agentID) && (routing?.target?.name == agentID || (routing?.targets?.Any(agent => agent.name == agentID) ?? false));
 		}
 
-		public bool Contains(string agentID)
-		{
-			return !string.IsNullOrEmpty(agentID) && (routing?.targets?.Any(agent => agent.name == agentID) ?? false);
-		}
+		public bool IsRelated(string agentID) => Source == SourceType.PLAYER ? IsTarget(agentID) : IsSource(agentID);
 
-		public bool IsRelated(string agentID)
-		{
-			if (Source == SourceType.PLAYER)
-				return !string.IsNullOrEmpty(packetId.conversationId) || IsTarget(agentID);
-			return IsSource(agentID);
-		}
 	}
 }
