@@ -64,7 +64,7 @@ namespace Inworld
         protected IEnumerator m_OutgoingCoroutine;
         protected InworldConnectionStatus m_Status;
         protected InworldError m_Error;
-        float m_Reconnect;
+        float m_ReconnectTimer;
         int m_CurrentReconnectThreshold = 1;
         int m_ReconnectThreshold = 1;
 
@@ -173,7 +173,7 @@ namespace Inworld
                 InworldAI.LogError(m_Error.message);
                 OnErrorReceived?.Invoke(m_Error);
                 m_CurrentReconnectThreshold *= 2;
-                m_Reconnect = m_CurrentReconnectThreshold;
+                m_ReconnectTimer = m_CurrentReconnectThreshold;
                 Status = InworldConnectionStatus.Error; 
             }
         }
@@ -209,10 +209,10 @@ namespace Inworld
         void Update()
         {
             if (Status == InworldConnectionStatus.Error)
-                m_Reconnect = m_Reconnect - Time.unscaledDeltaTime < 0 ? 0 : m_Reconnect - Time.unscaledDeltaTime;
-            if (Status == InworldConnectionStatus.Error && m_Reconnect <= 0)
+                m_ReconnectTimer = m_ReconnectTimer - Time.unscaledDeltaTime < 0 ? 0 : m_ReconnectTimer - Time.unscaledDeltaTime;
+            if (Status == InworldConnectionStatus.Error && m_ReconnectTimer <= 0)
             {
-                m_Reconnect = m_CurrentReconnectThreshold;
+                m_ReconnectTimer = m_CurrentReconnectThreshold;
                 Status = InworldConnectionStatus.Idle;
             }
         }
