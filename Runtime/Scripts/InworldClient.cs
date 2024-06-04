@@ -721,7 +721,7 @@ namespace Inworld
                 action = ControlType.AUDIO_SESSION_START,
                 audioSessionStart = new AudioSessionPayload
                 {
-                    mode = MicrophoneMode.EXPECT_AUDIO_END.ToString()
+                    mode = MicrophoneMode.EXPECT_AUDIO_END
                 }
             };
             InworldPacket rawPkt = new ControlPacket(control);
@@ -751,7 +751,7 @@ namespace Inworld
                     action = ControlType.AUDIO_SESSION_START,
                     audioSessionStart = new AudioSessionPayload
                     {
-                        mode = MicrophoneMode.EXPECT_AUDIO_END.ToString()
+                        mode = MicrophoneMode.EXPECT_AUDIO_END
                     }
                 }
             };

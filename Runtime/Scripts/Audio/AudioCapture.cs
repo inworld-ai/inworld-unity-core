@@ -135,6 +135,9 @@ namespace Inworld
         ///     (Either Enable AEC or it's Player's turn to speak)
         /// </summary>
         public bool IsAudioAvailable => m_SamplingMode == MicSampleMode.AEC || IsPlayerTurn;
+        /// <summary>
+        /// Gets/Sets if this component is detecting player speaking automatically.
+        /// </summary>
         public bool AutoDetectPlayerSpeaking
         {
             get => m_DetectPlayerSpeaking 
@@ -265,7 +268,9 @@ namespace Inworld
             StartMicrophone(m_DeviceName);
             Calibrate();
         }
-
+        /// <summary>
+        /// Send the audio chunk in the queue immediately to Inworld server.
+        /// </summary>
         public void PushAudioImmediate()
         {
             if (!m_AudioToPush.TryDequeue(out AudioChunk audioChunk))
