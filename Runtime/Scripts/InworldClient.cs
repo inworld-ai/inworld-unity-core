@@ -319,7 +319,8 @@ namespace Inworld
         {
             if (!m_Prepared.TryDequeue(out InworldPacket pkt))
                 return;
-            pkt.PrepareToSend();
+            if (!pkt.PrepareToSend())
+                return;
             m_Socket.SendAsync(pkt.ToJson);
             m_Sent.Add(pkt);
         }
@@ -1072,6 +1073,9 @@ namespace Inworld
         void OnSocketClosed(object sender, CloseEventArgs e)
         {
             InworldAI.Log($"Closed: StatusCode: {e.StatusCode}, Reason: {e.Reason}");
+            if (Status != InworldConnectionStatus.Error)
+                Status = InworldConnectionStatus.Idle;
+            
         }
         void OnSocketError(object sender, ErrorEventArgs e)
         {
