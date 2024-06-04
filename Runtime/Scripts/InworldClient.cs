@@ -319,7 +319,8 @@ namespace Inworld
         {
             if (!m_Prepared.TryDequeue(out InworldPacket pkt))
                 return;
-            pkt.PrepareToSend();
+            if (!pkt.PrepareToSend())
+                return;
             m_Socket.SendAsync(pkt.ToJson);
             m_Sent.Add(pkt);
         }
