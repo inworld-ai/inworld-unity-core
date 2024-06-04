@@ -13,11 +13,11 @@ namespace Inworld.Sample
 {
 	public class StatusPanel: MonoBehaviour
 	{
-		[SerializeField] GameObject m_Board;
-		[SerializeField] GameObject m_ErrorBoard;
-		[SerializeField] TMP_Text m_Indicator;
-		[SerializeField] TMP_Text m_Error;
-		[SerializeField] GameObject m_NoMic;
+		[SerializeField] protected GameObject m_Board;
+		[SerializeField] protected GameObject m_ErrorBoard;
+		[SerializeField] protected TMP_Text m_Indicator;
+		[SerializeField] protected TMP_Text m_Error;
+		[SerializeField] protected GameObject m_NoMic;
 		
 		protected virtual void OnEnable()
 		{
@@ -34,7 +34,7 @@ namespace Inworld.Sample
 			InworldController.Client.OnErrorReceived -= OnErrorReceived;
 			InworldController.Client.OnStatusChanged -= OnStatusChanged;
 		}
-		void OnErrorReceived(InworldError error)
+		protected virtual void OnErrorReceived(InworldError error)
 		{
 			if (m_ErrorBoard)
 				m_ErrorBoard.SetActive(true);
@@ -43,12 +43,12 @@ namespace Inworld.Sample
 			m_Error.gameObject.SetActive(true);
 			m_Error.text = error.message;
 		}
-		void SwitchMic(bool isOn)
+		protected virtual void SwitchMic(bool isOn)
 		{
 			if (m_NoMic)
 				m_NoMic.SetActive(isOn);
 		}
-		void OnStatusChanged(InworldConnectionStatus incomingStatus)
+		protected virtual void OnStatusChanged(InworldConnectionStatus incomingStatus)
 		{
 			bool hidePanel = incomingStatus == InworldConnectionStatus.Idle && !InworldController.HasError || incomingStatus == InworldConnectionStatus.Connected;
 			if (m_Board)
