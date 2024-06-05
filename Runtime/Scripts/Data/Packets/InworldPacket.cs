@@ -97,23 +97,6 @@ namespace Inworld.Packet
 			type = rhs.type;
 		}
 
-		protected virtual void PreProcess()
-		{
-			// ReSharper disable Unity.PerformanceCriticalCodeInvocation
-			// because InworldController.Client's GetComponent would not be called mostly.
-			packetId.correlationId = Guid.NewGuid().ToString();
-			LiveInfo liveInfo = InworldController.Client.Current;
-			if (liveInfo.Character == null)
-				packetId.conversationId = liveInfo.Conversation.ID;
-			else
-			{
-				OutgoingTargets = new Dictionary<string, string>
-				{
-					[liveInfo.Character.brainName] = liveInfo.Character.agentId
-				};
-				routing = new Routing(liveInfo.Character.agentId);
-			}
-		}
 #region NonSerialized Properties
 
         /// <summary>
@@ -137,6 +120,24 @@ namespace Inworld.Packet
 		public string TargetName => routing?.target?.name;
 
 #endregion
+		
+		protected virtual void PreProcess()
+		{
+			// ReSharper disable Unity.PerformanceCriticalCodeInvocation
+			// because InworldController.Client's GetComponent would not be called mostly.
+			packetId.correlationId = Guid.NewGuid().ToString();
+			LiveInfo liveInfo = InworldController.Client.Current;
+			if (liveInfo.Character == null)
+				packetId.conversationId = liveInfo.Conversation.ID;
+			else
+			{
+				OutgoingTargets = new Dictionary<string, string>
+				{
+					[liveInfo.Character.brainName] = liveInfo.Character.agentId
+				};
+				routing = new Routing(liveInfo.Character.agentId);
+			}
+		}
 		// YAN: Only for packets that needs to explicitly set multiple targets (Like start conversation).
 		//		Usually for conversation packets, do not need to call this.
 		protected virtual void PreProcess(Dictionary<string, string> targets)

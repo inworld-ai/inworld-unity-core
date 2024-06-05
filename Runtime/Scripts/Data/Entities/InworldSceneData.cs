@@ -31,18 +31,7 @@ namespace Inworld.Entities
         /// <returns></returns>
         public bool Contains(List<string> characters) => characters.All(c => characterReferences.Any(cr => cr.character == c));
     }
-    [Serializable] 
-    public class CharacterName
-    {
-        public string name;
-        public string languageCode;
 
-        public CharacterName(string inputName, string language = "en-US")
-        {
-            name = inputName;
-            languageCode = language;
-        }
-    }
     [Serializable]
     public class ListSceneResponse
     {

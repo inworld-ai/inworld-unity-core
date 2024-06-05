@@ -54,6 +54,20 @@ namespace Inworld.Entities
             }
         }
     }
+    
+    [Serializable] 
+    public class CharacterName
+    {
+        public string name;
+        public string languageCode;
+
+        public CharacterName(string inputName, string language = "en-US")
+        {
+            name = inputName;
+            languageCode = language;
+        }
+    }
+    
     [Serializable]
     public class CharacterAssets
     {
