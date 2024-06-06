@@ -1037,7 +1037,7 @@ namespace Inworld
                                     UpdateConversation();
                                     Status = InworldConnectionStatus.Connected;
                                     m_ReconnectThreshold = m_CurrentReconnectThreshold = 1;
-                                    return false;
+                                    return true;
                                 }
                                 InworldAI.LogError($"Load Scene Error: {controlPacket.control}");
                                 break;
