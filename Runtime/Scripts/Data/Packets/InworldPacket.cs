@@ -152,11 +152,13 @@ namespace Inworld.Packet
         ///     Originally OnDequeue in OutgoingPacket.
         ///     Always call it before send to fetch the agent ID.
         /// </summary>
-        public void PrepareToSend()
-		{
-			if (UpdateSessionInfo())
-				UpdateRouting();
-		}
+        public bool PrepareToSend()
+        {
+	        if (!UpdateSessionInfo())
+		        return false;
+	        UpdateRouting();
+	        return true;
+        }
         /// <summary>
         ///     Update the characters in this conversation with updated ID.
         /// </summary>
@@ -185,14 +187,6 @@ namespace Inworld.Packet
 
 		protected virtual void UpdateRouting()
 		{
-			if (OutgoingTargets == null || OutgoingTargets.Count == 0)
-			{
-				// Conversation
-				packetId.conversationId = string.IsNullOrEmpty(packetId.conversationId)
-					? InworldController.CharacterHandler.ConversationID
-					: packetId.conversationId;
-				return;
-			}
 			List<string> agentIDs = OutgoingTargets.Values.Where(c => !string.IsNullOrEmpty(c)).ToList();
 			routing = new Routing(agentIDs);
 		}

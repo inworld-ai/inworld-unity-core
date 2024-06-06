@@ -319,7 +319,8 @@ namespace Inworld
         {
             if (!m_Prepared.TryDequeue(out InworldPacket pkt))
                 return;
-            pkt.PrepareToSend();
+            if (!pkt.PrepareToSend())
+                return;
             m_Socket.SendAsync(pkt.ToJson);
             m_Sent.Add(pkt);
         }
@@ -1036,7 +1037,7 @@ namespace Inworld
                                     UpdateConversation();
                                     Status = InworldConnectionStatus.Connected;
                                     m_ReconnectThreshold = m_CurrentReconnectThreshold = 1;
-                                    return false;
+                                    return true;
                                 }
                                 InworldAI.LogError($"Load Scene Error: {controlPacket.control}");
                                 break;
