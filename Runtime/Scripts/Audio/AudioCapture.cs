@@ -32,7 +32,7 @@ namespace Inworld
         [SerializeField] protected MicSampleMode m_SamplingMode = MicSampleMode.NO_FILTER;
         [Tooltip("Hold the key to sample, release the key to send audio")]
         [SerializeField] protected KeyCode m_PushToTalkKey = KeyCode.None;
-        [Range(5, 30)][SerializeField] protected float m_PlayerVolumeThreshold = 10f;
+        [Range(0, 30)][SerializeField] protected float m_PlayerVolumeThreshold = 10f;
         [SerializeField] protected int m_BufferSeconds = 1;
         [SerializeField] protected int m_AudioToPushCapacity = 100;
         [SerializeField] protected string m_DeviceName;
@@ -41,6 +41,7 @@ namespace Inworld
         [SerializeField] protected AudioEvent m_AudioEvent;
         
 #region Variables
+        protected float m_DefaultVolumeThreshold = 5f;
         protected float m_CharacterVolume = 1f;
         protected MicSampleMode m_InitSampleMode;
         protected const int k_SizeofInt16 = sizeof(short);
@@ -296,11 +297,12 @@ namespace Inworld
         }
         public virtual void StartAudio()
         {
+            MicrophoneMode mode = m_PlayerVolumeThreshold > m_DefaultVolumeThreshold ? MicrophoneMode.EXPECT_AUDIO_END : MicrophoneMode.OPEN_MIC;
             InworldCharacter character = InworldController.CharacterHandler.CurrentCharacter;
             if (character)
-                InworldController.Client.StartAudioTo(character.BrainName);
+                InworldController.Client.StartAudioTo(character.BrainName, mode);
             else
-                InworldController.Client.StartAudioTo();
+                InworldController.Client.StartAudioTo(null, mode);
         }
         public virtual void SendAudio(AudioChunk chunk)
         {
