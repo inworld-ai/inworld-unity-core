@@ -21,6 +21,7 @@ namespace Inworld.Test
 	{
 		InworldConnectionStatus m_CurrentStatus;
 		List<InworldPacket> m_Conversation;
+		private string m_CurrentInworldScene;
 
 		const string k_TestScene = "workspaces/unitytest/scenes/testing_space";
 		const string k_TestCharacter = "workspaces/unitytest/characters/testing_quinn";
@@ -32,6 +33,9 @@ namespace Inworld.Test
 		const string k_CharacterName = "Testing Quinn";
 		const string k_RepeatableGoal = "inworld.goal.activated.test_repeatable";
 		const string k_UnrepeatableGoal = "inworld.goal.activated.test_unrepeatable";
+		const string k_TriggerGoal = "inworld.goal.activated.test_trigger";
+		const string k_TriggerResponse = "You successfully triggered that.";
+		const string k_AltScene = "workspaces/unitytest/scenes/123";
 		
 		[UnitySetUp]
 		public IEnumerator InitEnv()
@@ -118,6 +122,11 @@ namespace Inworld.Test
 		{
 			if (packet.Source == SourceType.AGENT)
 				m_Conversation.Add(packet);
+			if (packet is ControlPacket controlPacket &&
+			    controlPacket.control is CurrentSceneStatusEvent currentSceneStatusEvent)
+			{
+				m_CurrentInworldScene = currentSceneStatusEvent.currentSceneStatus.sceneName;
+			}
 		}
 
 		[UnityTest]
@@ -227,7 +236,7 @@ namespace Inworld.Test
 				if (m_Conversation[i] is TextPacket textPacket)
 				{
 					string currentText = textPacket.text.text;
-					if (currentText.Contains(k_LocationName)){
+					if (currentText.Contains(k_LocationName, StringComparison.OrdinalIgnoreCase)){
 						locationFound = true;
 					}
 				}
@@ -278,6 +287,25 @@ namespace Inworld.Test
 			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Unrepeatable");
 			yield return ConversationCheck(10);
 			Assert.IsFalse(m_Conversation.Any(p => p is CustomPacket customPacket && customPacket.Trigger == k_UnrepeatableGoal));
+		}
+		
+		[UnityTest]
+		public IEnumerator InworldRuntimeTest_GoalsTrigger()
+		{
+			m_Conversation.Clear();
+			InworldController.Client.SendTrigger(InworldController.Client.LiveSessionData.Values.First().agentId, "hit_trigger");
+			yield return ConversationCheck(10);
+			Assert.IsTrue(m_Conversation.Any(p => p is CustomPacket customPacket && customPacket.Trigger == k_TriggerGoal));
+			Assert.IsTrue(m_Conversation.Any(p => p is TextPacket textPacket && textPacket.text.text == k_TriggerResponse));
+		}
+		
+		[UnityTest]
+		public IEnumerator InworldRuntimeTest_ChangeScene()
+		{
+			m_Conversation.Clear();
+			InworldController.Client.LoadScene(k_AltScene);
+			yield return new WaitWhile(() => k_TestScene == m_CurrentInworldScene);
+			Assert.IsTrue(m_CurrentInworldScene == k_AltScene);
 		}
 	}
 }
