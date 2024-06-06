@@ -236,7 +236,7 @@ namespace Inworld.Test
 				if (m_Conversation[i] is TextPacket textPacket)
 				{
 					string currentText = textPacket.text.text;
-					if (currentText.Contains(k_LocationName)){
+					if (currentText.Contains(k_LocationName, StringComparison.OrdinalIgnoreCase)){
 						locationFound = true;
 					}
 				}
