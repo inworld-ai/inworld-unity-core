@@ -41,7 +41,6 @@ namespace Inworld
         [SerializeField] protected AudioEvent m_AudioEvent;
         
 #region Variables
-        protected float m_DefaultVolumeThreshold = 5f;
         protected float m_CharacterVolume = 1f;
         protected MicSampleMode m_InitSampleMode;
         protected const int k_SizeofInt16 = sizeof(short);
@@ -297,7 +296,7 @@ namespace Inworld
         }
         public virtual void StartAudio()
         {
-            MicrophoneMode mode = m_PlayerVolumeThreshold > m_DefaultVolumeThreshold ? MicrophoneMode.EXPECT_AUDIO_END : MicrophoneMode.OPEN_MIC;
+            MicrophoneMode mode = m_PlayerVolumeThreshold > 0 ? MicrophoneMode.EXPECT_AUDIO_END : MicrophoneMode.OPEN_MIC;
             InworldCharacter character = InworldController.CharacterHandler.CurrentCharacter;
             if (character)
                 InworldController.Client.StartAudioTo(character.BrainName, mode);
@@ -333,14 +332,20 @@ namespace Inworld
                 StartMicrophone(m_DeviceName);
 #endif
             Event.onStartCalibrating?.Invoke();
-            while (m_BackgroundNoise == 0 || m_CalibratingTime < m_BufferSeconds)
+            if (m_PlayerVolumeThreshold == 0)
+                m_BackgroundNoise = 0.00001f;
+            else
             {
-                int nSize = GetAudioData();
-                m_CalibratingTime += 0.1f;
-                yield return new WaitForSecondsRealtime(0.1f);
-                float rms = CalculateRMS();
-                if (rms > m_BackgroundNoise)
-                    m_BackgroundNoise = rms;
+                while (m_BackgroundNoise == 0 || m_CalibratingTime < m_BufferSeconds)
+                {
+                    int nSize = GetAudioData();
+                    m_CalibratingTime += 0.1f;
+                    yield return new WaitForSecondsRealtime(0.1f);
+                    float rms = CalculateRMS();
+                    if (rms > m_BackgroundNoise)
+                        m_BackgroundNoise = rms;
+                }
+                m_BackgroundNoise = m_BackgroundNoise > 0.01f ? 0.01f : m_BackgroundNoise;
             }
             Event.onStopCalibrating?.Invoke();
         }
@@ -404,6 +409,7 @@ namespace Inworld
                 yield return _Calibrate();
                 yield return Collect();
                 yield return OutputData();
+                yield return new WaitForSecondsRealtime(0.1f);
             }
         }
         protected virtual IEnumerator Collect()
@@ -428,7 +434,6 @@ namespace Inworld
                     targetName = charName
                 });
             }
-            yield return new WaitForSecondsRealtime(0.1f);
         }
         protected virtual IEnumerator OutputData()
         {
@@ -436,7 +441,7 @@ namespace Inworld
                 PushAudioImmediate();
             if (m_AudioToPush.Count > m_AudioToPushCapacity)
                 m_AudioToPush.TryDequeue(out AudioChunk chunk);
-            yield return new WaitForSecondsRealtime(0.1f);
+            yield break;
         }
         protected int GetAudioData()
         {
