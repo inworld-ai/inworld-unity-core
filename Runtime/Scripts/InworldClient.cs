@@ -416,8 +416,6 @@ namespace Inworld
                     m_Continuation.continuationType = ContinuationType.CONTINUATION_TYPE_EXTERNALLY_SAVED_STATE;
                     m_Continuation.externallySavedState = SessionHistory;
                 }
-                else
-                    loadHistory = false;
             }
             m_GameSessionID = string.IsNullOrEmpty(gameSessionID) ? Token.sessionId : gameSessionID;
 
