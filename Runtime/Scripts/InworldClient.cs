@@ -416,8 +416,6 @@ namespace Inworld
                     m_Continuation.continuationType = ContinuationType.CONTINUATION_TYPE_EXTERNALLY_SAVED_STATE;
                     m_Continuation.externallySavedState = SessionHistory;
                 }
-                else
-                    loadHistory = false;
             }
             m_GameSessionID = string.IsNullOrEmpty(gameSessionID) ? Token.sessionId : gameSessionID;
 
@@ -1073,6 +1071,9 @@ namespace Inworld
         void OnSocketClosed(object sender, CloseEventArgs e)
         {
             InworldAI.Log($"Closed: StatusCode: {e.StatusCode}, Reason: {e.Reason}");
+            // YAN: We won't store the external saved state. Please use enable loadHistory and SessionHistory for load previous history data.
+            if (m_Continuation != null)
+                m_Continuation.externallySavedState = ""; 
             if (Status != InworldConnectionStatus.Error)
                 Status = InworldConnectionStatus.Idle;
         }

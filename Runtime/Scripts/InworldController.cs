@@ -18,11 +18,10 @@ namespace Inworld
     /// It serves as a central point for managing API interfaces, ensuring that the system maintains its interfaces with older versions
     /// while delegating the actual execution of each API call to subordinate scripts.
     /// </summary>
-    [RequireComponent(typeof(InworldClient), typeof(AudioCapture), typeof(CharacterHandler))]
+
     public class InworldController : SingletonBehavior<InworldController>
     {
         [SerializeField] protected InworldGameData m_GameData;
-        [SerializeField] protected string m_SceneFullName;
         
         protected InworldClient m_Client;
         protected AudioCapture m_AudioCapture;
@@ -42,7 +41,7 @@ namespace Inworld
                 if (Instance.m_AudioCapture)
                     return Instance.m_AudioCapture;
 
-                Instance.m_AudioCapture = Instance.GetComponent<AudioCapture>();
+                Instance.m_AudioCapture = Instance.GetComponentInChildren<AudioCapture>();
                 return Instance.m_AudioCapture;
             }
         }
@@ -57,7 +56,7 @@ namespace Inworld
                     return null;
                 if (Instance.m_CharacterHandler)
                     return Instance.m_CharacterHandler;
-                Instance.m_CharacterHandler = Instance.GetComponent<CharacterHandler>();
+                Instance.m_CharacterHandler = Instance.GetComponentInChildren<CharacterHandler>();
                 return Instance.m_CharacterHandler;
             }
         }
@@ -74,7 +73,7 @@ namespace Inworld
                 if (Instance.m_Client)
                     return Instance.m_Client;
 
-                Instance.m_Client = Instance.GetComponent<InworldClient>();
+                Instance.m_Client = Instance.GetComponentInChildren<InworldClient>();
                 return Instance.m_Client;
             }
             set
@@ -92,21 +91,11 @@ namespace Inworld
         /// Gets the current connection status.
         /// </summary>
         public static InworldConnectionStatus Status => Client.Status;
-        /// <summary>
-        /// Gets the current workspace's full name.
-        /// </summary>
-        public string CurrentWorkspace
-        {
-            get
-            {
-                string[] data = m_SceneFullName.Split(new[] { "/scenes/", "/characters/" }, StringSplitOptions.None);
-                return data.Length > 1 ? data[0] : m_SceneFullName;
-            }
-        }
+
         /// <summary>
         /// Gets the current InworldScene's full name.
         /// </summary>
-        public string CurrentScene => Client ? Client.CurrentScene : m_SceneFullName;
+        public string CurrentScene => Client ? Client.CurrentScene : "";
         /// <summary>
         /// Gets/Sets the current interacting character.
         /// </summary>
@@ -151,11 +140,7 @@ namespace Inworld
         public void LoadData(InworldGameData gameData)
         {
             if (gameData == null)
-            {
-                if (string.IsNullOrEmpty(Client.SceneFullName) && !string.IsNullOrEmpty(m_SceneFullName))
-                    Client.SceneFullName = m_SceneFullName;
                 return;
-            }
             if (!string.IsNullOrEmpty(gameData.apiKey))
                 m_Client.APIKey = gameData.apiKey;
             if (!string.IsNullOrEmpty(gameData.apiSecret))
@@ -189,7 +174,7 @@ namespace Inworld
         public void LoadScene(string sceneFullName = "")
         {
             InworldAI.LogEvent("Login_Runtime");
-            string sceneToLoad = string.IsNullOrEmpty(sceneFullName) ? m_SceneFullName : sceneFullName;
+            string sceneToLoad = string.IsNullOrEmpty(sceneFullName) ? m_Client.CurrentScene : sceneFullName;
             m_Client.LoadScene(sceneToLoad);
         }
         /// <summary>
