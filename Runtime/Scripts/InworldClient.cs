@@ -1071,6 +1071,9 @@ namespace Inworld
         void OnSocketClosed(object sender, CloseEventArgs e)
         {
             InworldAI.Log($"Closed: StatusCode: {e.StatusCode}, Reason: {e.Reason}");
+            // YAN: We won't store the external saved state. Please use enable loadHistory and SessionHistory for load previous history data.
+            if (m_Continuation != null)
+                m_Continuation.externallySavedState = ""; 
             if (Status != InworldConnectionStatus.Error)
                 Status = InworldConnectionStatus.Idle;
         }
