@@ -337,19 +337,20 @@ namespace Inworld.Audio
             while (true)
             {
                 yield return _Calibrate();
-                yield return Collect();
-                yield return OutputData();
+                Collect();
+                OutputData();
+                yield return new WaitForSecondsRealtime(0.1f);
             }
         }
-        protected virtual IEnumerator Collect()
+        protected virtual void Collect()
         {
             if (m_SamplingMode == MicSampleMode.NO_MIC)
-                yield break;
+                return;
             if (m_SamplingMode != MicSampleMode.PUSH_TO_TALK && m_BackgroundNoise == 0)
-                yield break;
+                return;
             int nSize = GetAudioData();
             if (nSize <= 0)
-                yield break;
+                return;
             IsPlayerSpeaking = CalculateSNR() > m_PlayerVolumeThreshold;
             IsCapturing = IsRecording || AutoDetectPlayerSpeaking && IsPlayerSpeaking;
             if (IsCapturing)
@@ -363,15 +364,13 @@ namespace Inworld.Audio
                     targetName = charName
                 });
             }
-            yield return new WaitForSecondsRealtime(0.1f);
         }
-        protected virtual IEnumerator OutputData()
+        protected virtual void OutputData()
         {
             if (InworldController.Client && InworldController.Client.Status == InworldConnectionStatus.Connected)
                 PushAudioImmediate();
             if (m_AudioToPush.Count > m_AudioToPushCapacity)
                 m_AudioToPush.TryDequeue(out AudioChunk chunk);
-            yield return new WaitForSecondsRealtime(0.1f);
         }
         protected virtual int GetAudioData()
         {

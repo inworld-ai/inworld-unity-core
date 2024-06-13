@@ -31,6 +31,38 @@ namespace Inworld
 		[DllImport("__Internal")] protected static extern void WebGLMicEnd();
 		[DllImport("__Internal")] protected static extern void WebGLDispose();
 		[DllImport("__Internal")] protected static extern int WebGLIsPermitted();
+		
+		public override List<AudioDevice> Devices
+		{
+			get
+			{
+
+				if (m_Devices.Count == 0)
+				{
+					m_Devices = JsonUtility.FromJson<WebGLAudioDevicesData>(WebGLGetDeviceData()).devices;
+				}
+				return m_Devices;
+
+			}
+		}
+		protected override void OnEnable()
+		{
+#if UNITY_WEBGL && !UNITY_EDITOR
+            StartWebMicrophone();
+#else            
+			m_AudioCoroutine = AudioCoroutine();
+			StartCoroutine(m_AudioCoroutine);
+#endif
+		}
+		protected override void OnDestroy()
+		{
+			m_Devices.Clear();
+#if UNITY_WEBGL && !UNITY_EDITOR
+            WebGLDispose();
+            s_WebGLBuffer = null;
+#endif
+			StopMicrophone(m_DeviceName);
+		}
 		public override void ChangeInputDevice(string deviceName)
 		{
 			if (deviceName == m_DeviceName)
@@ -67,39 +99,6 @@ namespace Inworld
 			}
 			Event.onStopCalibrating?.Invoke();
 		}
-		public override List<AudioDevice> Devices
-		{
-			get
-			{
-
-                if (m_Devices.Count == 0)
-                {
-                    m_Devices = JsonUtility.FromJson<WebGLAudioDevicesData>(WebGLGetDeviceData()).devices;
-                }
-                return m_Devices;
-
-			}
-		}
-		
-		protected override void OnEnable()
-		{
-#if UNITY_WEBGL && !UNITY_EDITOR
-            StartWebMicrophone();
-#else            
-			m_AudioCoroutine = AudioCoroutine();
-			StartCoroutine(m_AudioCoroutine);
-#endif
-		}
-		protected override void OnDestroy()
-		{
-			m_Devices.Clear();
-#if UNITY_WEBGL && !UNITY_EDITOR
-            WebGLDispose();
-            s_WebGLBuffer = null;
-#endif
-			StopMicrophone(m_DeviceName);
-		}
-		
 		protected override void Init()
 		{
 			m_BufferSize = m_BufferSeconds * k_SampleRate;

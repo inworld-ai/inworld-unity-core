@@ -14,6 +14,15 @@ namespace Inworld
 {
     public class WavUtility
     {
+        public static short[] ByteArrayToShortArray(byte[] byteArray)
+        {
+            short[] shortArray = new short[byteArray.Length / 2];
+            for (int i = 0; i < shortArray.Length; i++)
+            {
+                shortArray[i] = BitConverter.ToInt16(byteArray, i * 2);
+            }
+            return shortArray;
+        }
         public static void ShortArrayToWavFile(short[] shortArray, string outputPath, int sampleRate = 16000)
         {
             using (var fileStream = new FileStream(outputPath, FileMode.Create))
