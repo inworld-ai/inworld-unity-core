@@ -13,13 +13,6 @@ using UnityEngine;
 
 namespace Inworld
 {
-    public enum CharSelectingMethod
-    {
-        Manual,
-        KeyCode,
-        SightAngle,
-        AutoChat
-    }
     public class CharacterHandler : MonoBehaviour
     {
         InworldCharacter m_CurrentCharacter;
