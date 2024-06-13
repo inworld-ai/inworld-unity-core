@@ -21,7 +21,7 @@ using System.Runtime.InteropServices;
 #endif
 
 
-namespace Inworld
+namespace Inworld.Audio
 {
     /// <summary>
     /// YAN: This is a global Audio Capture controller.
