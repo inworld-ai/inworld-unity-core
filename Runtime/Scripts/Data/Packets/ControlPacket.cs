@@ -56,7 +56,8 @@ namespace Inworld.Packet
     }
     public class AudioSessionPayload
     {
-        public string mode;
+        [JsonConverter(typeof(StringEnumConverter))]
+        public MicrophoneMode mode;
     }
     public class ConversationControlEvent : ControlEvent
     {

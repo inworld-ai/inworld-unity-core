@@ -14,6 +14,12 @@ namespace Inworld
 {
     public class WavUtility
     {
+        public static byte[] ShortArrayToByteArray(short[] shortArray)
+        {
+            byte[] byteArray = new byte[shortArray.Length * 2]; // Each short is 2 bytes
+            Buffer.BlockCopy(shortArray, 0, byteArray, 0, shortArray.Length * 2);
+            return byteArray;
+        }
         public static short[] ByteArrayToShortArray(byte[] byteArray)
         {
             short[] shortArray = new short[byteArray.Length / 2];

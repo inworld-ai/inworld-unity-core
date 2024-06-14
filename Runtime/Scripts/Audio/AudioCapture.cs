@@ -33,6 +33,7 @@ namespace Inworld.Audio
         [SerializeField] protected AudioEvent m_AudioEvent;
         
 #region Variables
+        protected bool m_IsAudioDebugging = false;
         protected float m_CharacterVolume = 1f;
         protected MicSampleMode m_InitSampleMode;
         protected const int k_SizeofInt16 = sizeof(short);
@@ -248,11 +249,12 @@ namespace Inworld.Audio
         }
         public virtual void StartAudio()
         {
+            MicrophoneMode mode = !EnableAEC ? MicrophoneMode.EXPECT_AUDIO_END : MicrophoneMode.OPEN_MIC;
             InworldCharacter character = InworldController.CharacterHandler.CurrentCharacter;
             if (character)
-                InworldController.Client.StartAudioTo(character.BrainName);
+                InworldController.Client.StartAudioTo(character.BrainName, mode);
             else
-                InworldController.Client.StartAudioTo();
+                InworldController.Client.StartAudioTo(null, mode);
         }
         public virtual void SendAudio(AudioChunk chunk)
         {
