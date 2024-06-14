@@ -196,4 +196,11 @@ namespace Inworld
         AEC,
         TURN_BASED
     }
+    public enum CharSelectingMethod
+    {
+        Manual,
+        KeyCode,
+        SightAngle,
+        AutoChat
+    }
 }

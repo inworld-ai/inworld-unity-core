@@ -60,7 +60,7 @@ namespace Inworld.Packet
             dataChunk = chunk;
         }
         /// <summary>
-        /// Dump received audio packet to local files.
+        /// Dump received audio packet and phoneme Info to local files.
         /// </summary>
         /// <param name="fileName">the filename to be saved.</param>
         public void DumpWaveFile(string fileName)

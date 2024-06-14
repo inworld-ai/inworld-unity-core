@@ -24,7 +24,7 @@ namespace Inworld.Audio
         [SerializeField] protected MicSampleMode m_SamplingMode = MicSampleMode.NO_FILTER;
         [Tooltip("Hold the key to sample, release the key to send audio")]
         [SerializeField] protected KeyCode m_PushToTalkKey = KeyCode.None;
-        [Range(5, 30)][SerializeField] protected float m_PlayerVolumeThreshold = 10f;
+        [Range(0, 30)][SerializeField] protected float m_PlayerVolumeThreshold = 10f;
         [SerializeField] protected int m_BufferSeconds = 1;
         [SerializeField] protected int m_AudioToPushCapacity = 100;
         [SerializeField] protected string m_DeviceName;
@@ -124,6 +124,9 @@ namespace Inworld.Audio
         ///     (Either Enable AEC or it's Player's turn to speak)
         /// </summary>
         public bool IsAudioAvailable => m_SamplingMode == MicSampleMode.AEC || IsPlayerTurn;
+        /// <summary>
+        /// Gets/Sets if this component is detecting player speaking automatically.
+        /// </summary>
         public bool AutoDetectPlayerSpeaking
         {
             get => m_DetectPlayerSpeaking 
@@ -223,7 +226,9 @@ namespace Inworld.Audio
             StartMicrophone(m_DeviceName);
             Calibrate();
         }
-
+        /// <summary>
+        /// Send the audio chunk in the queue immediately to Inworld server.
+        /// </summary>
         public void PushAudioImmediate()
         {
             if (!m_AudioToPush.TryDequeue(out AudioChunk audioChunk))
@@ -282,14 +287,20 @@ namespace Inworld.Audio
                 StartMicrophone(m_DeviceName);
 #endif
             Event.onStartCalibrating?.Invoke();
-            while (m_BackgroundNoise == 0 || m_CalibratingTime < m_BufferSeconds)
+            if (m_PlayerVolumeThreshold == 0)
+                m_BackgroundNoise = 0.00001f;
+            else
             {
-                int nSize = GetAudioData();
-                m_CalibratingTime += 0.1f;
-                yield return new WaitForSecondsRealtime(0.1f);
-                float rms = CalculateRMS();
-                if (rms > m_BackgroundNoise)
-                    m_BackgroundNoise = rms;
+                while (m_BackgroundNoise == 0 || m_CalibratingTime < m_BufferSeconds)
+                {
+                    int nSize = GetAudioData();
+                    m_CalibratingTime += 0.1f;
+                    yield return new WaitForSecondsRealtime(0.1f);
+                    float rms = CalculateRMS();
+                    if (rms > m_BackgroundNoise)
+                        m_BackgroundNoise = rms;
+                }
+                m_BackgroundNoise = m_BackgroundNoise > 0.01f ? 0.01f : m_BackgroundNoise;
             }
             Event.onStopCalibrating?.Invoke();
         }
