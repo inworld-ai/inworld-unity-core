@@ -10,6 +10,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace Inworld.Sample
@@ -20,21 +21,30 @@ namespace Inworld.Sample
     /// </summary>
     public class PlayerController : SingletonBehavior<PlayerController>
     {
-        [Header("Interaction Control")]
-        [SerializeField] public KeyCode uiKey = KeyCode.BackQuote;
-        [SerializeField] public KeyCode optionKey = KeyCode.Escape;
-        [SerializeField] public KeyCode skipKey = KeyCode.None;
-        [SerializeField] public KeyCode continueKey = KeyCode.None;
         [Header("References")]
+        [SerializeField] protected PlayerInput m_PlayerInput;
         [SerializeField] protected TMP_InputField m_InputField;
         [SerializeField] protected TMP_Dropdown m_Dropdown;
         [SerializeField] protected Button m_SendButton;
         [SerializeField] protected Button m_RecordButton;
         public UnityEvent<string> onPlayerSpeaks;
         /// <summary>
+        /// Get the PlayerInput component.
+        /// </summary>
+        public PlayerInput PlayerInput => m_PlayerInput;
+        /// <summary>
         /// Get if any canvas is open.
         /// </summary>
         public virtual bool IsAnyCanvasOpen => true;
+        /// <summary>
+        /// Get the named Input Action from the PlayerInput component.
+        /// </summary>
+        /// <param name="actionName">The name of the Input Action to return.</param>
+        /// <returns>The Input Action if it exists, otherwise returns null.</returns>
+        public InputAction GetInputAction(string actionName)
+        {
+            return m_PlayerInput.actions.FindAction(actionName);
+        }
         /// <summary>
         /// Send target message in the input field.
         /// </summary>
@@ -126,7 +136,7 @@ namespace Inworld.Sample
         }
         protected virtual void HandleInput()
         {
-            if (Input.GetKeyUp(KeyCode.Return) || Input.GetKeyUp(KeyCode.KeypadEnter))
+            if (m_PlayerInput.actions["Submit"].WasReleasedThisFrame())
                 SendText();
         }
     }

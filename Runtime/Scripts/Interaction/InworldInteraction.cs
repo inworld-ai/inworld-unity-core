@@ -7,17 +7,16 @@
 
 using UnityEngine;
 using Inworld.Packet;
-using Inworld.Sample;
 using System.Collections;
-
+using UnityEngine.InputSystem;
 using Random = UnityEngine.Random;
 
 namespace Inworld.Interactions
 {
     public class InworldInteraction : MonoBehaviour
     {
-        [SerializeField] KeyCode m_ContinueKey = KeyCode.Space;
-        [SerializeField] KeyCode m_SkipKey = KeyCode.LeftControl;
+        [SerializeField] InputActionReference m_ContinueAction;
+        [SerializeField] InputActionReference m_SkipAction;
         [SerializeField] GameObject m_ContinueButton;
         [SerializeField] protected bool m_Interruptable = true;
         [SerializeField] protected bool m_AutoProceed = true;
@@ -90,13 +89,11 @@ namespace Inworld.Interactions
         }
         void Update()
         {
-            if (PlayerController.Instance)
-                AlignPlayerInput();
-            if (Input.GetKeyUp(m_SkipKey))
+            if (m_SkipAction.action.WasReleasedThisFrame())
                 SkipCurrentUtterance();
-            if (Input.GetKeyDown(m_ContinueKey))
+            if (m_ContinueAction.action.WasPressedThisFrame())
                 UnpauseUtterance();
-            if (Input.GetKeyUp(m_ContinueKey))
+            if (m_ContinueAction.action.WasReleasedThisFrame())
                 PauseUtterance();
             m_Proceed = m_AutoProceed || m_LastFromPlayer || m_IsContinueKeyPressed || m_CurrentInteraction == null || m_CurrentInteraction.IsEmpty;
         }
@@ -107,21 +104,6 @@ namespace Inworld.Interactions
         protected virtual void PauseUtterance()
         {
             m_IsContinueKeyPressed = false;
-        }
-        protected virtual void AlignPlayerInput()
-        {
-            if (!PlayerController.Instance)
-                return;
-            if (PlayerController.Instance.continueKey != KeyCode.None)
-            {
-                m_AutoProceed = false;
-                m_ContinueKey = PlayerController.Instance.continueKey;
-            }
-            if (PlayerController.Instance.skipKey != KeyCode.None)
-            {
-                m_Interruptable = true;
-                m_SkipKey = PlayerController.Instance.skipKey;
-            }
         }
         protected virtual void SkipCurrentUtterance() 
         {
