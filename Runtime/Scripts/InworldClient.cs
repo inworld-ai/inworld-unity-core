@@ -416,8 +416,6 @@ namespace Inworld
                     m_Continuation.continuationType = ContinuationType.CONTINUATION_TYPE_EXTERNALLY_SAVED_STATE;
                     m_Continuation.externallySavedState = SessionHistory;
                 }
-                else
-                    loadHistory = false;
             }
             m_GameSessionID = string.IsNullOrEmpty(gameSessionID) ? Token.sessionId : gameSessionID;
 
@@ -709,8 +707,9 @@ namespace Inworld
         ///       2. New method support broadcasting to multiple characters.
         /// </summary>
         /// <param name="brainName">the full name of the characters to send.</param>
+        /// <param name="micMode">If you'd like to enable the character interrupt you, check this option to OPEN_MIC.</param>
         /// <param name="immediate">if sending immediately (need to make sure client has connected)</param>
-        public virtual void StartAudioTo(string brainName = null, bool immediate = false)
+        public virtual void StartAudioTo(string brainName = null, MicrophoneMode micMode = MicrophoneMode.EXPECT_AUDIO_END, bool immediate = false)
         {
             if (Current.AudioSession.IsSameSession(brainName))
                 return;
@@ -722,7 +721,7 @@ namespace Inworld
                 action = ControlType.AUDIO_SESSION_START,
                 audioSessionStart = new AudioSessionPayload
                 {
-                    mode = MicrophoneMode.EXPECT_AUDIO_END.ToString()
+                    mode = micMode
                 }
             };
             InworldPacket rawPkt = new ControlPacket(control);
@@ -736,7 +735,8 @@ namespace Inworld
         /// However, if you send this event twice in a row, without sending `StopAudio()`, Inworld server will also through exceptions and terminate the session.
         /// </summary>
         /// <param name="charID">the live session ID of the character to send.</param>
-        public virtual void StartAudio(string charID)
+        /// <param name="micMode">If you'd like to enable the character interrupt you, check this option to OPEN_MIC.</param>
+        public virtual void StartAudio(string charID, MicrophoneMode micMode = MicrophoneMode.EXPECT_AUDIO_END)
         {
             if (string.IsNullOrEmpty(charID))
                 return;
@@ -752,7 +752,7 @@ namespace Inworld
                     action = ControlType.AUDIO_SESSION_START,
                     audioSessionStart = new AudioSessionPayload
                     {
-                        mode = MicrophoneMode.EXPECT_AUDIO_END.ToString()
+                        mode = micMode
                     }
                 }
             };
@@ -1073,6 +1073,9 @@ namespace Inworld
         void OnSocketClosed(object sender, CloseEventArgs e)
         {
             InworldAI.Log($"Closed: StatusCode: {e.StatusCode}, Reason: {e.Reason}");
+            // YAN: We won't store the external saved state. Please use enable loadHistory and SessionHistory for load previous history data.
+            if (m_Continuation != null)
+                m_Continuation.externallySavedState = ""; 
             if (Status != InworldConnectionStatus.Error)
                 Status = InworldConnectionStatus.Idle;
         }
