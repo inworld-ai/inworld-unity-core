@@ -130,7 +130,7 @@ namespace Inworld.Sample
         }
         protected virtual void HandleInput()
         {
-            if (m_SubmitInputAction.WasReleasedThisFrame())
+            if (m_SubmitInputAction != null && m_SubmitInputAction.WasReleasedThisFrame())
                 SendText();
         }
     }

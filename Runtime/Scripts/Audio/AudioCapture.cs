@@ -114,7 +114,7 @@ namespace Inworld
 		/// <summary>
         /// Whether the Input Action for Push-to-Talk has bindings.
         /// </summary>
-        public bool IsValidPushToTalkInput => m_PushToTalkInputAction.bindings.Count > 0;
+        public bool IsValidPushToTalkInput => m_PushToTalkInputAction != null && m_PushToTalkInputAction.bindings.Count > 0;
 		
         /// <summary>
         /// A flag to check if player is allowed to speak and without filtering

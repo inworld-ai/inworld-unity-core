@@ -91,11 +91,11 @@ namespace Inworld.Interactions
         }
         void Update()
         {
-            if (m_SkipAction.WasReleasedThisFrame())
+            if (m_SkipAction != null && m_SkipAction.WasReleasedThisFrame())
                 SkipCurrentUtterance();
-            if (m_ContinueAction.WasPressedThisFrame())
+            if (m_ContinueAction != null && m_ContinueAction.WasPressedThisFrame())
                 UnpauseUtterance();
-            if (m_ContinueAction.WasReleasedThisFrame())
+            if (m_ContinueAction != null && m_ContinueAction.WasReleasedThisFrame())
                 PauseUtterance();
             m_Proceed = m_AutoProceed || m_LastFromPlayer || m_IsContinueKeyPressed || m_CurrentInteraction == null || m_CurrentInteraction.IsEmpty;
         }
