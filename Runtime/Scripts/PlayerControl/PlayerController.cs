@@ -22,29 +22,18 @@ namespace Inworld.Sample
     public class PlayerController : SingletonBehavior<PlayerController>
     {
         [Header("References")]
-        [SerializeField] protected PlayerInput m_PlayerInput;
         [SerializeField] protected TMP_InputField m_InputField;
         [SerializeField] protected TMP_Dropdown m_Dropdown;
         [SerializeField] protected Button m_SendButton;
         [SerializeField] protected Button m_RecordButton;
+
+        protected InputAction m_SubmitInputAction;
+        
         public UnityEvent<string> onPlayerSpeaks;
-        /// <summary>
-        /// Get the PlayerInput component.
-        /// </summary>
-        public PlayerInput PlayerInput => m_PlayerInput;
         /// <summary>
         /// Get if any canvas is open.
         /// </summary>
         public virtual bool IsAnyCanvasOpen => true;
-        /// <summary>
-        /// Get the named Input Action from the PlayerInput component.
-        /// </summary>
-        /// <param name="actionName">The name of the Input Action to return.</param>
-        /// <returns>The Input Action if it exists, otherwise returns null.</returns>
-        public InputAction GetInputAction(string actionName)
-        {
-            return m_PlayerInput.actions.FindAction(actionName);
-        }
         /// <summary>
         /// Send target message in the input field.
         /// </summary>
@@ -78,6 +67,11 @@ namespace Inworld.Sample
             if (!character || character == InworldController.CharacterHandler.CurrentCharacter)
                 return;
             InworldController.CharacterHandler.CurrentCharacter = character;
+        }
+
+        protected virtual void Awake()
+        {
+            m_SubmitInputAction = InworldAI.InputActions["Submit"];
         }
 
         protected virtual void OnEnable()
@@ -136,7 +130,7 @@ namespace Inworld.Sample
         }
         protected virtual void HandleInput()
         {
-            if (m_PlayerInput.actions["Submit"].WasReleasedThisFrame())
+            if (m_SubmitInputAction.WasReleasedThisFrame())
                 SendText();
         }
     }

@@ -15,8 +15,6 @@ namespace Inworld.Interactions
 {
     public class InworldInteraction : MonoBehaviour
     {
-        [SerializeField] InputActionReference m_ContinueAction;
-        [SerializeField] InputActionReference m_SkipAction;
         [SerializeField] GameObject m_ContinueButton;
         [SerializeField] protected bool m_Interruptable = true;
         [SerializeField] protected bool m_AutoProceed = true;
@@ -24,6 +22,8 @@ namespace Inworld.Interactions
         [SerializeField] protected float m_TextSpeedMultipler = 0.02f;
         protected InworldCharacter m_Character;
         protected Interaction m_CurrentInteraction;
+        protected InputAction m_ContinueAction;
+        protected InputAction m_SkipAction;
         protected IEnumerator m_CurrentCoroutine;
         protected readonly IndexQueue<Interaction> m_Prepared = new IndexQueue<Interaction>();
         protected readonly IndexQueue<Interaction> m_Processed = new IndexQueue<Interaction>();
@@ -73,6 +73,8 @@ namespace Inworld.Interactions
                 m_Character = GetComponent<InworldCharacter>();
             if (!m_Character)
                 enabled = false;
+            m_ContinueAction = InworldAI.InputActions["Continue"];
+            m_SkipAction = InworldAI.InputActions["Skip"];
         }
         protected virtual void OnEnable()
         {
@@ -89,11 +91,11 @@ namespace Inworld.Interactions
         }
         void Update()
         {
-            if (m_SkipAction.action.WasReleasedThisFrame())
+            if (m_SkipAction.WasReleasedThisFrame())
                 SkipCurrentUtterance();
-            if (m_ContinueAction.action.WasPressedThisFrame())
+            if (m_ContinueAction.WasPressedThisFrame())
                 UnpauseUtterance();
-            if (m_ContinueAction.action.WasReleasedThisFrame())
+            if (m_ContinueAction.WasReleasedThisFrame())
                 PauseUtterance();
             m_Proceed = m_AutoProceed || m_LastFromPlayer || m_IsContinueKeyPressed || m_CurrentInteraction == null || m_CurrentInteraction.IsEmpty;
         }

@@ -30,8 +30,6 @@ namespace Inworld
     public class AudioCapture : MonoBehaviour
     {
         [SerializeField] protected MicSampleMode m_SamplingMode = MicSampleMode.NO_FILTER;
-        [Tooltip("Hold the key to sample, release the key to send audio")]
-        [SerializeField] protected InputActionReference m_PushToTalkInputAction;
         [Range(0, 30)][SerializeField] protected float m_PlayerVolumeThreshold = 10f;
         [SerializeField] protected int m_BufferSeconds = 1;
         [SerializeField] protected int m_AudioToPushCapacity = 100;
@@ -41,6 +39,7 @@ namespace Inworld
         [SerializeField] protected AudioEvent m_AudioEvent;
         
 #region Variables
+        protected InputAction m_PushToTalkInputAction;
         protected float m_CharacterVolume = 1f;
         protected MicSampleMode m_InitSampleMode;
         protected const int k_SizeofInt16 = sizeof(short);
@@ -113,11 +112,9 @@ namespace Inworld
             set => m_SamplingMode = value;
         }
 		/// <summary>
-        /// Whether there is a referenced Input Action with bindings for the Push-to-Talk input.
+        /// Whether the Input Action for Push-to-Talk has bindings.
         /// </summary>
-        public bool IsValidPushToTalkInput => m_PushToTalkInputAction != null && 
-                                              m_PushToTalkInputAction.action != null && 
-                                              m_PushToTalkInputAction.action.bindings.Count > 0;
+        public bool IsValidPushToTalkInput => m_PushToTalkInputAction.bindings.Count > 0;
 		
         /// <summary>
         /// A flag to check if player is allowed to speak and without filtering
@@ -148,7 +145,7 @@ namespace Inworld
         /// </summary>
         public bool IsRecording
         {
-            get => m_IsRecording || (IsValidPushToTalkInput && m_PushToTalkInputAction.action.IsPressed());
+            get => m_IsRecording || (IsValidPushToTalkInput && m_PushToTalkInputAction.IsPressed());
             set => m_IsRecording = value;
         }
         /// <summary>
@@ -351,6 +348,7 @@ namespace Inworld
 #region MonoBehaviour Functions
         protected virtual void Awake()
         {
+            m_PushToTalkInputAction = InworldAI.InputActions["PushToTalk"];
             Init();
         }
         
