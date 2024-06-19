@@ -32,7 +32,7 @@ namespace Inworld
         [SerializeField] protected MicSampleMode m_SamplingMode = MicSampleMode.NO_FILTER;
         [Tooltip("Hold the key to sample, release the key to send audio")]
         [SerializeField] protected KeyCode m_PushToTalkKey = KeyCode.None;
-        [Range(5, 30)][SerializeField] protected float m_PlayerVolumeThreshold = 10f;
+        [Range(0, 30)][SerializeField] protected float m_PlayerVolumeThreshold = 10f;
         [SerializeField] protected int m_BufferSeconds = 1;
         [SerializeField] protected int m_AudioToPushCapacity = 100;
         [SerializeField] protected string m_DeviceName;
@@ -152,6 +152,9 @@ namespace Inworld
         ///     (Either Enable AEC or it's Player's turn to speak)
         /// </summary>
         public bool IsAudioAvailable => m_SamplingMode == MicSampleMode.AEC || IsPlayerTurn;
+        /// <summary>
+        /// Gets/Sets if this component is detecting player speaking automatically.
+        /// </summary>
         public bool AutoDetectPlayerSpeaking
         {
             get => m_DetectPlayerSpeaking 
@@ -282,7 +285,9 @@ namespace Inworld
             StartMicrophone(m_DeviceName);
             Calibrate();
         }
-
+        /// <summary>
+        /// Send the audio chunk in the queue immediately to Inworld server.
+        /// </summary>
         public void PushAudioImmediate()
         {
             if (!m_AudioToPush.TryDequeue(out AudioChunk audioChunk))
@@ -308,11 +313,12 @@ namespace Inworld
         }
         public virtual void StartAudio()
         {
+            MicrophoneMode mode = m_PlayerVolumeThreshold > 0 ? MicrophoneMode.EXPECT_AUDIO_END : MicrophoneMode.OPEN_MIC;
             InworldCharacter character = InworldController.CharacterHandler.CurrentCharacter;
             if (character)
-                InworldController.Client.StartAudioTo(character.BrainName);
+                InworldController.Client.StartAudioTo(character.BrainName, mode);
             else
-                InworldController.Client.StartAudioTo();
+                InworldController.Client.StartAudioTo(null, mode);
         }
         public virtual void SendAudio(AudioChunk chunk)
         {
@@ -342,7 +348,6 @@ namespace Inworld
             m_BackgroundNoise = 0;
             m_CalibratingTime = 0;
         }
-
 #endregion
 
 #region MonoBehaviour Functions
@@ -452,6 +457,7 @@ namespace Inworld
                 ProcessAudio();
                 Collect();
                 yield return OutputData();
+                yield return new WaitForSecondsRealtime(0.1f);
             }
         }
         protected virtual void PreProcessAudioData(ref List<short> array, float[] data, int channels, bool debug = true)
@@ -506,7 +512,7 @@ namespace Inworld
                 PushAudioImmediate();
             if (m_AudioToPush.Count > m_AudioToPushCapacity)
                 m_AudioToPush.TryDequeue(out AudioChunk chunk);
-            yield return new WaitForSecondsRealtime(0.1f);
+            yield break;
         }
         // Deprecated
         protected int GetAudioData()
