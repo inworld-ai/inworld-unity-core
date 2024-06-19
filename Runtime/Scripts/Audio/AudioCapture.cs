@@ -46,6 +46,8 @@ namespace Inworld
         protected const int k_SizeofInt16 = sizeof(short);
         protected const int k_SampleRate = 16000;
         protected const int k_Channel = 1;
+        protected int m_OutputSampleRate = k_SampleRate;
+        protected int m_OutputChannels = k_Channel;
         protected AudioSource m_RecordingSource;
         protected IEnumerator m_AudioCoroutine;
         protected bool m_IsRecording;
@@ -59,8 +61,8 @@ namespace Inworld
         protected int m_BufferSize;
         protected readonly ConcurrentQueue<AudioChunk> m_AudioToPush = new ConcurrentQueue<AudioChunk>();
         protected List<AudioDevice> m_Devices = new List<AudioDevice>();
-        protected byte[] m_ByteBuffer;
-        protected float[] m_InputBuffer;
+        protected List<short> m_InputBuffer = new List<short>();
+        protected List<short> m_ProcessedWaveData = new List<short>();
         static int m_nPosition;
 #if UNITY_WEBGL
         protected static float[] s_WebGLBuffer;
@@ -322,15 +324,6 @@ namespace Inworld
             }
             InworldController.Client.SendAudioTo(chunk.chunk);
         }
-        
-        /// <summary>
-        /// Get the audio data from the AudioSource.
-        /// </summary>
-        /// <param name="data">the output data</param>
-        public virtual void GetInputData(float[] data, int channels)
-        {
-            
-        }
         /// <summary>
         /// Get the audio data from the AudioListener.
         /// Need AECProbe attached to the AudioListener first.
@@ -349,27 +342,7 @@ namespace Inworld
             m_BackgroundNoise = 0;
             m_CalibratingTime = 0;
         }
-        protected IEnumerator _Calibrate()
-        {
-#if UNITY_WEBGL && !UNITY_EDITOR
-            if (WebGLIsRecording() == 0)
-                StartMicrophone(m_DeviceName);
-#else
-            if (!Microphone.IsRecording(m_DeviceName))
-                StartMicrophone(m_DeviceName);
-#endif
-            Event.onStartCalibrating?.Invoke();
-            while (m_BackgroundNoise == 0 || m_CalibratingTime < m_BufferSeconds)
-            {
-                int nSize = GetAudioData();
-                m_CalibratingTime += 0.1f;
-                yield return new WaitForSecondsRealtime(0.1f);
-                float rms = CalculateRMS();
-                if (rms > m_BackgroundNoise)
-                    m_BackgroundNoise = rms;
-            }
-            Event.onStopCalibrating?.Invoke();
-        }
+
 #endregion
 
 #region MonoBehaviour Functions
@@ -393,6 +366,10 @@ namespace Inworld
             StopMicrophone(m_DeviceName);
         }
 
+        void OnAudioFilterRead(float[] data, int channels)
+        {
+        //    PreProcessAudioData(ref m_InputBuffer, data, channels);
+        }
         protected virtual void OnDestroy()
         {
             m_Devices.Clear();
@@ -407,58 +384,121 @@ namespace Inworld
             if (m_AudioToPush.Count > m_AudioToPushCapacity)
                 m_AudioToPush.TryDequeue(out AudioChunk chunk);
         }
-        protected void OnAudioFilterRead(float[] data, int channels)
-        {
-            GetInputData(data, channels);
-        }
+
 #endregion
 
 #region Protected Functions
 
         protected virtual void Init()
         {
-            
+            AudioConfiguration audioSetting = AudioSettings.GetConfiguration();
+            m_OutputSampleRate = audioSetting.sampleRate;
+            m_OutputChannels = audioSetting.speakerMode == AudioSpeakerMode.Stereo ? 2 : 1;
             m_BufferSize = m_BufferSeconds * k_SampleRate;
-            m_ByteBuffer = new byte[m_BufferSize * k_Channel * k_SizeofInt16];
-            m_InputBuffer = new float[m_BufferSize * k_Channel];
             m_InitSampleMode = m_SamplingMode;
 #if UNITY_WEBGL && !UNITY_EDITOR
             s_WebGLBuffer = new float[m_BufferSize * k_Channel];
             WebGLInit(OnWebGLInitialized);
 #endif
         }
+        protected virtual IEnumerator _Calibrate()
+        {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            if (WebGLIsRecording() == 0)
+                StartMicrophone(m_DeviceName);
+#else
+            if (!Microphone.IsRecording(m_DeviceName))
+                StartMicrophone(m_DeviceName);
+#endif
+            Event.onStartCalibrating?.Invoke();
+            Recording.volume = 0.5f;
+            while (m_BackgroundNoise == 0 || m_CalibratingTime < m_BufferSeconds)
+            {
+                int nSize = GetAudioData();
+                m_CalibratingTime += 0.1f;
+                yield return new WaitForSecondsRealtime(0.1f);
+                float rms = CalculateRMS();
+                if (rms > m_BackgroundNoise)
+                    m_BackgroundNoise = rms;
+            }
+            Recording.volume = 1f;
+            Event.onStopCalibrating?.Invoke();
+        }
+        /// <summary>
+        /// Resample all the incoming audio data to the Inworld server supported data (16000 * 1).
+        /// </summary>
+        protected float[] Resample(float[] inputSamples, int inputSampleRate, int inputChannels) 
+        {
+            int nResampleRatio = inputSampleRate * inputChannels / k_SampleRate;
+            if (nResampleRatio == 1)
+                return inputSamples;
+            int nTargetLength = inputSamples.Length / nResampleRatio;
+
+            float[] resamples = new float[nTargetLength];
+
+            for (int i = 0; i < nTargetLength; i++)
+            {
+                int index = i * nResampleRatio;
+                resamples[i] = inputSamples[index];
+            }
+            return resamples;
+        }
+        
         protected virtual IEnumerator AudioCoroutine()
         {
             while (true)
             {
                 yield return _Calibrate();
-                yield return Collect();
+                ProcessAudio();
+                Collect();
                 yield return OutputData();
             }
         }
-        protected virtual IEnumerator Collect()
+        protected virtual void PreProcessAudioData(ref List<short> array, float[] data, int channels, bool debug = true)
+        {
+            float[] resampledData = debug ? data : Resample(data, m_OutputSampleRate, channels);
+            foreach (float sample in resampledData)
+            {
+                float clampedSample = Math.Max(-1.0f, Math.Min(1.0f, sample));
+                array.Add((short)(clampedSample * 32767));
+            }
+        }
+        protected virtual void RemoveOverDueData(ref List<short> array)
+        {
+            if (array.Count > k_SampleRate * k_SizeofInt16 * m_BufferSeconds)
+                array.RemoveRange(0, array.Count - k_SampleRate * k_SizeofInt16 * m_BufferSeconds);
+        }
+        
+        protected virtual void ProcessAudio()
+        {
+            m_ProcessedWaveData.AddRange(m_InputBuffer);
+            m_InputBuffer.Clear();
+            RemoveOverDueData(ref m_ProcessedWaveData);
+        }
+        protected virtual void Collect()
         {
             if (m_SamplingMode == MicSampleMode.NO_MIC)
-                yield break;
+                return;
             if (m_SamplingMode != MicSampleMode.PUSH_TO_TALK && m_BackgroundNoise == 0)
-                yield break;
+                return;
             int nSize = GetAudioData();
             if (nSize <= 0)
-                yield break;
+                return;
             IsPlayerSpeaking = CalculateSNR() > m_PlayerVolumeThreshold;
             IsCapturing = IsRecording || AutoDetectPlayerSpeaking && IsPlayerSpeaking;
             if (IsCapturing)
             {
                 string charName = InworldController.CharacterHandler.CurrentCharacter ? InworldController.CharacterHandler.CurrentCharacter.BrainName : "";
-                byte[] output = Output(nSize * Recording.clip.channels);
+                byte[] output = Output(m_ProcessedWaveData.Count);
+                m_ProcessedWaveData.Clear();
                 string audioData = Convert.ToBase64String(output);
                 m_AudioToPush.Enqueue(new AudioChunk
                 {
                     chunk = audioData,
                     targetName = charName
                 });
+                
             }
-            yield return new WaitForSecondsRealtime(0.1f);
         }
         protected virtual IEnumerator OutputData()
         {
@@ -468,6 +508,7 @@ namespace Inworld
                 m_AudioToPush.TryDequeue(out AudioChunk chunk);
             yield return new WaitForSecondsRealtime(0.1f);
         }
+        // Deprecated
         protected int GetAudioData()
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -486,9 +527,12 @@ namespace Inworld
             if (!WebGLGetAudioData(m_LastPosition))
                 return -1;
 #else
-            if (!Recording.clip || !Recording.clip.GetData(m_InputBuffer, m_LastPosition))
+            float[] buffer = new float[nSize];
+            if (!Recording.clip)
                 return -1;
 #endif
+            Recording.clip.GetData(buffer, m_LastPosition);
+            PreProcessAudioData(ref m_InputBuffer, buffer, 1);
             m_LastPosition = m_nPosition % m_BufferSize;
             return nSize;
         }
@@ -560,16 +604,23 @@ namespace Inworld
         
         protected virtual byte[] Output(int nSize)
         {
-            WavUtility.ConvertAudioClipDataToInt16ByteArray(m_InputBuffer, nSize * Recording.clip.channels, m_ByteBuffer);
-            int nWavCount = nSize * Recording.clip.channels * k_SizeofInt16;
+            int nWavCount = nSize * k_SizeofInt16;
             byte[] output = new byte[nWavCount];
-            Buffer.BlockCopy(m_ByteBuffer, 0, output, 0, nWavCount);
+            Buffer.BlockCopy(m_ProcessedWaveData.ToArray(), 0, output, 0, nWavCount);
             return output;
         }
         // Root Mean Square, used to measure the variation of the noise.
         protected float CalculateRMS()
         {
-            return Mathf.Sqrt(m_InputBuffer.Average(sample => sample * sample));
+            List<short> inputTmp = new List<short>();
+            inputTmp.AddRange(m_InputBuffer);
+            long nMaxSample = 0;
+            int nCount = m_InputBuffer.Count > 0 ? m_InputBuffer.Count : 1;
+            foreach (var sample in inputTmp)
+            {
+                nMaxSample += sample * sample;
+            }
+            return Mathf.Sqrt(nMaxSample / (float)nCount);
         }
         // Sound Noise Ratio (dB). Used to check how loud the input voice is.
         protected float CalculateSNR()
