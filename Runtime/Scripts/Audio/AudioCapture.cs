@@ -46,7 +46,7 @@ namespace Inworld
         protected const int k_SizeofInt16 = sizeof(short);
         protected const int k_SampleRate = 16000;
         protected const int k_Channel = 1;
-        protected AudioClip m_Recording;
+        protected AudioSource m_RecordingSource;
         protected IEnumerator m_AudioCoroutine;
         protected bool m_IsRecording;
         protected bool m_IsPlayerSpeaking;
@@ -69,6 +69,21 @@ namespace Inworld
 #endregion
         
 #region Properties
+        /// <summary>
+        /// Gets the recording audio source
+        /// </summary>
+        public AudioSource Recording
+        {
+            get
+            {
+                if (m_RecordingSource)
+                    return m_RecordingSource;
+                m_RecordingSource = GetComponent<AudioSource>();
+                if (!m_RecordingSource)
+                    m_RecordingSource = gameObject.AddComponent<AudioSource>();
+                return m_RecordingSource;
+            }
+        }
         /// <summary>
         /// Gets the event handler of AudioCapture.
         /// </summary>
@@ -402,6 +417,7 @@ namespace Inworld
 
         protected virtual void Init()
         {
+            
             m_BufferSize = m_BufferSeconds * k_SampleRate;
             m_ByteBuffer = new byte[m_BufferSize * k_Channel * k_SizeofInt16];
             m_InputBuffer = new float[m_BufferSize * k_Channel];
@@ -434,7 +450,7 @@ namespace Inworld
             if (IsCapturing)
             {
                 string charName = InworldController.CharacterHandler.CurrentCharacter ? InworldController.CharacterHandler.CurrentCharacter.BrainName : "";
-                byte[] output = Output(nSize * m_Recording.channels);
+                byte[] output = Output(nSize * Recording.clip.channels);
                 string audioData = Convert.ToBase64String(output);
                 m_AudioToPush.Enqueue(new AudioChunk
                 {
@@ -470,7 +486,7 @@ namespace Inworld
             if (!WebGLGetAudioData(m_LastPosition))
                 return -1;
 #else
-            if (!m_Recording || !m_Recording.GetData(m_InputBuffer, m_LastPosition))
+            if (!Recording.clip || !Recording.clip.GetData(m_InputBuffer, m_LastPosition))
                 return -1;
 #endif
             m_LastPosition = m_nPosition % m_BufferSize;
@@ -544,8 +560,8 @@ namespace Inworld
         
         protected virtual byte[] Output(int nSize)
         {
-            WavUtility.ConvertAudioClipDataToInt16ByteArray(m_InputBuffer, nSize * m_Recording.channels, m_ByteBuffer);
-            int nWavCount = nSize * m_Recording.channels * k_SizeofInt16;
+            WavUtility.ConvertAudioClipDataToInt16ByteArray(m_InputBuffer, nSize * Recording.clip.channels, m_ByteBuffer);
+            int nWavCount = nSize * Recording.clip.channels * k_SizeofInt16;
             byte[] output = new byte[nWavCount];
             Buffer.BlockCopy(m_ByteBuffer, 0, output, 0, nWavCount);
             return output;
@@ -573,22 +589,22 @@ namespace Inworld
                 throw new ArgumentException("Couldn't acquire device ID for device name " + deviceName);
             if (WebGLIsRecording() == 1)
                 return;
-            if (m_Recording)
-                Destroy(m_Recording);
-            m_Recording = AudioClip.Create("Microphone", k_SampleRate * m_BufferSeconds, 1, k_SampleRate, false);
+            if (Recording.clip)
+                Destroy(Recording.clip);
+            Recording.clip = AudioClip.Create("Microphone", k_SampleRate * m_BufferSeconds, 1, k_SampleRate, false);
             if (s_WebGLBuffer == null || s_WebGLBuffer.Length == 0)
                 s_WebGLBuffer = new float[k_SampleRate];
             WebGLInitSamplesMemoryData(s_WebGLBuffer, s_WebGLBuffer.Length);
             WebGLMicStart(microphoneDeviceIDFromName, k_SampleRate, m_BufferSeconds);
 #else
-            m_Recording = Microphone.Start(deviceName, true, m_BufferSeconds, k_SampleRate);
+            Recording.clip = Microphone.Start(deviceName, true, m_BufferSeconds, k_SampleRate);
 #endif
         }
         protected void StopMicrophone(string deviceName)
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
             WebGLMicEnd();
-            m_Recording.SetData(m_InputBuffer, 0);
+            Recording.clip.SetData(m_InputBuffer, 0);
 #else
             Microphone.End(deviceName);
 #endif
