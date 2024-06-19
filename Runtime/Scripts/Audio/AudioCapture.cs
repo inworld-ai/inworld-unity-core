@@ -307,6 +307,24 @@ namespace Inworld
             }
             InworldController.Client.SendAudioTo(chunk.chunk);
         }
+        
+        /// <summary>
+        /// Get the audio data from the AudioSource.
+        /// </summary>
+        /// <param name="data">the output data</param>
+        public virtual void GetInputData(float[] data, int channels)
+        {
+            
+        }
+        /// <summary>
+        /// Get the audio data from the AudioListener.
+        /// Need AECProbe attached to the AudioListener first.
+        /// </summary>
+        /// <param name="data">the output data</param>
+        public virtual void GetOutputData(float[] data, int channels)
+        {
+            
+        }
         /// <summary>
         ///     Recalculate the background noise (including bg music, etc)
         ///     Please call it whenever audio environment changed in your game.
@@ -374,7 +392,10 @@ namespace Inworld
             if (m_AudioToPush.Count > m_AudioToPushCapacity)
                 m_AudioToPush.TryDequeue(out AudioChunk chunk);
         }
-
+        protected void OnAudioFilterRead(float[] data, int channels)
+        {
+            GetInputData(data, channels);
+        }
 #endregion
 
 #region Protected Functions
