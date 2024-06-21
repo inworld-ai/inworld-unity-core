@@ -62,6 +62,7 @@ namespace Inworld
         protected readonly ConcurrentQueue<AudioChunk> m_AudioToPush = new ConcurrentQueue<AudioChunk>();
         protected List<AudioDevice> m_Devices = new List<AudioDevice>();
         protected List<short> m_InputBuffer = new List<short>();
+        protected float[] m_RawInput;
         protected List<short> m_ProcessedWaveData = new List<short>();
         static int m_nPosition;
 #if UNITY_WEBGL
@@ -249,6 +250,11 @@ namespace Inworld
         /// Get if aec is enabled. The parent class by default is false.
         /// </summary>
         public virtual bool EnableAEC => false;
+
+        /// <summary>
+        /// Get if VAD is enabled. The parent class by default is false.
+        /// </summary>
+        public virtual bool EnableVAD => false;
 #endregion
 
 #if UNITY_WEBGL && !UNITY_EDITOR 
@@ -417,17 +423,20 @@ namespace Inworld
                 StartMicrophone(m_DeviceName);
 #endif
             Event.onStartCalibrating?.Invoke();
-            Recording.volume = 0.5f;
-            while (m_BackgroundNoise == 0 || m_CalibratingTime < m_BufferSeconds)
+            if (!EnableVAD) // Use local method to calculate SNR.
             {
-                int nSize = GetAudioData();
-                m_CalibratingTime += 0.1f;
-                yield return new WaitForSecondsRealtime(0.1f);
-                float rms = CalculateRMS();
-                if (rms > m_BackgroundNoise)
-                    m_BackgroundNoise = rms;
+                Recording.volume = 0.5f;
+                while (m_BackgroundNoise == 0 || m_CalibratingTime < m_BufferSeconds)
+                {
+                    int nSize = GetAudioData();
+                    m_CalibratingTime += 0.1f;
+                    yield return new WaitForSecondsRealtime(0.1f);
+                    float rms = CalculateRMS();
+                    if (rms > m_BackgroundNoise)
+                        m_BackgroundNoise = rms;
+                }
+                Recording.volume = 1f;
             }
-            Recording.volume = 1f;
             Event.onStopCalibrating?.Invoke();
         }
         /// <summary>
@@ -486,13 +495,13 @@ namespace Inworld
         {
             if (m_SamplingMode == MicSampleMode.NO_MIC)
                 return;
-            if (m_SamplingMode != MicSampleMode.PUSH_TO_TALK && m_BackgroundNoise == 0)
+            if (m_SamplingMode != MicSampleMode.PUSH_TO_TALK && !EnableVAD && m_BackgroundNoise == 0)
                 return;
             int nSize = GetAudioData();
             if (nSize <= 0)
                 return;
-            IsPlayerSpeaking = true;
-            IsCapturing = IsRecording || AutoDetectPlayerSpeaking && IsPlayerSpeaking;
+            IsPlayerSpeaking = DetectPlayerSpeaking();
+            IsCapturing = IsRecording || IsPlayerSpeaking;
             if (IsCapturing)
             {
                 string charName = InworldController.CharacterHandler.CurrentCharacter ? InworldController.CharacterHandler.CurrentCharacter.BrainName : "";
@@ -504,9 +513,10 @@ namespace Inworld
                     chunk = audioData,
                     targetName = charName
                 });
-                
             }
         }
+        protected virtual bool DetectPlayerSpeaking() => AutoDetectPlayerSpeaking;
+
         protected virtual IEnumerator OutputData()
         {
             if (InworldController.Client && InworldController.Client.Status == InworldConnectionStatus.Connected)
@@ -534,12 +544,12 @@ namespace Inworld
             if (!WebGLGetAudioData(m_LastPosition))
                 return -1;
 #else
-            float[] buffer = new float[nSize];
+            m_RawInput = new float[nSize];
             if (!Recording.clip)
                 return -1;
 #endif
-            Recording.clip.GetData(buffer, m_LastPosition);
-            PreProcessAudioData(ref m_InputBuffer, buffer, 1);
+            Recording.clip.GetData(m_RawInput, m_LastPosition);
+            PreProcessAudioData(ref m_InputBuffer, m_RawInput, 1);
             m_LastPosition = m_nPosition % m_BufferSize;
             return nSize;
         }
@@ -619,14 +629,10 @@ namespace Inworld
         // Root Mean Square, used to measure the variation of the noise.
         protected float CalculateRMS()
         {
-            List<short> inputTmp = new List<short>();
-            inputTmp.AddRange(m_InputBuffer);
-            long nMaxSample = 0;
+            // List<short> inputTmp = new List<short>();
+            // inputTmp.AddRange(m_InputBuffer);
             int nCount = m_InputBuffer.Count > 0 ? m_InputBuffer.Count : 1;
-            foreach (var sample in inputTmp)
-            {
-                nMaxSample += sample * sample;
-            }
+            long nMaxSample = m_InputBuffer.Aggregate<short, long>(0, (current, sample) => current + sample * sample);
             return Mathf.Sqrt(nMaxSample / (float)nCount);
         }
         // Sound Noise Ratio (dB). Used to check how loud the input voice is.
