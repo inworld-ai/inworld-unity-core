@@ -170,7 +170,12 @@ namespace Inworld
         public bool IsRecording
         {
             get => m_IsRecording || Input.GetKey(m_PushToTalkKey);
-            set => m_IsRecording = value;
+            set
+            {
+                m_IsRecording = value;
+                if (m_IsRecording)
+                    m_ProcessedWaveData.Clear();
+            }
         }
         /// <summary>
         /// Signifies if user is speaking based on audio amplitude and threshold.
@@ -629,11 +634,15 @@ namespace Inworld
         // Root Mean Square, used to measure the variation of the noise.
         protected float CalculateRMS()
         {
-            // List<short> inputTmp = new List<short>();
-            // inputTmp.AddRange(m_InputBuffer);
-            int nCount = m_InputBuffer.Count > 0 ? m_InputBuffer.Count : 1;
-            long nMaxSample = m_InputBuffer.Aggregate<short, long>(0, (current, sample) => current + sample * sample);
-            return Mathf.Sqrt(nMaxSample / (float)nCount);
+            if (m_RawInput == null || m_RawInput.Length == 0)
+                return 0;
+            int nCount = m_RawInput.Length > 0 ? m_RawInput.Length : 1;
+            double nMaxSample = 0;
+            foreach (float sample in m_RawInput)
+            {
+                nMaxSample += (sample * sample);
+            }
+            return Mathf.Sqrt((float)nMaxSample / nCount);
         }
         // Sound Noise Ratio (dB). Used to check how loud the input voice is.
         protected float CalculateSNR()
