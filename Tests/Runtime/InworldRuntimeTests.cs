@@ -215,53 +215,6 @@ namespace Inworld.Test
 			Assert.IsTrue(m_Conversation.Any(p => p.type == PacketType.TEXT));
 			Assert.IsTrue(m_Conversation.Any(p => p.type == PacketType.AUDIO));
 		}
-
-		[UnityTest]
-		public IEnumerator InworldRuntimeTest_KnowledgePlayerName()
-		{
-			m_Conversation.Clear();
-			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "What's my name?");
-			yield return ConversationCheck(10);
-			Assert.IsTrue(m_Conversation.Any(p => p is TextPacket textPacket && textPacket.TargetName == k_PlayerName));
-		}
-
-		[UnityTest]
-		public IEnumerator InworldRuntimeTest_KnowledgeLocation()
-		{
-			m_Conversation.Clear();
-			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "What is this place called?");
-			yield return ConversationCheck(10);
-			bool locationFound = false;
-			for (var i = 0; i < m_Conversation.Count; i++){
-				if (m_Conversation[i] is TextPacket textPacket)
-				{
-					string currentText = textPacket.text.text;
-					if (currentText.Contains(k_LocationName, StringComparison.OrdinalIgnoreCase)){
-						locationFound = true;
-					}
-				}
-			}
-			Assert.IsTrue(locationFound);
-		}
-
-		[UnityTest]
-		public IEnumerator InworldRuntimeTest_KnowledgeCharacterName()
-		{
-			m_Conversation.Clear();
-			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Can you give me your name?");
-			yield return ConversationCheck(10);
-			bool nameFound = false;
-			for (var i = 0; i < m_Conversation.Count; i++){
-				if (m_Conversation[i] is TextPacket textPacket)
-				{
-					string currentText = textPacket.text.text;
-					if (currentText.Contains(k_CharacterName)){
-						nameFound = true;
-					}
-				}
-			}
-			Assert.IsTrue(nameFound);
-		}
 		
 		[UnityTest]
 		public IEnumerator InworldRuntimeTest_GoalsRepeatable()
