@@ -918,8 +918,9 @@ namespace Inworld
             // YAN: Fetch all the characterData in the current session.
             foreach (InworldCharacterData agent in agents.Where(agent => !string.IsNullOrEmpty(agent.agentId) && !string.IsNullOrEmpty(agent.brainName)))
             {
+                InworldCharacter character = InworldController.CharacterHandler.GetCharacterByBrainName(agent.brainName);
                 m_LiveSessionData[agent.brainName] = agent;
-                StartCoroutine(agent.UpdateThumbnail());
+                StartCoroutine(agent.UpdateThumbnail(character ? character.Data.thumbnail : null));
             }
         }
         protected string _GetSessionFullName(string sceneFullName)

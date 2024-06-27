@@ -29,8 +29,9 @@ namespace Inworld.Entities
             givenName = charRef.characterOverloads[0].defaultCharacterDescription.givenName;
             characterAssets = new CharacterAssets(charRef.characterOverloads[0].defaultCharacterAssets);
         }
-        public IEnumerator UpdateThumbnail()
+        public IEnumerator UpdateThumbnail(Texture2D inputThumbnail = null)
         {
+            thumbnail = inputThumbnail;
             if (thumbnail)
                 yield break;
             string url = characterAssets?.ThumbnailURL;
