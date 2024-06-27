@@ -37,6 +37,7 @@ namespace Inworld
         [SerializeField] protected int m_AudioToPushCapacity = 100;
         [SerializeField] protected string m_DeviceName;
         [SerializeField] protected bool m_DetectPlayerSpeaking = true;
+        [Range(0.1f, 1f)] [SerializeField] protected float m_SwitchingAudioTimer = 0.5f;
         [Space(10)]
         [SerializeField] protected AudioEvent m_AudioEvent;
         
@@ -55,6 +56,7 @@ namespace Inworld
         protected bool m_IsCapturing;
         protected float m_BackgroundNoise;
         protected float m_CalibratingTime;
+        protected float m_CurrentAudioSwitchingTimer;
         // Last known position in AudioClip buffer.
         protected int m_LastPosition;
         // Size of audioclip used to collect information, need to be big enough to keep up with collect. 
@@ -87,6 +89,7 @@ namespace Inworld
                 return m_RecordingSource;
             }
         }
+        
         /// <summary>
         /// Gets the event handler of AudioCapture.
         /// </summary>
@@ -194,6 +197,11 @@ namespace Inworld
                     Event.onPlayerStopSpeaking?.Invoke();
             }
         }
+        
+        /// <summary>
+        /// Gets if is switching audio.
+        /// </summary>
+        public bool IsSwitchingAudio => m_CurrentAudioSwitchingTimer != 0;
         /// <summary>
         /// Signifies it's currently capturing.
         /// </summary>
@@ -202,9 +210,12 @@ namespace Inworld
             get => m_IsCapturing;
             set
             {
+                if (IsSwitchingAudio)
+                    return;
                 if (m_IsCapturing == value)
                     return;
                 m_IsCapturing = value;
+                m_CurrentAudioSwitchingTimer = m_SwitchingAudioTimer;
                 if (m_IsCapturing)
                 {
                     Event.onRecordingStart?.Invoke();
@@ -398,6 +409,7 @@ namespace Inworld
         }
         protected void Update()
         {
+            TimerCountDown();
             if (m_AudioToPush.Count > m_AudioToPushCapacity)
                 m_AudioToPush.TryDequeue(out AudioChunk chunk);
         }
@@ -405,7 +417,7 @@ namespace Inworld
 #endregion
 
 #region Protected Functions
-
+        
         protected virtual void Init()
         {
             AudioConfiguration audioSetting = AudioSettings.GetConfiguration();
@@ -443,6 +455,12 @@ namespace Inworld
                 Recording.volume = 1f;
             }
             Event.onStopCalibrating?.Invoke();
+        }
+
+        protected virtual void TimerCountDown()
+        {
+            m_CurrentAudioSwitchingTimer -= Time.deltaTime;
+            m_CurrentAudioSwitchingTimer = m_CurrentAudioSwitchingTimer < 0 ? 0 : m_CurrentAudioSwitchingTimer;
         }
         /// <summary>
         /// Resample all the incoming audio data to the Inworld server supported data (16000 * 1).
