@@ -16,6 +16,7 @@ namespace Inworld
     public class InworldUserSetting : ScriptableObject
     {
         [SerializeField] string m_PlayerName;
+        [SerializeField] Texture2D m_PlayerThumbnail;
         [SerializeField] List<PlayerProfileField> m_PlayerData = new List<PlayerProfileField>();
         [SerializeField] List<InworldWorkspaceData> m_Workspaces = new List<InworldWorkspaceData>();
         [HideInInspector][SerializeField] string m_UserID;
@@ -28,6 +29,14 @@ namespace Inworld
         {
             get => string.IsNullOrEmpty(m_PlayerName) ? "player" : m_PlayerName;
             set => m_PlayerName = value;
+        }
+        /// <summary>
+        /// Get/Set the player's thumbnail. By default it would be used in the global chat panel.
+        /// </summary>
+        public Texture2D Thumbnail
+        {
+            get => m_PlayerThumbnail ? m_PlayerThumbnail : InworldAI.DefaultThumbnail;
+            set => m_PlayerThumbnail = value;
         }
         /// <summary>
         /// Get the User request used for loading scene.
