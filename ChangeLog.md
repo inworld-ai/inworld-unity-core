@@ -1,3 +1,7 @@
+# 3.4.1
+1. Updated AEC logic to better sample the sound from microphone.
+2. Add client side voice recognition (Windows only).
+
 # 3.4.0
 New Feature:
 1. Supported multi agent v2.
