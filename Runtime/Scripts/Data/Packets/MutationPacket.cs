@@ -71,7 +71,9 @@ namespace Inworld.Packet
 	}
 	public class CancelResponse
 	{
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string interactionId;
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public List<string> utteranceId;
 	}
 	public class CancelResponseEvent : MutationEvent

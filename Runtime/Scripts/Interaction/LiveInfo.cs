@@ -79,7 +79,7 @@ namespace Inworld.Entities
 			if (brainName == SourceType.WORLD.ToString())
 				return true;
 			if (brainName != Character?.brainName && InworldController.CharacterHandler)
-				Character = InworldController.CharacterHandler.GetCharacterByBrainName(brainName)?.Data;
+				Character = InworldController.CharacterHandler[brainName]?.Data;
 			return Character != null;
 		}
 		public bool IsConversation

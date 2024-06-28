@@ -17,6 +17,7 @@ using System.Reflection;
 #endif
 
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Inworld
 {
@@ -29,6 +30,7 @@ namespace Inworld
         [SerializeField] Texture2D m_DefaultThumbnail;
         [SerializeField] InworldUserSetting m_DefaultUserSetting;
         [SerializeField] InworldController m_ControllerPrefab;
+        [SerializeField] InputActionAsset m_InputActions;
         
         [Space(10)]
         [SerializeField] bool m_Initialized;
@@ -98,6 +100,14 @@ namespace Inworld
         {
             get => Instance.m_Capabilities;
             set => Instance.m_Capabilities = value;
+        }
+        /// <summary>
+        /// The Input Action Asset that defines all the input controls utilized by the SDK.
+        /// </summary>
+        public static InputActionAsset InputActions
+        {
+            get => Instance.m_InputActions;
+            set => Instance.m_InputActions = value;
         }
         /// <summary>
         /// Get the default thumbnail for player and characters.
