@@ -178,7 +178,9 @@ namespace Inworld.Packet
 					OutgoingTargets[key] = value.agentId;
 				else
 				{
-					if (InworldAI.IsDebugMode)
+					if (InworldController.CharacterHandler 
+					    && InworldController.CharacterHandler[key] 
+					    && InworldController.CharacterHandler[key].EnableVerboseLog)
 						InworldAI.LogWarning($"{key} is not in the current session.");
 				}
 			}

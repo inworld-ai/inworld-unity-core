@@ -28,6 +28,14 @@ namespace Inworld
         RelationState m_CurrentRelation = new RelationState();
 
         /// <summary>
+        /// Gets if this character is in debug mode and enables verbose log.
+        /// </summary>
+        public bool EnableVerboseLog
+        {
+            get => m_VerboseLog;
+            set => m_VerboseLog = value;
+        }
+        /// <summary>
         /// Gets the Unity Events of the character.
         /// </summary>
         public CharacterEvents Event => m_CharacterEvents;

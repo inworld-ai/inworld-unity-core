@@ -348,7 +348,7 @@ namespace Inworld
                 return;
             if (!InworldController.Client.Current.IsConversation && chunk.targetName != InworldController.Client.Current.Character?.brainName)
             {
-                InworldController.Client.Current.Character = InworldController.CharacterHandler.GetCharacterByBrainName(chunk.targetName)?.Data;
+                InworldController.Client.Current.Character = InworldController.CharacterHandler[chunk.targetName]?.Data;
             }
             InworldController.Client.SendAudioTo(chunk.chunk);
         }
