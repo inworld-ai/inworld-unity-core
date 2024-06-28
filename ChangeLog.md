@@ -1,3 +1,7 @@
+# 3.4.2
+1. Upgrade with Unity's Input system for better customized key mapping.
+2. Simplify Editor extension workflow.
+
 # 3.4.1
 1. Updated AEC logic to better sample the sound from microphone.
 2. Add client side voice recognition (Windows only).
