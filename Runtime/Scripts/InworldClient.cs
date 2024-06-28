@@ -566,19 +566,18 @@ namespace Inworld
         /// <param name="utteranceID">the current utterance ID that needs to be cancelled.</param>
         /// <param name="brainName">the full name of the characters in the scene.</param>
         /// <param name="immediate">if this packet needs to send immediately without order. By default it's true (Need to make sure client is connected first).</param>
-        public virtual void SendCancelEventTo(string interactionID, string utteranceID = "", string brainName = null, bool immediate = true)
+        public virtual void SendCancelEventTo(string interactionID = "", string utteranceID = "", string brainName = null, bool immediate = true)
         {
-            if (string.IsNullOrEmpty(interactionID))
-                return;
             if (!Current.UpdateLiveInfo(brainName))
                 return;
+            CancelResponse cancelResponses = new CancelResponse();
+            if (!string.IsNullOrEmpty(interactionID))
+                cancelResponses.interactionId = interactionID;
+            if (!string.IsNullOrEmpty(utteranceID))
+                cancelResponses.utteranceId = new List<string> {utteranceID};
             CancelResponseEvent mutation = new CancelResponseEvent
             {
-                cancelResponses = new CancelResponse
-                {
-                    interactionId = interactionID,
-                    utteranceId = new List<string> {utteranceID}
-                }
+                cancelResponses = cancelResponses
             };
             InworldPacket rawPkt = new MutationPacket(mutation);
             PreparePacketToSend(rawPkt, immediate);
@@ -589,10 +588,15 @@ namespace Inworld
         /// <param name="characterID">the live session ID of the character to send</param>
         /// <param name="utteranceID">the current utterance ID that needs to be cancelled.</param>
         /// <param name="interactionID">the handle of the dialog context that needs to be cancelled.</param>
-        public virtual void SendCancelEvent(string characterID, string interactionID, string utteranceID = "")
+        public virtual void SendCancelEvent(string characterID, string interactionID = "", string utteranceID = "")
         {
             if (string.IsNullOrEmpty(characterID))
                 return;
+            CancelResponse cancelResponses = new CancelResponse();
+            if (!string.IsNullOrEmpty(interactionID))
+                cancelResponses.interactionId = interactionID;
+            if (!string.IsNullOrEmpty(utteranceID))
+                cancelResponses.utteranceId = new List<string> {utteranceID};
             MutationPacket cancelPacket = new MutationPacket
             {
                 timestamp = InworldDateTime.UtcNow,
@@ -601,11 +605,7 @@ namespace Inworld
                 routing = new Routing(characterID),
                 mutation = new CancelResponseEvent
                 {
-                    cancelResponses = new CancelResponse
-                    {
-                        interactionId = interactionID,
-                        utteranceId = new List<string> { utteranceID }
-                    }
+                    cancelResponses = cancelResponses
                 }
             };
             OnPacketSent?.Invoke(cancelPacket); 
