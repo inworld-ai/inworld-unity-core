@@ -12,7 +12,7 @@ using System.Collections.Concurrent;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-
+using UnityEngine.InputSystem;
 
 #if UNITY_WEBGL
 using AOT;
@@ -30,8 +30,6 @@ namespace Inworld
     public class AudioCapture : MonoBehaviour
     {
         [SerializeField] protected MicSampleMode m_SamplingMode = MicSampleMode.NO_FILTER;
-        [Tooltip("Hold the key to sample, release the key to send audio")]
-        [SerializeField] protected KeyCode m_PushToTalkKey = KeyCode.None;
         [Range(0, 30)][SerializeField] protected float m_PlayerVolumeThreshold = 10f;
         [SerializeField] protected int m_BufferSeconds = 1;
         [SerializeField] protected int m_AudioToPushCapacity = 100;
@@ -42,6 +40,7 @@ namespace Inworld
         [SerializeField] protected AudioEvent m_AudioEvent;
         
 #region Variables
+        protected InputAction m_PushToTalkInputAction;
         protected float m_CharacterVolume = 1f;
         protected MicSampleMode m_InitSampleMode;
         protected const int k_SizeofInt16 = sizeof(short);
@@ -107,15 +106,6 @@ namespace Inworld
             set => m_CharacterVolume = value;
         }
         /// <summary>
-        /// Gets/Sets the Push to talk key.
-        /// The auto detecting would only be effected if this key is NONE.
-        /// </summary>
-        public KeyCode PushToTalkKey
-        {
-            get => m_PushToTalkKey;
-            set => m_PushToTalkKey = value;
-        }
-        /// <summary>
         /// Signifies if audio should be pushed to server automatically as it is captured.
         /// </summary>
         public bool AutoPush
@@ -142,7 +132,11 @@ namespace Inworld
             get => m_SamplingMode;
             set => m_SamplingMode = value;
         }
-        
+		/// <summary>
+        /// Whether the Input Action for Push-to-Talk has bindings.
+        /// </summary>
+        public bool IsValidPushToTalkInput => m_PushToTalkInputAction != null && m_PushToTalkInputAction.bindings.Count > 0;
+		
         /// <summary>
         /// A flag to check if player is allowed to speak and without filtering
         /// </summary>
@@ -163,7 +157,7 @@ namespace Inworld
         {
             get => m_DetectPlayerSpeaking 
                    && (SampleMode != MicSampleMode.TURN_BASED || !InworldController.CharacterHandler.IsAnyCharacterSpeaking) 
-                   && PushToTalkKey == KeyCode.None; 
+                   && !IsValidPushToTalkInput; 
             set => m_DetectPlayerSpeaking = value;
         }
         /// <summary>
@@ -172,7 +166,7 @@ namespace Inworld
         /// </summary>
         public bool IsRecording
         {
-            get => m_IsRecording || Input.GetKey(m_PushToTalkKey);
+            get => m_IsRecording || (IsValidPushToTalkInput && m_PushToTalkInputAction.IsPressed());
             set
             {
                 m_IsRecording = value;
@@ -376,6 +370,7 @@ namespace Inworld
 #region MonoBehaviour Functions
         protected virtual void Awake()
         {
+            m_PushToTalkInputAction = InworldAI.InputActions["PushToTalk"];
             Init();
         }
         
