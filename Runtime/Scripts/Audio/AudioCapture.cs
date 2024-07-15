@@ -33,7 +33,7 @@ namespace Inworld
         [Tooltip("Hold the key to sample, release the key to send audio")]
         [SerializeField] protected KeyCode m_PushToTalkKey = KeyCode.None;
         [Range(0, 30)][SerializeField] protected float m_PlayerVolumeThreshold = 10f;
-        [SerializeField] protected int m_BufferSeconds = 1;
+        [Range(0.1f, 2f)][SerializeField] protected int m_BufferSeconds = 1;
         [SerializeField] protected int m_AudioToPushCapacity = 100;
         [SerializeField] protected string m_DeviceName;
         [SerializeField] protected bool m_DetectPlayerSpeaking = true;
@@ -486,8 +486,8 @@ namespace Inworld
         }
         protected virtual void RemoveOverDueData(ref List<short> array)
         {
-            if (array.Count > k_SampleRate * k_SizeofInt16 * m_BufferSeconds)
-                array.RemoveRange(0, array.Count - k_SampleRate * k_SizeofInt16 * m_BufferSeconds);
+            if (array.Count > k_SampleRate * m_BufferSeconds)
+                array.RemoveRange(0, array.Count - k_SampleRate * m_BufferSeconds);
         }
         
         protected virtual void ProcessAudio()
