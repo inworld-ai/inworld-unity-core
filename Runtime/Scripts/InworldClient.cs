@@ -900,7 +900,7 @@ namespace Inworld
                     }
                     if (Status == InworldConnectionStatus.Idle)
                     {
-                        GetAccessToken();
+                        Reconnect();
                     }
                     if (Status == InworldConnectionStatus.Initialized)
                     {
