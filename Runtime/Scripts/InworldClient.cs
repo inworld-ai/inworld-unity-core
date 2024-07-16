@@ -17,8 +17,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityWebSocket;
-using ErrorEventArgs = UnityWebSocket.ErrorEventArgs;
+
 
 namespace Inworld
 {
