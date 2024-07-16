@@ -1,3 +1,8 @@
+# 3.4.1
+1. Added Voice recognition client-side model support.
+2. Solve conflict with WebSockets with other packages.
+3. Bug fixes.
+
 # 3.4.0
 New Feature:
 1. Supported multi agent v2.
