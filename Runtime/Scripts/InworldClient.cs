@@ -390,7 +390,7 @@ namespace Inworld
                 List<string> result = AutoSceneSearch ? GetSceneNameByCharacter() : m_Prepared.FirstOrDefault()?.OutgoingTargets.Keys.ToList();
                 if (result == null || result.Count == 0)
                 {
-                    InworldAI.LogException("Characters not found in the workspace");
+                    InworldAI.LogError("Characters not found in the workspace");
                     return;
                 }
                 if (result.Count == 1 && result[0].Split(new[] { "/scenes/" }, StringSplitOptions.None).Length > 0)
