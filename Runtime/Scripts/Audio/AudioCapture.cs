@@ -37,6 +37,7 @@ namespace Inworld
         [SerializeField] protected int m_AudioToPushCapacity = 100;
         [SerializeField] protected string m_DeviceName;
         [SerializeField] protected bool m_DetectPlayerSpeaking = true;
+        [SerializeField] protected bool m_MutePlayerMic;
         [Space(10)]
         [SerializeField] protected AudioEvent m_AudioEvent;
         
@@ -86,6 +87,11 @@ namespace Inworld
                     m_RecordingSource = gameObject.AddComponent<AudioSource>();
                 return m_RecordingSource;
             }
+        }
+        public bool IsMute
+        {
+            get => m_MutePlayerMic;
+            set => m_MutePlayerMic = value;
         }
         /// <summary>
         /// Gets the event handler of AudioCapture.
@@ -516,7 +522,7 @@ namespace Inworld
                 });
             }
         }
-        protected virtual bool DetectPlayerSpeaking() => AutoDetectPlayerSpeaking;
+        protected virtual bool DetectPlayerSpeaking() => !IsMute && AutoDetectPlayerSpeaking;
 
         protected virtual IEnumerator OutputData()
         {
