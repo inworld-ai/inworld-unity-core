@@ -112,15 +112,6 @@ namespace Inworld
             get => m_CharacterVolume;
             set => m_CharacterVolume = value;
         }
-
-        /// Gets/Sets the Push to talk key.
-        /// The auto detecting would only be effected if this key is NONE.
-        /// </summary>
-        public KeyCode PushToTalkKey
-        {
-            get => m_PushToTalkKey;
-            set => m_PushToTalkKey = value;
-        }
         /// <summary>
         /// The sample mode used by the Microphone. Determines how audio input is handled and processed for interactions.
         /// </summary>
