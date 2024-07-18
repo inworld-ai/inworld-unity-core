@@ -119,25 +119,6 @@ namespace Inworld
             set => m_PushToTalkKey = value;
         }
         /// <summary>
-        /// Signifies if audio should be pushed to server automatically as it is captured.
-        /// </summary>
-        public bool AutoPush
-        {
-            get => m_SamplingMode != MicSampleMode.NO_MIC && m_SamplingMode != MicSampleMode.PUSH_TO_TALK;
-            set
-            {
-                if (value)
-                {
-                    if (m_SamplingMode == MicSampleMode.PUSH_TO_TALK)
-                        m_SamplingMode = m_InitSampleMode;
-                }
-                else
-                {
-                    m_SamplingMode = MicSampleMode.PUSH_TO_TALK;
-                }
-            }
-        }
-        /// <summary>
         /// The sample mode used by the Microphone. Determines how audio input is handled and processed for interactions.
         /// </summary>
         public MicSampleMode SampleMode
@@ -149,9 +130,7 @@ namespace Inworld
         /// <summary>
         /// A flag to check if player is allowed to speak and without filtering
         /// </summary>
-        public bool IsPlayerTurn => 
-            m_SamplingMode == MicSampleMode.NO_FILTER || 
-            m_SamplingMode == MicSampleMode.PUSH_TO_TALK || 
+        public bool IsPlayerTurn => IsRecording || m_SamplingMode == MicSampleMode.NO_FILTER || 
             m_SamplingMode== MicSampleMode.TURN_BASED && !InworldController.CharacterHandler.IsAnyCharacterSpeaking;
 
         /// <summary>
@@ -330,7 +309,7 @@ namespace Inworld
         }
         public virtual void StartAudio()
         {
-            MicrophoneMode mode = SampleMode == MicSampleMode.PUSH_TO_TALK ? MicrophoneMode.EXPECT_AUDIO_END : MicrophoneMode.OPEN_MIC;
+            MicrophoneMode mode = IsRecording ? MicrophoneMode.EXPECT_AUDIO_END : MicrophoneMode.OPEN_MIC;
             InworldCharacter character = InworldController.CharacterHandler.CurrentCharacter;
             if (character)
                 InworldController.Client.StartAudioTo(character.BrainName, mode);
@@ -502,7 +481,7 @@ namespace Inworld
         {
             if (m_SamplingMode == MicSampleMode.NO_MIC)
                 return;
-            if (m_SamplingMode != MicSampleMode.PUSH_TO_TALK && !EnableVAD && m_BackgroundNoise == 0)
+            if (!IsRecording && !EnableVAD && m_BackgroundNoise == 0)
                 return;
             int nSize = GetAudioData();
             if (nSize <= 0)
