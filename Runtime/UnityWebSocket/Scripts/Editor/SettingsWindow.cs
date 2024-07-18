@@ -4,7 +4,7 @@ using UnityEngine.Networking;
 using System.IO;
 using System;
 
-namespace UnityWebSocket.Editor
+namespace Inworld.Editor
 {
     internal class SettingsWindow : EditorWindow
     {

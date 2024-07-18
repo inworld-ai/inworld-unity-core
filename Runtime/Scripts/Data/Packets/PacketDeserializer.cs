@@ -48,4 +48,10 @@ namespace Inworld.Packet
 		}
 		public override bool CanWrite => false; // YAN: Use default serializer.
 	}
+    public class NetworkPacketResponse
+    {
+        [JsonConverter(typeof(PacketDeserializer))]
+        public InworldPacket result;
+        public InworldError error;
+    }
 }

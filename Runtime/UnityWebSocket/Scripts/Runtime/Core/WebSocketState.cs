@@ -1,4 +1,4 @@
-namespace UnityWebSocket
+namespace Inworld
 {
     /// <summary>
     /// Reference html5 WebSocket ReadyState Properties

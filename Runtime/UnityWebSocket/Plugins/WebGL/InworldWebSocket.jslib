@@ -1,4 +1,4 @@
-var WebSocketLibrary =
+var InworldWebSocketLibrary =
 {
     $webSocketManager:
     {
@@ -30,7 +30,7 @@ var WebSocketLibrary =
      *
      * @param callback Reference to C# static function
      */
-    WebSocketSetOnOpen: function(callback)
+    InworldWebSocketSetOnOpen: function(callback)
     {
         webSocketManager.onOpen = callback;
     },
@@ -40,7 +40,7 @@ var WebSocketLibrary =
      *
      * @param callback Reference to C# static function
      */
-    WebSocketSetOnMessage: function(callback)
+    InworldWebSocketSetOnMessage: function(callback)
     {
         webSocketManager.onMessage = callback;
     },
@@ -50,7 +50,7 @@ var WebSocketLibrary =
      *
      * @param callback Reference to C# static function
      */
-    WebSocketSetOnMessageStr: function(callback)
+    InworldWebSocketSetOnMessageStr: function(callback)
     {
         webSocketManager.onMessageStr = callback;
     },
@@ -60,7 +60,7 @@ var WebSocketLibrary =
      *
      * @param callback Reference to C# static function
      */
-    WebSocketSetOnError: function(callback)
+    InworldWebSocketSetOnError: function(callback)
     {
         webSocketManager.onError = callback;
     },
@@ -70,7 +70,7 @@ var WebSocketLibrary =
      *
      * @param callback Reference to C# static function
      */
-    WebSocketSetOnClose: function(callback)
+    InworldWebSocketSetOnClose: function(callback)
     {
         webSocketManager.onClose = callback;
     },
@@ -80,7 +80,7 @@ var WebSocketLibrary =
      *
      * @param url Server URL
      */
-    WebSocketAllocate: function(urlPtr, binaryTypePtr)
+    InworldWebSocketAllocate: function(urlPtr, binaryTypePtr)
     {
         var url = UTF8ToString(urlPtr);
         var binaryType = UTF8ToString(binaryTypePtr);
@@ -100,7 +100,7 @@ var WebSocketLibrary =
      * @param instanceId Instance ID
      * @param protocol Sub Protocol
      */
-    WebSocketAddSubProtocol: function(instanceId, protocolPtr)
+    InworldWebSocketAddSubProtocol: function(instanceId, protocolPtr)
     {
         var instance = webSocketManager.instances[instanceId];
         if (!instance) return -1;
@@ -123,7 +123,7 @@ var WebSocketLibrary =
      *
      * @param instanceId Instance ID
      */
-    WebSocketFree: function(instanceId)
+    InworldWebSocketFree: function(instanceId)
     {
         var instance = webSocketManager.instances[instanceId];
         if (!instance) return 0;
@@ -143,7 +143,7 @@ var WebSocketLibrary =
      *
      * @param instanceId Instance ID
      */
-    WebSocketConnect: function(instanceId)
+    InworldWebSocketConnect: function(instanceId)
     {
         var instance = webSocketManager.instances[instanceId];
         if (!instance) return -1;
@@ -260,7 +260,7 @@ var WebSocketLibrary =
      * @param code Close status code
      * @param reasonPtr Pointer to reason string
      */
-    WebSocketClose: function(instanceId, code, reasonPtr)
+    InworldWebSocketClose: function(instanceId, code, reasonPtr)
     {
         var instance = webSocketManager.instances[instanceId];
         if (!instance) return -1;
@@ -288,7 +288,7 @@ var WebSocketLibrary =
      * @param bufferPtr Pointer to the message buffer
      * @param length Length of the message in the buffer
      */
-    WebSocketSend: function(instanceId, bufferPtr, length)
+    InworldWebSocketSend: function(instanceId, bufferPtr, length)
     {
         var instance = webSocketManager.instances[instanceId];
         if (!instance) return -1;
@@ -306,7 +306,7 @@ var WebSocketLibrary =
      * @param instanceId Instance ID
      * @param stringPtr Pointer to the message string
      */
-    WebSocketSendStr: function(instanceId, stringPtr)
+    InworldWebSocketSendStr: function(instanceId, stringPtr)
     {
         var instance = webSocketManager.instances[instanceId];
         if (!instance) return -1;
@@ -323,7 +323,7 @@ var WebSocketLibrary =
      *
      * @param instanceId Instance ID
      */
-    WebSocketGetState: function(instanceId)
+    InworldWebSocketGetState: function(instanceId)
     {
         var instance = webSocketManager.instances[instanceId];
         if (!instance) return -1;
@@ -333,5 +333,5 @@ var WebSocketLibrary =
     }
 };
 
-autoAddDeps(WebSocketLibrary, '$webSocketManager');
-mergeInto(LibraryManager.library, WebSocketLibrary);
+autoAddDeps(InworldWebSocketLibrary, '$webSocketManager');
+mergeInto(LibraryManager.library, InworldWebSocketLibrary);

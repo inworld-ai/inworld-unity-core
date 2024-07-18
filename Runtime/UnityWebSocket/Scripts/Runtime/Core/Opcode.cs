@@ -1,4 +1,4 @@
-namespace UnityWebSocket
+namespace Inworld
 {
     /// <summary>
     /// Indicates the WebSocket frame type.

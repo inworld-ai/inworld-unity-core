@@ -60,7 +60,7 @@ namespace Inworld.Interactions
             m_PlaybackSource.playOnAwake = false;
             m_PlaybackSource.Stop();
             if (!InworldAI.Capabilities.audio)
-                InworldAI.LogException(k_NoAudioCapabilities);
+                InworldAI.LogWarning(k_NoAudioCapabilities);
         }
         protected override IEnumerator InteractionCoroutine()
         {

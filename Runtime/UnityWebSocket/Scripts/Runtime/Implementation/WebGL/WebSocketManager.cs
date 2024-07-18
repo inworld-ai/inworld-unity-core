@@ -1,11 +1,11 @@
-#if !UNITY_EDITOR && UNITY_WEBGL 
+#if UNITY_WEBGL && !UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using AOT;
 using System.Linq;
 
-namespace UnityWebSocket
+namespace Inworld
 {
     /// <summary>
     /// Class providing static access methods to work with JSLIB WebSocket
@@ -26,44 +26,44 @@ namespace UnityWebSocket
 
         /* WebSocket JSLIB functions */
         [DllImport("__Internal")]
-        public static extern int WebSocketConnect(int instanceId);
+        public static extern int InworldWebSocketConnect(int instanceId);
 
         [DllImport("__Internal")]
-        public static extern int WebSocketClose(int instanceId, int code, string reason);
+        public static extern int InworldWebSocketClose(int instanceId, int code, string reason);
 
         [DllImport("__Internal")]
-        public static extern int WebSocketSend(int instanceId, byte[] dataPtr, int dataLength);
+        public static extern int InworldWebSocketSend(int instanceId, byte[] dataPtr, int dataLength);
 
         [DllImport("__Internal")]
-        public static extern int WebSocketSendStr(int instanceId, string data);
+        public static extern int InworldWebSocketSendStr(int instanceId, string data);
 
         [DllImport("__Internal")]
-        public static extern int WebSocketGetState(int instanceId);
+        public static extern int InworldWebSocketGetState(int instanceId);
 
         /* WebSocket JSLIB callback setters and other functions */
         [DllImport("__Internal")]
-        public static extern int WebSocketAllocate(string url, string binaryType);
+        public static extern int InworldWebSocketAllocate(string url, string binaryType);
 
         [DllImport("__Internal")]
-        public static extern int WebSocketAddSubProtocol(int instanceId, string protocol);
+        public static extern int InworldWebSocketAddSubProtocol(int instanceId, string protocol);
 
         [DllImport("__Internal")]
-        public static extern void WebSocketFree(int instanceId);
+        public static extern void InworldWebSocketFree(int instanceId);
 
         [DllImport("__Internal")]
-        public static extern void WebSocketSetOnOpen(OnOpenCallback callback);
+        public static extern void InworldWebSocketSetOnOpen(OnOpenCallback callback);
 
         [DllImport("__Internal")]
-        public static extern void WebSocketSetOnMessage(OnMessageCallback callback);
+        public static extern void InworldWebSocketSetOnMessage(OnMessageCallback callback);
 
         [DllImport("__Internal")]
-        public static extern void WebSocketSetOnMessageStr(OnMessageStrCallback callback);
+        public static extern void InworldWebSocketSetOnMessageStr(OnMessageStrCallback callback);
 
         [DllImport("__Internal")]
-        public static extern void WebSocketSetOnError(OnErrorCallback callback);
+        public static extern void InworldWebSocketSetOnError(OnErrorCallback callback);
 
         [DllImport("__Internal")]
-        public static extern void WebSocketSetOnClose(OnCloseCallback callback);
+        public static extern void InworldWebSocketSetOnClose(OnCloseCallback callback);
 
         /* If callbacks was initialized and set */
         private static bool isInitialized = false;
@@ -71,11 +71,11 @@ namespace UnityWebSocket
         /* Initialize WebSocket callbacks to JSLIB */
         private static void Initialize()
         {
-            WebSocketSetOnOpen(DelegateOnOpenEvent);
-            WebSocketSetOnMessage(DelegateOnMessageEvent);
-            WebSocketSetOnMessageStr(DelegateOnMessageStrEvent);
-            WebSocketSetOnError(DelegateOnErrorEvent);
-            WebSocketSetOnClose(DelegateOnCloseEvent);
+            InworldWebSocketSetOnOpen(DelegateOnOpenEvent);
+            InworldWebSocketSetOnMessage(DelegateOnMessageEvent);
+            InworldWebSocketSetOnMessageStr(DelegateOnMessageStrEvent);
+            InworldWebSocketSetOnError(DelegateOnErrorEvent);
+            InworldWebSocketSetOnClose(DelegateOnCloseEvent);
 
             isInitialized = true;
         }
@@ -133,7 +133,7 @@ namespace UnityWebSocket
         internal static int AllocateInstance(string address, string binaryType)
         {
             if (!isInitialized) Initialize();
-            return WebSocketAllocate(address, binaryType);
+            return InworldWebSocketAllocate(address, binaryType);
         }
 
         internal static void Add(WebSocket socket)

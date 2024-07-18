@@ -1,4 +1,4 @@
-namespace UnityWebSocket
+namespace Inworld
 {
     public static class Settings
     {

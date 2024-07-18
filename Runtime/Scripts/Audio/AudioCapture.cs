@@ -31,11 +31,12 @@ namespace Inworld
     {
         [SerializeField] protected MicSampleMode m_SamplingMode = MicSampleMode.NO_FILTER;
         [Range(0, 30)][SerializeField] protected float m_PlayerVolumeThreshold = 10f;
-        [SerializeField] protected int m_BufferSeconds = 1;
+        [Range(0.1f, 2f)][SerializeField] protected int m_BufferSeconds = 1;
         [SerializeField] protected int m_AudioToPushCapacity = 100;
         [SerializeField] protected string m_DeviceName;
         [SerializeField] protected bool m_DetectPlayerSpeaking = true;
         [Range(0.1f, 1f)] [SerializeField] protected float m_SwitchingAudioTimer = 0.5f;
+        [SerializeField] protected bool m_MutePlayerMic;
         [Space(10)]
         [SerializeField] protected AudioEvent m_AudioEvent;
         
@@ -88,7 +89,13 @@ namespace Inworld
                 return m_RecordingSource;
             }
         }
-        
+
+        public bool IsMute
+        {
+            get => m_MutePlayerMic;
+            set => m_MutePlayerMic = value;
+        }
+
         /// <summary>
         /// Gets the event handler of AudioCapture.
         /// </summary>
@@ -376,22 +383,14 @@ namespace Inworld
         
         protected virtual void OnEnable()
         {
-#if UNITY_WEBGL && !UNITY_EDITOR
-            StartWebMicrophone();
-#else            
             m_AudioCoroutine = AudioCoroutine();
             StartCoroutine(m_AudioCoroutine);
-#endif
         }
         protected virtual void OnDisable()
         {
-            StopCoroutine(m_AudioCoroutine);
+            if (m_AudioCoroutine != null)
+                StopCoroutine(m_AudioCoroutine);
             StopMicrophone(m_DeviceName);
-        }
-
-        void OnAudioFilterRead(float[] data, int channels)
-        {
-        //    PreProcessAudioData(ref m_InputBuffer, data, channels);
         }
         protected virtual void OnDestroy()
         {
@@ -430,6 +429,8 @@ namespace Inworld
 #if UNITY_WEBGL && !UNITY_EDITOR
             if (WebGLIsRecording() == 0)
                 StartMicrophone(m_DeviceName);
+            m_BackgroundNoise = 0.0001f;
+            yield break;
 #else
             if (!Microphone.IsRecording(m_DeviceName))
                 StartMicrophone(m_DeviceName);
@@ -499,8 +500,10 @@ namespace Inworld
         }
         protected virtual void RemoveOverDueData(ref List<short> array)
         {
-            if (array.Count > k_SampleRate * k_SizeofInt16 * m_BufferSeconds)
-                array.RemoveRange(0, array.Count - k_SampleRate * k_SizeofInt16 * m_BufferSeconds);
+            if (array.Count > k_SampleRate * m_BufferSeconds)
+            {
+                array.RemoveRange(0, array.Count - k_SampleRate * m_BufferSeconds);
+            }
         }
         
         protected virtual void ProcessAudio()
@@ -533,7 +536,7 @@ namespace Inworld
                 });
             }
         }
-        protected virtual bool DetectPlayerSpeaking() => AutoDetectPlayerSpeaking;
+        protected virtual bool DetectPlayerSpeaking() => !IsMute && AutoDetectPlayerSpeaking;
 
         protected virtual IEnumerator OutputData()
         {
@@ -558,16 +561,17 @@ namespace Inworld
                 return -1;
             }
             int nSize = m_nPosition - m_LastPosition;
+            
 #if UNITY_WEBGL && !UNITY_EDITOR
-            if (!WebGLGetAudioData(m_LastPosition))
+            if (!WebGLGetAudioData())
                 return -1;
 #else
             m_RawInput = new float[nSize];
             if (!Recording.clip)
                 return -1;
-#endif
             Recording.clip.GetData(m_RawInput, m_LastPosition);
             PreProcessAudioData(ref m_InputBuffer, m_RawInput, 1);
+#endif
             m_LastPosition = m_nPosition % m_BufferSize;
             return nSize;
         }
@@ -581,15 +585,14 @@ namespace Inworld
             m_AudioCoroutine = AudioCoroutine();
             StartCoroutine(m_AudioCoroutine);
         }
-        protected bool WebGLGetAudioData(int position)
+        protected bool WebGLGetAudioData()
         {
-            if (m_InputBuffer == null || m_InputBuffer.Length == 0)
-                return false;
             if (s_WebGLBuffer == null || s_WebGLBuffer.Length == 0)
                 return false;
-            for (int j = 0, i = position; i < s_WebGLBuffer.Length; j++, i++)
+            for (int i = m_LastPosition; i < m_nPosition; i++)
             {
-                m_InputBuffer[j] = s_WebGLBuffer[i];
+                float clampedSample = Math.Max(-1.0f, Math.Min(1.0f, s_WebGLBuffer[i]));
+                m_InputBuffer.Add((short)(clampedSample * 32767));
             }
             return true;
         }
@@ -690,7 +693,7 @@ namespace Inworld
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
             WebGLMicEnd();
-            Recording.clip.SetData(m_InputBuffer, 0);
+            m_InputBuffer.Clear();
 #else
             Microphone.End(deviceName);
 #endif
