@@ -455,7 +455,7 @@ namespace Inworld
 
         protected virtual void TimerCountDown()
         {
-            m_CurrentAudioSwitchingTimer -= Time.deltaTime;
+            m_CurrentAudioSwitchingTimer -= Time.unscaledDeltaTime;
             m_CurrentAudioSwitchingTimer = m_CurrentAudioSwitchingTimer < 0 ? 0 : m_CurrentAudioSwitchingTimer;
         }
         /// <summary>
