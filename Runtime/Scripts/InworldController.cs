@@ -316,12 +316,6 @@ namespace Inworld
 #endregion
 #endregion
 
-        // protected virtual void ResetAudio()
-        // {
-        //     if (InworldAI.IsDebugMode)
-        //         InworldAI.Log($"Audio Reset");
-        //     m_AudioCapture.StopRecording();
-        // }
         protected virtual void Awake()
         {
             _Setup();
