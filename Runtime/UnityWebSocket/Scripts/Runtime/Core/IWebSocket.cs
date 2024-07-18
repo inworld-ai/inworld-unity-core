@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityWebSocket
+namespace Inworld
 {
     /// <summary>
     /// <para>IWebSocket indicate a network connection.</para>

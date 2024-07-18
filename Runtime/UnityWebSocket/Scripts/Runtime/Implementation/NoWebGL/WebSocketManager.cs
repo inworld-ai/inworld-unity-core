@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace UnityWebSocket
+namespace Inworld
 {
     [DefaultExecutionOrder(-10000)]
     public class WebSocketManager : MonoBehaviour

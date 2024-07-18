@@ -8,7 +8,7 @@ using System.Net.WebSockets;
 using System.IO;
 using UnityEngine;
 
-namespace UnityWebSocket
+namespace Inworld
 {
     public class WebSocket : IWebSocket
     {

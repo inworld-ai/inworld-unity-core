@@ -17,8 +17,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityWebSocket;
-using ErrorEventArgs = UnityWebSocket.ErrorEventArgs;
+
 
 namespace Inworld
 {
@@ -391,7 +390,7 @@ namespace Inworld
                 List<string> result = AutoSceneSearch ? GetSceneNameByCharacter() : m_Prepared.FirstOrDefault()?.OutgoingTargets.Keys.ToList();
                 if (result == null || result.Count == 0)
                 {
-                    InworldAI.LogException("Characters not found in the workspace");
+                    InworldAI.LogError("Characters not found in the workspace");
                     return;
                 }
                 if (result.Count == 1 && result[0].Split(new[] { "/scenes/" }, StringSplitOptions.None).Length > 0)
@@ -900,7 +899,7 @@ namespace Inworld
                     }
                     if (Status == InworldConnectionStatus.Idle)
                     {
-                        GetAccessToken();
+                        Reconnect();
                     }
                     if (Status == InworldConnectionStatus.Initialized)
                     {

@@ -1,4 +1,4 @@
-namespace UnityWebSocket
+namespace Inworld
 {
     /// <summary>
     /// Indicates the status code for the WebSocket connection close.

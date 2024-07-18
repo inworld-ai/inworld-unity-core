@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityWebSocket
+namespace Inworld
 {
     /// <summary>
     /// Represents the event data for the <see cref="IWebSocket.OnError"/> event.

@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityWebSocket
+namespace Inworld
 {
     public class OpenEventArgs : EventArgs
     {
