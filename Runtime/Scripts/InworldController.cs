@@ -323,7 +323,12 @@ namespace Inworld
         }
         protected virtual void OnEnable()
         {
+            InworldAI.InputActions.Enable();
             _Setup();
+        }
+        protected virtual void OnDisable()
+        {
+            InworldAI.InputActions.Disable();
         }
         protected virtual void Start() => LoadData(m_GameData);
 
@@ -335,6 +340,7 @@ namespace Inworld
                 m_AudioCapture = GetComponent<AudioCapture>();
             if (!m_CharacterHandler)
                 m_CharacterHandler = GetComponent<CharacterHandler>();
+            
         }
     }
 }

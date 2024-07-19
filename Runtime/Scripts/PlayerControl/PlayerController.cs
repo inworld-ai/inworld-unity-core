@@ -10,6 +10,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace Inworld.Sample
@@ -20,16 +21,14 @@ namespace Inworld.Sample
     /// </summary>
     public class PlayerController : SingletonBehavior<PlayerController>
     {
-        [Header("Interaction Control")]
-        [SerializeField] public KeyCode uiKey = KeyCode.BackQuote;
-        [SerializeField] public KeyCode optionKey = KeyCode.Escape;
-        [SerializeField] public KeyCode skipKey = KeyCode.None;
-        [SerializeField] public KeyCode continueKey = KeyCode.None;
         [Header("References")]
         [SerializeField] protected TMP_InputField m_InputField;
         [SerializeField] protected TMP_Dropdown m_Dropdown;
         [SerializeField] protected Button m_SendButton;
         [SerializeField] protected Button m_RecordButton;
+
+        protected InputAction m_SubmitInputAction;
+        
         public UnityEvent<string> onPlayerSpeaks;
         /// <summary>
         /// Get if any canvas is open.
@@ -68,6 +67,11 @@ namespace Inworld.Sample
             if (!character || character == InworldController.CharacterHandler.CurrentCharacter)
                 return;
             InworldController.CharacterHandler.CurrentCharacter = character;
+        }
+
+        protected virtual void Awake()
+        {
+            m_SubmitInputAction = InworldAI.InputActions["Submit"];
         }
 
         protected virtual void OnEnable()
@@ -126,7 +130,7 @@ namespace Inworld.Sample
         }
         protected virtual void HandleInput()
         {
-            if (Input.GetKeyUp(KeyCode.Return) || Input.GetKeyUp(KeyCode.KeypadEnter))
+            if (m_SubmitInputAction != null && m_SubmitInputAction.WasReleasedThisFrame())
                 SendText();
         }
     }

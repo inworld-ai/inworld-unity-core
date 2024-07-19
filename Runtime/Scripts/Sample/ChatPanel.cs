@@ -169,7 +169,7 @@ namespace Inworld.Sample
                     // YAN: Player Input does not apply longBubbleMode.
                     //      And Key is always utteranceID.
                     key = textPacket.packetId.utteranceId;
-                    InsertBubbleWithPacketInfo(key, textPacket.packetId, m_BubbleRight, InworldAI.User.Name, false, textPacket.text.text, InworldAI.DefaultThumbnail);
+                    InsertBubbleWithPacketInfo(key, textPacket.packetId, m_BubbleRight, InworldAI.User.Name, false, textPacket.text.text, InworldAI.User.Thumbnail);
                     break;
             }
         }

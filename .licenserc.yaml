@@ -40,6 +40,8 @@ header:
     - 'dist'
     - 'licenses'
     - 'dist-material/release-docs'
+    - '**/*.txt'
+    - '**/*.inputactions'
     - '**/*.md'
     - '**/*.json'
     - '**/*.ftl'

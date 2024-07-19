@@ -8,6 +8,7 @@ using Inworld.Packet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 
@@ -108,7 +109,12 @@ namespace Inworld
         /// <param name="brainName"></param>
         /// <returns></returns>
         public virtual InworldCharacter GetCharacterByBrainName(string brainName) => CurrentCharacters.FirstOrDefault(c => c.BrainName == brainName);
-
+        /// <summary>
+        /// Gets the character by a brain name.
+        /// Also supports loading by [] directly.
+        /// </summary>
+        /// <param name="brainName"></param>
+        public virtual InworldCharacter this[string brainName] => CurrentCharacters.FirstOrDefault(c => c.BrainName == brainName);
         /// <summary>
         /// Gets the character by a given name.
         /// It's nullable, and will return the first one if multiple characters exist. 

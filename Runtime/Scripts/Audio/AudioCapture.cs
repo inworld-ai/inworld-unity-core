@@ -12,7 +12,7 @@ using System.Collections.Concurrent;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-
+using UnityEngine.InputSystem;
 
 #if UNITY_WEBGL
 using AOT;
@@ -30,18 +30,18 @@ namespace Inworld
     public class AudioCapture : MonoBehaviour
     {
         [SerializeField] protected MicSampleMode m_SamplingMode = MicSampleMode.NO_FILTER;
-        [Tooltip("Hold the key to sample, release the key to send audio")]
-        [SerializeField] protected KeyCode m_PushToTalkKey = KeyCode.None;
         [Range(0, 30)][SerializeField] protected float m_PlayerVolumeThreshold = 10f;
         [Range(0.1f, 2f)][SerializeField] protected int m_BufferSeconds = 1;
         [SerializeField] protected int m_AudioToPushCapacity = 100;
         [SerializeField] protected string m_DeviceName;
         [SerializeField] protected bool m_DetectPlayerSpeaking = true;
+        [Range(0.1f, 1f)] [SerializeField] protected float m_SwitchingAudioTimer = 0.5f;
         [SerializeField] protected bool m_MutePlayerMic;
         [Space(10)]
         [SerializeField] protected AudioEvent m_AudioEvent;
         
 #region Variables
+        protected InputAction m_PushToTalkInputAction;
         protected float m_CharacterVolume = 1f;
         protected MicSampleMode m_InitSampleMode;
         protected const int k_SizeofInt16 = sizeof(short);
@@ -56,6 +56,7 @@ namespace Inworld
         protected bool m_IsCapturing;
         protected float m_BackgroundNoise;
         protected float m_CalibratingTime;
+        protected float m_CurrentAudioSwitchingTimer;
         // Last known position in AudioClip buffer.
         protected int m_LastPosition;
         // Size of audioclip used to collect information, need to be big enough to keep up with collect. 
@@ -88,11 +89,13 @@ namespace Inworld
                 return m_RecordingSource;
             }
         }
+
         public bool IsMute
         {
             get => m_MutePlayerMic;
             set => m_MutePlayerMic = value;
         }
+
         /// <summary>
         /// Gets the event handler of AudioCapture.
         /// </summary>
@@ -110,15 +113,6 @@ namespace Inworld
             set => m_CharacterVolume = value;
         }
         /// <summary>
-        /// Gets/Sets the Push to talk key.
-        /// The auto detecting would only be effected if this key is NONE.
-        /// </summary>
-        public KeyCode PushToTalkKey
-        {
-            get => m_PushToTalkKey;
-            set => m_PushToTalkKey = value;
-        }
-        /// <summary>
         /// The sample mode used by the Microphone. Determines how audio input is handled and processed for interactions.
         /// </summary>
         public MicSampleMode SampleMode
@@ -126,7 +120,11 @@ namespace Inworld
             get => m_SamplingMode;
             set => m_SamplingMode = value;
         }
-        
+		/// <summary>
+        /// Whether the Input Action for Push-to-Talk has bindings.
+        /// </summary>
+        public bool IsValidPushToTalkInput => m_PushToTalkInputAction != null && m_PushToTalkInputAction.bindings.Count > 0;
+		
         /// <summary>
         /// A flag to check if player is allowed to speak and without filtering
         /// </summary>
@@ -145,7 +143,7 @@ namespace Inworld
         {
             get => m_DetectPlayerSpeaking 
                    && (SampleMode != MicSampleMode.TURN_BASED || !InworldController.CharacterHandler.IsAnyCharacterSpeaking) 
-                   && PushToTalkKey == KeyCode.None; 
+                   && !IsValidPushToTalkInput; 
             set => m_DetectPlayerSpeaking = value;
         }
         /// <summary>
@@ -154,7 +152,7 @@ namespace Inworld
         /// </summary>
         public bool IsRecording
         {
-            get => m_IsRecording || Input.GetKey(m_PushToTalkKey);
+            get => m_IsRecording || (IsValidPushToTalkInput && m_PushToTalkInputAction.IsPressed());
             set
             {
                 m_IsRecording = value;
@@ -179,6 +177,11 @@ namespace Inworld
                     Event.onPlayerStopSpeaking?.Invoke();
             }
         }
+        
+        /// <summary>
+        /// Gets if is switching audio.
+        /// </summary>
+        public bool IsSwitchingAudio => m_CurrentAudioSwitchingTimer != 0;
         /// <summary>
         /// Signifies it's currently capturing.
         /// </summary>
@@ -187,9 +190,12 @@ namespace Inworld
             get => m_IsCapturing;
             set
             {
+                if (IsSwitchingAudio)
+                    return;
                 if (m_IsCapturing == value)
                     return;
                 m_IsCapturing = value;
+                m_CurrentAudioSwitchingTimer = m_SwitchingAudioTimer;
                 if (m_IsCapturing)
                 {
                     Event.onRecordingStart?.Invoke();
@@ -322,7 +328,7 @@ namespace Inworld
                 return;
             if (!InworldController.Client.Current.IsConversation && chunk.targetName != InworldController.Client.Current.Character?.brainName)
             {
-                InworldController.Client.Current.Character = InworldController.CharacterHandler.GetCharacterByBrainName(chunk.targetName)?.Data;
+                InworldController.Client.Current.Character = InworldController.CharacterHandler[chunk.targetName]?.Data;
             }
             InworldController.Client.SendAudioTo(chunk.chunk);
         }
@@ -350,6 +356,7 @@ namespace Inworld
 #region MonoBehaviour Functions
         protected virtual void Awake()
         {
+            m_PushToTalkInputAction = InworldAI.InputActions["PushToTalk"];
             Init();
         }
         
@@ -375,6 +382,7 @@ namespace Inworld
         }
         protected void Update()
         {
+            TimerCountDown();
             if (m_AudioToPush.Count > m_AudioToPushCapacity)
                 m_AudioToPush.TryDequeue(out AudioChunk chunk);
         }
@@ -382,7 +390,7 @@ namespace Inworld
 #endregion
 
 #region Protected Functions
-
+        
         protected virtual void Init()
         {
             AudioConfiguration audioSetting = AudioSettings.GetConfiguration();
@@ -422,6 +430,12 @@ namespace Inworld
                 Recording.volume = 1f;
             }
             Event.onStopCalibrating?.Invoke();
+        }
+
+        protected virtual void TimerCountDown()
+        {
+            m_CurrentAudioSwitchingTimer -= Time.unscaledDeltaTime;
+            m_CurrentAudioSwitchingTimer = m_CurrentAudioSwitchingTimer < 0 ? 0 : m_CurrentAudioSwitchingTimer;
         }
         /// <summary>
         /// Resample all the incoming audio data to the Inworld server supported data (16000 * 1).
