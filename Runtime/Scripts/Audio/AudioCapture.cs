@@ -37,9 +37,9 @@ namespace Inworld
         [SerializeField] protected bool m_DetectPlayerSpeaking = true;
         [Range(0.1f, 1f)] [SerializeField] protected float m_SwitchingAudioTimer = 0.5f;
         [SerializeField] protected bool m_MutePlayerMic;
-        [Space(10)]
-        [SerializeField] protected AudioEvent m_AudioEvent;
-        
+        [Space(10)][SerializeField] protected AudioEvent m_AudioEvent;
+        [Tooltip("By enabling testing mode, Inworld server will only send you the Text-To-Speech result, without any character's response.")]
+        [SerializeField] protected bool m_TestMode;
 #region Variables
         protected InputAction m_PushToTalkInputAction;
         protected float m_CharacterVolume = 1f;
@@ -315,12 +315,13 @@ namespace Inworld
         }
         public virtual void StartAudio()
         {
-            MicrophoneMode mode = IsRecording ? MicrophoneMode.EXPECT_AUDIO_END : MicrophoneMode.OPEN_MIC;
+            MicrophoneMode micMode = IsRecording ? MicrophoneMode.EXPECT_AUDIO_END : MicrophoneMode.OPEN_MIC;
+            UnderstandingMode understandingMode = m_TestMode ? UnderstandingMode.SPEECH_RECOGNITION_ONLY : UnderstandingMode.FULL;
             InworldCharacter character = InworldController.CharacterHandler.CurrentCharacter;
             if (character)
-                InworldController.Client.StartAudioTo(character.BrainName, mode);
+                InworldController.Client.StartAudioTo(character.BrainName, micMode, understandingMode);
             else
-                InworldController.Client.StartAudioTo(null, mode);
+                InworldController.Client.StartAudioTo(null, micMode, understandingMode);
         }
         public virtual void SendAudio(AudioChunk chunk)
         {

@@ -707,8 +707,12 @@ namespace Inworld
         /// </summary>
         /// <param name="brainName">the full name of the characters to send.</param>
         /// <param name="micMode">If you'd like to enable the character interrupt you, check this option to OPEN_MIC.</param>
+        /// <param name="understandingMode">By default is FULL if you'd like the server to also return the response.</param>
         /// <param name="immediate">if sending immediately (need to make sure client has connected)</param>
-        public virtual void StartAudioTo(string brainName = null, MicrophoneMode micMode = MicrophoneMode.EXPECT_AUDIO_END, bool immediate = false)
+        public virtual void StartAudioTo(string brainName = null, 
+            MicrophoneMode micMode = MicrophoneMode.EXPECT_AUDIO_END, 
+            UnderstandingMode understandingMode = UnderstandingMode.FULL,
+            bool immediate = false)
         {
             if (Current.AudioSession.IsSameSession(brainName))
                 return;
@@ -720,7 +724,8 @@ namespace Inworld
                 action = ControlType.AUDIO_SESSION_START,
                 audioSessionStart = new AudioSessionPayload
                 {
-                    mode = micMode
+                    mode = micMode,
+                    understandingMode = understandingMode
                 }
             };
             InworldPacket rawPkt = new ControlPacket(control);
@@ -735,7 +740,10 @@ namespace Inworld
         /// </summary>
         /// <param name="charID">the live session ID of the character to send.</param>
         /// <param name="micMode">If you'd like to enable the character interrupt you, check this option to OPEN_MIC.</param>
-        public virtual void StartAudio(string charID, MicrophoneMode micMode = MicrophoneMode.EXPECT_AUDIO_END)
+        /// <param name="understandingMode">By default is FULL if you'd like the server to also return the response.</param>
+        public virtual void StartAudio(string charID, 
+            MicrophoneMode micMode = MicrophoneMode.EXPECT_AUDIO_END, 
+            UnderstandingMode understandingMode = UnderstandingMode.FULL)
         {
             if (string.IsNullOrEmpty(charID))
                 return;
@@ -751,7 +759,8 @@ namespace Inworld
                     action = ControlType.AUDIO_SESSION_START,
                     audioSessionStart = new AudioSessionPayload
                     {
-                        mode = micMode
+                        mode = micMode,
+                        understandingMode = understandingMode
                     }
                 }
             };

@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: UserSettings
   m_EditorClassIdentifier: 
   m_PlayerName: Player
+  m_PlayerThumbnail: {fileID: 0}
   m_PlayerData:
   - fieldId: 
     fieldValue: 
