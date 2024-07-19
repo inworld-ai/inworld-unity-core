@@ -138,20 +138,20 @@ namespace Inworld
         /// Send the message to this character.
         /// </summary>
         /// <param name="text">the message to send</param>
-        public virtual void SendText(string text)
+        public virtual bool SendText(string text)
         {
             // 1. Interrupt current speaking.
             CancelResponse();
             // 2. Send Text.
-            InworldController.Client.SendTextTo(text, BrainName);
+            return InworldController.Client.SendTextTo(text, BrainName);
         }
         /// <summary>
         /// Send a narrative action to this character.
         /// </summary>
         /// <param name="narrative">the narrative text to send</param>
-        public virtual void SendNarrative(string narrative)
+        public virtual bool SendNarrative(string narrative)
         {
-            InworldController.Client.SendNarrativeActionTo(narrative, BrainName);
+            return InworldController.Client.SendNarrativeActionTo(narrative, BrainName);
         }
         /// <summary>
         /// Send the trigger to this character.
@@ -160,30 +160,30 @@ namespace Inworld
         /// <param name="trigger">the name of the trigger.</param>
         /// <param name="needCancelResponse">If checked, this sending process will interrupt the character's current speaking.</param>
         /// <param name="parameters">The parameters and values of the trigger.</param>
-        public virtual void SendTrigger(string trigger, bool needCancelResponse = true, Dictionary<string, string> parameters = null)
+        public virtual bool SendTrigger(string trigger, bool needCancelResponse = true, Dictionary<string, string> parameters = null)
         {
             // 1. Interrupt current speaking.
             if (needCancelResponse)
                 CancelResponse();
             // 2. Send Text. YAN: Now all trigger has to be lower cases.
-            InworldController.Client.SendTriggerTo(trigger.ToLower(), parameters, BrainName);
+            return InworldController.Client.SendTriggerTo(trigger.ToLower(), parameters, BrainName);
         }
         /// <summary>
         /// Enable target goal of this character.
         /// By default, all the goals are already enabled.
         /// </summary>
         /// <param name="goalName">the name of the goal to enable.</param>
-        public virtual void EnableGoal(string goalName) => InworldMessenger.EnableGoal(goalName, ID);
+        public virtual bool EnableGoal(string goalName) => InworldMessenger.EnableGoal(goalName, ID);
         /// <summary>
         /// Disable target goal of this character.
         /// </summary>
         /// <param name="goalName">the name of the goal to disable.</param>
-        public virtual void DisableGoal(string goalName) => InworldMessenger.DisableGoal(goalName, ID);
+        public virtual bool DisableGoal(string goalName) => InworldMessenger.DisableGoal(goalName, ID);
         /// <summary>
         /// Interrupt the current character's speaking.
         /// Ignore all the current incoming messages from the character.
         /// </summary>
-        public virtual void CancelResponse() => m_Interaction.CancelResponse();
+        public virtual bool CancelResponse() => m_Interaction.CancelResponse();
         protected virtual void Awake()
         {
             if (m_Interaction == null)
@@ -231,10 +231,10 @@ namespace Inworld
             }
         }
 
-        internal virtual void ProcessPacket(InworldPacket incomingPacket)
+        internal virtual bool ProcessPacket(InworldPacket incomingPacket)
         {
             if (!incomingPacket.IsRelated(ID))
-                return;
+                return false;
             m_CharacterEvents.onPacketReceived.Invoke(incomingPacket);
             
             switch (incomingPacket)
@@ -261,15 +261,15 @@ namespace Inworld
                     Debug.LogError($"Received Unknown {incomingPacket}");
                     break;
             }
+            return true;
         }
         protected virtual void HandleControl(ControlPacket controlPacket)
         {
-            if (controlPacket.Action == ControlType.INTERACTION_END)
-            {
-                if (m_VerboseLog)
-                    InworldAI.Log($"{Name} Received Interaction End");
-                Event.onInteractionEnd?.Invoke(BrainName);
-            }
+            if (controlPacket.Action != ControlType.INTERACTION_END)
+                return;
+            if (m_VerboseLog)
+                InworldAI.Log($"{Name} Received Interaction End");
+            Event.onInteractionEnd?.Invoke(BrainName);
         }
         protected virtual void HandleRelation(CustomPacket relationPacket)
         {
@@ -281,10 +281,10 @@ namespace Inworld
             CurrRelation = tmp;
         }
 
-        protected virtual void HandleText(TextPacket packet)
+        protected virtual bool HandleText(TextPacket packet)
         {
             if (packet.text == null || string.IsNullOrWhiteSpace(packet.text.text))
-                return;
+                return false;
             
             if (packet.Source == SourceType.PLAYER)
             {
@@ -305,23 +305,25 @@ namespace Inworld
             {
                 IsSpeaking = false;
             }
+            return true;
         }
-        protected virtual void HandleEmotion(EmotionPacket packet)
+        protected virtual bool HandleEmotion(EmotionPacket packet)
         {
             if (!packet.IsSource(ID) && !packet.IsTarget(ID))
-                return;
+                return false;
             if (m_VerboseLog)
                 InworldAI.Log($"{Name}: {packet.emotion.behavior} {packet.emotion.strength}");
             m_CharacterEvents.onEmotionChanged.Invoke(BrainName, packet.emotion.ToString());
+            return true;
         }
-        protected virtual void HandleTrigger(CustomPacket customPacket)
+        protected virtual bool HandleTrigger(CustomPacket customPacket)
         {
             if (!customPacket.IsSource(ID) && !customPacket.IsTarget(ID))
-                return;
+                return false;
             if (customPacket.Message == InworldMessage.RelationUpdate)
             {
                 HandleRelation(customPacket);
-                return;
+                return true;
             }
             if (m_VerboseLog)
             {
@@ -330,6 +332,7 @@ namespace Inworld
                 InworldAI.Log(output);
             }
             m_CharacterEvents.onGoalCompleted.Invoke(BrainName, customPacket.TriggerName);
+            return true;
         }
         protected virtual void HandleAction(ActionPacket actionPacket)
         {

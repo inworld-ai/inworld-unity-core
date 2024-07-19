@@ -37,16 +37,17 @@ namespace Inworld.Sample
         /// <summary>
         /// Send target message in the input field.
         /// </summary>
-        public void SendText()
+        public bool SendText()
         {
             if (!m_InputField || string.IsNullOrEmpty(m_InputField.text))
-                return;
+                return false;
             string text = m_InputField.text;
             if (text.StartsWith("*"))
                 InworldController.Instance.SendNarrativeAction(text.Remove(0, 1));
             else
                 InworldController.Instance.SendText(text);
             m_InputField.text = "";
+            return true;
         }
         /// <summary>
         /// Select the character by the default dropdown component.
