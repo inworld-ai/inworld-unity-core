@@ -36,10 +36,12 @@ namespace Inworld
         [SerializeField] protected string m_DeviceName;
         [SerializeField] protected bool m_DetectPlayerSpeaking = true;
         [Range(0.1f, 1f)] [SerializeField] protected float m_SwitchingAudioTimer = 0.5f;
+        [Tooltip("By checking this, client will not sample player's voice")]
         [SerializeField] protected bool m_MutePlayerMic;
-        [Space(10)][SerializeField] protected AudioEvent m_AudioEvent;
         [Tooltip("By enabling testing mode, Inworld server will only send you the Text-To-Speech result, without any character's response.")]
         [SerializeField] protected bool m_TestMode;
+        [Space(10)][SerializeField] protected AudioEvent m_AudioEvent;
+
 #region Variables
         protected InputAction m_PushToTalkInputAction;
         protected float m_CharacterVolume = 1f;
