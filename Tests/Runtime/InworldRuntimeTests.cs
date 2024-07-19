@@ -154,7 +154,6 @@ namespace Inworld.Test
 			Assert.IsTrue(m_Conversation.Any(p => p.type == PacketType.TEXT));
 			Assert.IsTrue(m_Conversation.Any(p => p.type == PacketType.AUDIO));
 		}
-
 		[UnityTest]
 		public IEnumerator InworldRuntimeTest_SayVerbatim()
 		{

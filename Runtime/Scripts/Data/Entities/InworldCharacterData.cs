@@ -19,6 +19,7 @@ namespace Inworld.Entities
         public string agentId;
         public string brainName;
         public string givenName;
+        public string description;
         public CharacterAssets characterAssets;
         public Texture2D thumbnail;
 
@@ -27,6 +28,7 @@ namespace Inworld.Entities
         {
             brainName = charRef.character;
             givenName = charRef.characterOverloads[0].defaultCharacterDescription.givenName;
+            description = charRef.characterOverloads[0].defaultCharacterDescription.description;
             characterAssets = new CharacterAssets(charRef.characterOverloads[0].defaultCharacterAssets);
         }
         public IEnumerator UpdateThumbnail(Texture2D inputThumbnail = null)
