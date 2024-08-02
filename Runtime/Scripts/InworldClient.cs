@@ -366,14 +366,6 @@ namespace Inworld
         /// </summary>
         public virtual void UnloadScene()
         {
-            if (Status == InworldConnectionStatus.Connected)
-            {
-                List<InworldCharacterData> currCharData = m_LiveSessionData.Values.ToList();
-                if (currCharData.Count != 0)
-                {
-                    m_Socket.SendAsync(MutationPacket.UnloadCharacters(currCharData));
-                }
-            }
             foreach (KeyValuePair<string, InworldCharacterData> data in m_LiveSessionData)
             {
                 data.Value.agentId = "";
