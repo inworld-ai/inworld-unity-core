@@ -91,7 +91,7 @@ namespace Inworld.Sample
                     break;
             }
         }
-        protected virtual void RemoveBubbles(MutationPacket mutationPacket)
+        protected virtual bool RemoveBubbles(MutationPacket mutationPacket)
         {
             CancelResponse response = new CancelResponse();
             if (mutationPacket?.mutation is RegenerateResponseEvent regenEvt)
@@ -99,11 +99,12 @@ namespace Inworld.Sample
             if (mutationPacket?.mutation is CancelResponseEvent cancelEvt)
                 response = cancelEvt.cancelResponses;
             if (string.IsNullOrEmpty(response.interactionId))
-                return;
+                return false;
             if (m_ChatOptions.longBubbleMode)
                 RemoveBubble(response.interactionId);
             else
                 response.utteranceId.ForEach(RemoveBubble);
+            return true;
         }
         protected virtual void HandleAudio(AudioPacket audioPacket)
         {
@@ -113,42 +114,44 @@ namespace Inworld.Sample
         {
             // Not process in the global chat panel.
         }
-        protected virtual void HandleRelation(CustomPacket relationPacket)
+        protected virtual bool HandleRelation(CustomPacket relationPacket)
         {
             if (!m_ChatOptions.relation || !IsUIReady)
-                return;
+                return false;
             if (!InworldController.Client.LiveSessionData.TryGetValue(relationPacket.routing.source.name, out InworldCharacterData charData))
-                return;
+                return false;
             string key = m_ChatOptions.longBubbleMode ? relationPacket.packetId.interactionId : relationPacket.packetId.utteranceId;
             string charName = charData.givenName ?? "Character";
             Texture2D thumbnail = charData.thumbnail ? charData.thumbnail : InworldAI.DefaultThumbnail;
             string content = relationPacket.custom.parameters.Aggregate(" ", (current, param) => current + $"{param.name}: {param.value} ");
             InsertBubbleWithPacketInfo(key, relationPacket.packetId, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
+            return true;
         }
-        protected virtual void HandleTrigger(CustomPacket customPacket)
+        protected virtual bool HandleTrigger(CustomPacket customPacket)
         {
             if (customPacket.Message == InworldMessage.RelationUpdate)
                 HandleRelation(customPacket);
             if (!m_ChatOptions.trigger || customPacket.custom == null || !IsUIReady)
-                return;
+                return false;
             if (!InworldController.Client.LiveSessionData.TryGetValue(customPacket.routing.source.name, out InworldCharacterData charData))
-                return;
+                return false;
             string key = m_ChatOptions.longBubbleMode ? customPacket.packetId.interactionId : customPacket.packetId.utteranceId;
             string charName = charData.givenName ?? "Character";
             Texture2D thumbnail = charData.thumbnail ? charData.thumbnail : InworldAI.DefaultThumbnail;
             if (string.IsNullOrEmpty(customPacket.TriggerName))
-                return;
+                return false;
             string content = $"(Received: {customPacket.Trigger})";
             InsertBubbleWithPacketInfo(key, customPacket.packetId, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
+            return true;
         }
         protected virtual void HandleEmotion(EmotionPacket emotionPacket)
         {
             // Not process in the global chat panel.
         }
-        protected virtual void HandleText(TextPacket textPacket)
+        protected virtual bool HandleText(TextPacket textPacket)
         {
             if (!m_ChatOptions.text || textPacket.text == null || string.IsNullOrWhiteSpace(textPacket.text.text) || !IsUIReady)
-                return;
+                return false;
             string key = "";
             switch (textPacket.Source)
             {
@@ -172,18 +175,19 @@ namespace Inworld.Sample
                     InsertBubbleWithPacketInfo(key, textPacket.packetId, m_BubbleRight, InworldAI.User.Name, false, textPacket.text.text, InworldAI.User.Thumbnail);
                     break;
             }
+            return true;
         }
-        protected virtual void HandleAction(ActionPacket actionPacket)
+        protected virtual bool HandleAction(ActionPacket actionPacket)
         {
             if (!m_ChatOptions.narrativeAction || actionPacket.action == null || actionPacket.action.narratedAction == null || string.IsNullOrWhiteSpace(actionPacket.action.narratedAction.content) || !IsUIReady)
-                return;
+                return false;
 
             switch (actionPacket.routing.source.type)
             {
                 case SourceType.AGENT:
                     InworldCharacterData charData = InworldController.Client.GetCharacterDataByID(actionPacket.routing.source.name);
                     if (charData == null)
-                        return;
+                        return false;
                     string key = m_ChatOptions.longBubbleMode ? actionPacket.packetId.interactionId : actionPacket.packetId.utteranceId;
                     string charName = charData.givenName ?? "Character";
                     Texture2D thumbnail = charData.thumbnail ? charData.thumbnail : InworldAI.DefaultThumbnail;
@@ -198,6 +202,7 @@ namespace Inworld.Sample
                     InsertBubbleWithPacketInfo(key, actionPacket.packetId, m_BubbleRight, InworldAI.User.Name, false, content, InworldAI.DefaultThumbnail);
                     break;
             }
+            return true;
         }
     }
 }

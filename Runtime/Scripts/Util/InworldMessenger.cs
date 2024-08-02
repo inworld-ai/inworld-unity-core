@@ -48,16 +48,16 @@ namespace Inworld.Entities
 		public static InworldMessage ProcessPacket(CustomPacket packet) => 
 			(from data in s_Message where packet.custom.name.StartsWith(data.Key) select data.Value).FirstOrDefault();
 
-		public static void EnableGoal(string goalName, string brainName) => InworldController.Client.SendTriggerTo($"{k_GoalEnable}.{goalName}", null, brainName);
+		public static bool EnableGoal(string goalName, string brainName) => InworldController.Client.SendTriggerTo($"{k_GoalEnable}.{goalName}", null, brainName);
 		
-		public static void DisableGoal(string goalName, string brainName) => InworldController.Client.SendTriggerTo($"{k_GoalDisable}.{goalName}", null, brainName);
+		public static bool DisableGoal(string goalName, string brainName) => InworldController.Client.SendTriggerTo($"{k_GoalDisable}.{goalName}", null, brainName);
 
-		public static void DebugSendError() => InworldController.Instance.SendTrigger(k_Error);
+		public static bool DebugSendError() => InworldController.Instance.SendTrigger(k_Error);
 		
-		public static void DebugSendCritical() => InworldController.Instance.SendTrigger(k_Critical);
+		public static bool DebugSendCritical() => InworldController.Instance.SendTrigger(k_Critical);
 		
-		public static void DebugSendGoAway() => InworldController.Instance.SendTrigger(k_GoAway);
+		public static bool DebugSendGoAway() => InworldController.Instance.SendTrigger(k_GoAway);
 		
-		public static void DebugSendIncompleteInteraction() => InworldController.Instance.SendTrigger(k_IncompleteInteraction);
+		public static bool DebugSendIncompleteInteraction() => InworldController.Instance.SendTrigger(k_IncompleteInteraction);
 	}
 }

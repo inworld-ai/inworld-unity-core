@@ -14,7 +14,6 @@ using UnityEngine;
 
 namespace Inworld.Interactions
 {
-    
     public class Utterance : IContainable
     {
         readonly Dictionary<string, InworldPacket> m_Packets;

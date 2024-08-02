@@ -58,6 +58,8 @@ namespace Inworld.Packet
     {
         [JsonConverter(typeof(StringEnumConverter))]
         public MicrophoneMode mode;
+        [JsonConverter(typeof(StringEnumConverter))]
+        public UnderstandingMode understandingMode ;
     }
     public class ConversationControlEvent : ControlEvent
     {

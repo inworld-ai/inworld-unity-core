@@ -137,10 +137,10 @@ namespace Inworld
         /// Load InworldGameData. Set client's related data if game data is not null.
         /// </summary>
         /// <param name="gameData">the InworldGameData to load</param>
-        public void LoadData(InworldGameData gameData)
+        public bool LoadData(InworldGameData gameData)
         {
             if (gameData == null)
-                return;
+                return false;
             if (!string.IsNullOrEmpty(gameData.apiKey))
                 m_Client.APIKey = gameData.apiKey;
             if (!string.IsNullOrEmpty(gameData.apiSecret))
@@ -149,6 +149,7 @@ namespace Inworld
                 m_Client.SceneFullName = gameData.sceneFullName;
             if (gameData.capabilities != null)
                 InworldAI.Capabilities = gameData.capabilities;
+            return true;
         }
 #region Client 
 #region Connection Management
@@ -157,7 +158,7 @@ namespace Inworld
         /// This token can be fetched by other applications such as InworldWebSDK.
         /// </summary>
         /// <param name="token">the custom token to init.</param>
-        public void InitWithCustomToken(string token) => m_Client.InitWithCustomToken(token);
+        public bool InitWithCustomToken(string token) => m_Client.InitWithCustomToken(token);
         /// <summary>
         /// Reconnect session or start a new session if the current session is invalid.
         /// </summary>
@@ -171,11 +172,11 @@ namespace Inworld
         /// In ver 3.3 or further, the session must be connected first.
         /// </summary>
         /// <param name="sceneFullName">the full string of the scene to load.</param>
-        public void LoadScene(string sceneFullName = "")
+        public bool LoadScene(string sceneFullName = "")
         {
             InworldAI.LogEvent("Login_Runtime");
             string sceneToLoad = string.IsNullOrEmpty(sceneFullName) ? m_Client.CurrentScene : sceneFullName;
-            m_Client.LoadScene(sceneToLoad);
+            return m_Client.LoadScene(sceneToLoad);
         }
         /// <summary>
         /// Sent after the ClientStatus is set to Connected.
@@ -198,20 +199,20 @@ namespace Inworld
         /// otherwise, it'll be sent as broadcast.
         /// </summary>
         /// <param name="text">the message to send.</param>
-        public void SendText(string text)
+        public bool SendText(string text)
         {
             CancelResponses();
-            m_Client.SendTextTo(text, CharacterHandler.CurrentCharacter? CharacterHandler.CurrentCharacter.BrainName : "");
+            return m_Client.SendTextTo(text, CharacterHandler.CurrentCharacter? CharacterHandler.CurrentCharacter.BrainName : "");
         }
         /// <summary>
         /// Send a narrative action to an InworldCharacter in this current scene.
         /// </summary>
         /// <param name="charID">the live session ID of the character to send</param>
         /// <param name="narrativeAction">the narrative action to send.</param>
-        public void SendNarrativeAction(string narrativeAction)
+        public bool SendNarrativeAction(string narrativeAction)
         {
             CancelResponses();
-            m_Client.SendNarrativeActionTo(narrativeAction, CharacterHandler.CurrentCharacter? CharacterHandler.CurrentCharacter.BrainName : "");
+            return m_Client.SendNarrativeActionTo(narrativeAction, CharacterHandler.CurrentCharacter? CharacterHandler.CurrentCharacter.BrainName : "");
         }
         /// <summary>
         /// Cancel all the current character's generating responses.
@@ -228,18 +229,19 @@ namespace Inworld
         /// </summary>
         /// <param name="interactionID">the handle of the dialog context that needs to be cancelled.</param>
         /// <param name="utteranceID">the handle of the current utterance that needs to be cancelled.</param>
-        public void SendCancelEvent(string interactionID, string utteranceID = "")
+        public bool SendCancelEvent(string interactionID, string utteranceID = "")
         {
-            m_Client.SendCancelEventTo(interactionID, utteranceID, SourceType.WORLD.ToString());
+            return m_Client.SendCancelEventTo(interactionID, utteranceID, SourceType.WORLD.ToString());
         } 
         /// <summary>
         /// Send the trigger to the whole session.
         /// </summary>
         /// <param name="triggerName">the name of the trigger to send.</param>
-        public void SendWorldTrigger(string triggerName)
+        public bool SendWorldTrigger(string triggerName)
         {
             if (Client.Status != InworldConnectionStatus.Connected)
-                m_Client.SendTriggerTo(triggerName, null,SourceType.WORLD.ToString());
+                return m_Client.SendTriggerTo(triggerName, null,SourceType.WORLD.ToString());
+            return false;
         }
         /// <summary>
         /// Legacy Send the trigger to an InworldCharacter in the current scene.
@@ -247,21 +249,18 @@ namespace Inworld
         /// <param name="charID">the live session ID of the character to send. Send to World if it's empty</param>
         /// <param name="triggerName">the name of the trigger to send.</param>
         /// <param name="parameters">the parameters and their values for the triggers.</param>
-        public void SendTrigger(string triggerName, string charID = "", Dictionary<string, string> parameters = null)
+        public bool SendTrigger(string triggerName, string charID = "", Dictionary<string, string> parameters = null)
         {
             if (Client.Status != InworldConnectionStatus.Connected)
-                InworldAI.LogException($"Tried to send trigger to {charID}, but not connected to server.");
-                
-            if (string.IsNullOrEmpty(charID))
             {
-                if (CurrentCharacter)
-                    m_Client.SendTriggerTo(triggerName, parameters, CurrentCharacter.BrainName);
-                else
-                    m_Client.SendTriggerTo(triggerName, parameters);
+                InworldAI.LogError($"Tried to send trigger to {charID}, but not connected to server.");
+                return false;
             }
-                
-            else
-                m_Client.SendTrigger(charID, triggerName, parameters);
+            if (!string.IsNullOrEmpty(charID))
+                return m_Client.SendTrigger(charID, triggerName, parameters);
+            return CurrentCharacter 
+                ? m_Client.SendTriggerTo(triggerName, parameters, CurrentCharacter.BrainName) 
+                : m_Client.SendTriggerTo(triggerName, parameters);
         }
         /// <summary>
         /// Send AUDIO_SESSION_START control events to server.
@@ -269,20 +268,24 @@ namespace Inworld
         /// However, if you send this event twice in a row, without sending `StopAudio()`, Inworld server will also through exceptions and terminate the session.
         /// </summary>
         /// <exception cref="ArgumentException">If the charID is not legal, this function will throw exception.</exception>
-        public virtual void StartAudio()
+        public virtual bool StartAudio()
         {
             if (Client.Status != InworldConnectionStatus.Connected)
-                InworldAI.LogException($"Tried to start audio, but not connected to server.");
-            if (CharacterHandler.CurrentCharacterNames.Count <= 0)
-                InworldAI.LogException($"No characters in the session.");
-            Audio.StartAudio();
+            {
+                InworldAI.LogError("Tried to start audio, but not connected to server.");
+                return false;
+            }
+            if (CharacterHandler.CurrentCharacterNames.Count > 0)
+                return Audio.StartAudio();
+            InworldAI.LogError("No characters in the session.");
+            return false;
         }
         /// <summary>
         /// Send AUDIO_SESSION_END control events to server.
         /// </summary>
-        public virtual void StopAudio()
+        public virtual bool StopAudio()
         {
-            Audio.StopAudio();
+            return Audio.StopAudio();
         }
         /// <summary>
         /// Send the wav data to the current character.
@@ -292,16 +295,13 @@ namespace Inworld
         /// Additionally, the sample rate of the wave data has to be 16000, mono channel.
         /// </summary>
         /// <param name="base64">the base64 string of the wave data to send.</param>
-        public virtual void SendAudio(string base64)
+        public virtual bool SendAudio(string base64)
         {
             if (!Audio.IsAudioAvailable)
-                return;
+                return false;
             if (CurrentCharacter && !string.IsNullOrEmpty(CurrentCharacter.ID))
-            {
-                m_Client.SendAudio(CurrentCharacter.ID, base64);
-            }
-            else
-                m_Client.SendAudioTo(base64);
+                return m_Client.SendAudio(CurrentCharacter.ID, base64);
+            return m_Client.SendAudioTo(base64);
         }
         /// <summary>
         /// Manually push the audio wave data to server.
@@ -310,7 +310,7 @@ namespace Inworld
         {
             if (Client.Status != InworldConnectionStatus.Connected)
                 InworldAI.LogException($"Tried to push audio, but not connected to server.");
-            m_AudioCapture.PushAudio();
+            StartCoroutine(m_AudioCapture.PushAudio());
             StopAudio();
         }
 #endregion
@@ -340,7 +340,6 @@ namespace Inworld
                 m_AudioCapture = GetComponent<AudioCapture>();
             if (!m_CharacterHandler)
                 m_CharacterHandler = GetComponent<CharacterHandler>();
-            
         }
     }
 }

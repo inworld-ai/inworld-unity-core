@@ -141,29 +141,31 @@ namespace Inworld
         /// If it's current character, or in the group chat, also remove it.
         /// </summary>
         /// <param name="character">target character to remove.</param>
-        public virtual void Unregister(InworldCharacter character)
+        public virtual bool Unregister(InworldCharacter character)
         {
             if (character == null || !InworldController.Instance)
-                return;
+                return false;
             if (character == CurrentCharacter) 
                 CurrentCharacter = null;
             if (!m_CharacterList.Contains(character))
-                return;
+                return false;
             m_CharacterList.Remove(character);
             Event.onCharacterListLeft?.Invoke(character); 
             InworldController.Client.UpdateConversation();
+            return true;
         }
          /// <summary>
          /// Remove all the characters from the character list.
          /// </summary>
-         public void UnregisterAll()
+         public bool UnregisterAll()
          {
              if (!InworldController.Instance || m_CharacterList.Count == 0)
-                 return;
+                 return false;
              CurrentCharacter = null;
              foreach (InworldCharacter character in m_CharacterList)
                  Event.onCharacterListLeft?.Invoke(character); 
              m_CharacterList.Clear();
+             return true;
          }
          
          protected virtual void OnEnable()

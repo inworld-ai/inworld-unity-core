@@ -36,10 +36,12 @@ namespace Inworld
         [SerializeField] protected string m_DeviceName;
         [SerializeField] protected bool m_DetectPlayerSpeaking = true;
         [Range(0.1f, 1f)] [SerializeField] protected float m_SwitchingAudioTimer = 0.5f;
+        [Tooltip("By checking this, client will not sample player's voice")]
         [SerializeField] protected bool m_MutePlayerMic;
-        [Space(10)]
-        [SerializeField] protected AudioEvent m_AudioEvent;
-        
+        [Tooltip("By enabling testing mode, Inworld server will only send you the Text-To-Speech result, without any character's response.")]
+        [SerializeField] protected bool m_TestMode;
+        [Space(10)][SerializeField] protected AudioEvent m_AudioEvent;
+
 #region Variables
         protected InputAction m_PushToTalkInputAction;
         protected float m_CharacterVolume = 1f;
@@ -272,10 +274,10 @@ namespace Inworld
         /// Change the device of microphone input.
         /// </summary>
         /// <param name="deviceName">the device name to input.</param>
-        public void ChangeInputDevice(string deviceName)
+        public bool ChangeInputDevice(string deviceName)
         {
             if (deviceName == m_DeviceName)
-                return;
+                return true;
 #if UNITY_WEBGL && !UNITY_EDITOR
             if (WebGLIsRecording() == 1)
                 StopMicrophone(m_DeviceName);
@@ -284,17 +286,20 @@ namespace Inworld
                 StopMicrophone(m_DeviceName);
 #endif
             m_DeviceName = deviceName;
-            StartMicrophone(m_DeviceName);
+            if (!StartMicrophone(m_DeviceName))
+                return false;
             Calibrate();
+            return true;
         }
         /// <summary>
         /// Send the audio chunk in the queue immediately to Inworld server.
         /// </summary>
-        public void PushAudioImmediate()
+        public bool PushAudioImmediate()
         {
             if (!m_AudioToPush.TryDequeue(out AudioChunk audioChunk))
-                return;
+                return false;
             SendAudio(audioChunk);
+            return true;
         }
         /// <summary>
         /// Manually push the audio wave data to server.
@@ -308,29 +313,27 @@ namespace Inworld
             }
             m_AudioToPush.Clear();
         }
-        public virtual void StopAudio()
+        public virtual bool StopAudio()
         {
             m_AudioToPush.Clear();
-            InworldController.Client.StopAudioTo();
+            return InworldController.Client.StopAudioTo();
         }
-        public virtual void StartAudio()
+        public virtual bool StartAudio()
         {
-            MicrophoneMode mode = IsRecording ? MicrophoneMode.EXPECT_AUDIO_END : MicrophoneMode.OPEN_MIC;
+            MicrophoneMode micMode = IsRecording ? MicrophoneMode.EXPECT_AUDIO_END : MicrophoneMode.OPEN_MIC;
+            UnderstandingMode understandingMode = m_TestMode ? UnderstandingMode.SPEECH_RECOGNITION_ONLY : UnderstandingMode.FULL;
             InworldCharacter character = InworldController.CharacterHandler.CurrentCharacter;
-            if (character)
-                InworldController.Client.StartAudioTo(character.BrainName, mode);
-            else
-                InworldController.Client.StartAudioTo(null, mode);
+            return InworldController.Client.StartAudioTo(character ? character.BrainName : null, micMode, understandingMode);
         }
-        public virtual void SendAudio(AudioChunk chunk)
+        public virtual bool SendAudio(AudioChunk chunk)
         {
             if (InworldController.Client.Status != InworldConnectionStatus.Connected)
-                return;
+                return false;
             if (!InworldController.Client.Current.IsConversation && chunk.targetName != InworldController.Client.Current.Character?.brainName)
             {
                 InworldController.Client.Current.Character = InworldController.CharacterHandler[chunk.targetName]?.Data;
             }
-            InworldController.Client.SendAudioTo(chunk.chunk);
+            return InworldController.Client.SendAudioTo(chunk.chunk);
         }
         /// <summary>
         /// Get the audio data from the AudioListener.
@@ -491,29 +494,29 @@ namespace Inworld
             m_InputBuffer.Clear();
             RemoveOverDueData(ref m_ProcessedWaveData);
         }
-        protected virtual void Collect()
+        protected virtual bool Collect()
         {
             if (m_SamplingMode == MicSampleMode.NO_MIC)
-                return;
+                return false;
             if (!IsRecording && !EnableVAD && m_BackgroundNoise == 0)
-                return;
+                return false;
             int nSize = GetAudioData();
             if (nSize <= 0)
-                return;
+                return false;
             IsPlayerSpeaking = DetectPlayerSpeaking();
             IsCapturing = IsRecording || IsPlayerSpeaking;
-            if (IsCapturing)
+            if (!IsCapturing)
+                return false;
+            string charName = InworldController.CharacterHandler.CurrentCharacter ? InworldController.CharacterHandler.CurrentCharacter.BrainName : "";
+            byte[] output = Output(m_ProcessedWaveData.Count);
+            m_ProcessedWaveData.Clear();
+            string audioData = Convert.ToBase64String(output);
+            m_AudioToPush.Enqueue(new AudioChunk
             {
-                string charName = InworldController.CharacterHandler.CurrentCharacter ? InworldController.CharacterHandler.CurrentCharacter.BrainName : "";
-                byte[] output = Output(m_ProcessedWaveData.Count);
-                m_ProcessedWaveData.Clear();
-                string audioData = Convert.ToBase64String(output);
-                m_AudioToPush.Enqueue(new AudioChunk
-                {
-                    chunk = audioData,
-                    targetName = charName
-                });
-            }
+                chunk = audioData,
+                targetName = charName
+            });
+            return true;
         }
         protected virtual bool DetectPlayerSpeaking() => !IsMute && AutoDetectPlayerSpeaking;
 
@@ -556,13 +559,14 @@ namespace Inworld
         }
 
 #if UNITY_WEBGL && !UNITY_EDITOR
-        public void StartWebMicrophone()
+        public bool StartWebMicrophone()
         {
             if (!WebGLPermission)
-                return;
+                return false;
             InworldAI.Log($"Audio Input Device {DeviceName}");
             m_AudioCoroutine = AudioCoroutine();
             StartCoroutine(m_AudioCoroutine);
+            return true;
         }
         protected bool WebGLGetAudioData()
         {
@@ -648,7 +652,7 @@ namespace Inworld
         }
         
 
-        public void StartMicrophone(string deviceName)
+        public bool StartMicrophone(string deviceName)
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
             deviceName = string.IsNullOrEmpty(deviceName) ? m_DeviceName : deviceName;
@@ -656,7 +660,7 @@ namespace Inworld
             if (string.IsNullOrEmpty(microphoneDeviceIDFromName))
                 throw new ArgumentException("Couldn't acquire device ID for device name " + deviceName);
             if (WebGLIsRecording() == 1)
-                return;
+                return false;
             if (Recording.clip)
                 Destroy(Recording.clip);
             Recording.clip = AudioClip.Create("Microphone", k_SampleRate * m_BufferSeconds, 1, k_SampleRate, false);
@@ -664,8 +668,10 @@ namespace Inworld
                 s_WebGLBuffer = new float[k_SampleRate];
             WebGLInitSamplesMemoryData(s_WebGLBuffer, s_WebGLBuffer.Length);
             WebGLMicStart(microphoneDeviceIDFromName, k_SampleRate, m_BufferSeconds);
+            return true;
 #else
             Recording.clip = Microphone.Start(deviceName, true, m_BufferSeconds, k_SampleRate);
+            return Recording.clip;
 #endif
         }
         protected void StopMicrophone(string deviceName)

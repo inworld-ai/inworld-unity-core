@@ -85,6 +85,16 @@ namespace Inworld
         OPEN_MIC, // For auto push
         EXPECT_AUDIO_END // For push to talk
     }
+    public enum UnderstandingMode
+    {
+        // If UNSPECIFIED_UNDERSTANDING_MODE, the server will assume FULL mode.
+        UNSPECIFIED_UNDERSTANDING_MODE = 0,
+        // Once speech recognition results are final, automatically trigger the understanding part of the backend stack.
+        // Recognition results are also sent to the client.
+        FULL = 1,
+        // Do not trigger the understanding part; only send the speech recognition results to the client.
+        SPEECH_RECOGNITION_ONLY = 2
+    }
     public enum ControlType
     {
         UNKNOWN = 0,

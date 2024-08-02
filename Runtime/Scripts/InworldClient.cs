@@ -314,14 +314,15 @@ namespace Inworld
         /// 
         /// Can be called directly by API. 
         /// </summary>
-        public virtual void SendPackets()
+        public virtual bool SendPackets()
         {
             if (!m_Prepared.TryDequeue(out InworldPacket pkt))
-                return;
+                return false;
             if (!pkt.PrepareToSend())
-                return;
+                return false;
             m_Socket.SendAsync(pkt.ToJson);
             m_Sent.Add(pkt);
+            return true;
         }
         /// <summary>
         /// Gets the access token. Would be implemented by child class.
@@ -375,7 +376,7 @@ namespace Inworld
         /// Send LoadScene request to Inworld Server.
         /// </summary>
         /// <param name="sceneFullName">the full string of the scene to load.</param>
-        public virtual void LoadScene(string sceneFullName = "")
+        public virtual bool LoadScene(string sceneFullName = "")
         {
             UnloadScene();
             InworldAI.LogEvent("Login_Runtime");
@@ -391,7 +392,7 @@ namespace Inworld
                 if (result == null || result.Count == 0)
                 {
                     InworldAI.LogError("Characters not found in the workspace");
-                    return;
+                    return false;
                 }
                 if (result.Count == 1 && result[0].Split(new[] { "/scenes/" }, StringSplitOptions.None).Length > 0)
                 {
@@ -405,6 +406,7 @@ namespace Inworld
                     m_Socket.SendAsync(MutationPacket.LoadCharacters(result));
                 }
             }
+            return true;
         }
         public virtual void SendSessionConfig(bool loadHistory = true, string gameSessionID = "")
         {
@@ -483,24 +485,25 @@ namespace Inworld
         /// <param name="textToSend">the message to send.</param>
         /// <param name="brainName">the list of the characters full name.</param>
         /// <param name="immediate">if this packet needs to send immediately without order (Need to make sure client is connected first).</param>
-        public virtual void SendTextTo(string textToSend, string brainName = null, bool immediate = false)
+        public virtual bool SendTextTo(string textToSend, string brainName = null, bool immediate = false)
         {
             if (string.IsNullOrEmpty(textToSend))
-                return;
+                return false;
             if (!Current.UpdateLiveInfo(brainName))
-                return;
+                return false;
             InworldPacket rawPkt = new TextPacket(textToSend);
             PreparePacketToSend(rawPkt, immediate);
+            return true;
         }
         /// <summary>
         /// Legacy Send messages to an InworldCharacter in this current scene.
         /// </summary>
         /// <param name="characterID">the live session ID of the single character to send</param>
         /// <param name="textToSend">the message to send.</param>
-        public virtual void SendText(string characterID, string textToSend)
+        public virtual bool SendText(string characterID, string textToSend)
         {
             if (string.IsNullOrEmpty(characterID) || string.IsNullOrEmpty(textToSend))
-                return;
+                return false; 
             InworldPacket packet = new TextPacket
             {
                 timestamp = InworldDateTime.UtcNow,
@@ -511,6 +514,7 @@ namespace Inworld
             };
             OnPacketSent?.Invoke(packet);
             m_Socket.SendAsync(packet.ToJson);
+            return true;
         }
         /// <summary>
         /// New Send narrative action to an InworldCharacter in this current scene.
@@ -521,24 +525,25 @@ namespace Inworld
         /// <param name="narrativeAction">the narrative action to send.</param>
         /// <param name="brainName">the list of the characters full name.</param>
         /// <param name="immediate">if this packet needs to send immediately without order (Need to make sure client is connected first).</param>
-        public virtual void SendNarrativeActionTo(string narrativeAction, string brainName = null, bool immediate = false)
+        public virtual bool SendNarrativeActionTo(string narrativeAction, string brainName = null, bool immediate = false)
         {
             if (string.IsNullOrEmpty(narrativeAction))
-                return;
+                return false;
             if (!Current.UpdateLiveInfo(brainName))
-                return;
+                return false;
             InworldPacket rawPkt = new ActionPacket(narrativeAction);
             PreparePacketToSend(rawPkt, immediate);
+            return true;
         }
         /// <summary>
         /// Legacy Send a narrative action to an InworldCharacter in this current scene.
         /// </summary>
         /// <param name="characterID">the live session ID of the character to send</param>
         /// <param name="narrativeAction">the narrative action to send.</param>
-        public virtual void SendNarrativeAction(string characterID, string narrativeAction)
+        public virtual bool SendNarrativeAction(string characterID, string narrativeAction)
         {
             if (string.IsNullOrEmpty(characterID) || string.IsNullOrEmpty(narrativeAction))
-                return;
+                return false;
             InworldPacket packet = new ActionPacket
             {
                 timestamp = InworldDateTime.UtcNow,
@@ -555,6 +560,7 @@ namespace Inworld
             };
             OnPacketSent?.Invoke(packet);
             m_Socket.SendAsync(packet.ToJson);
+            return true;
         }
         /// <summary>
         /// New Send the CancelResponse Event to InworldServer to interrupt the character's speaking.
@@ -565,10 +571,10 @@ namespace Inworld
         /// <param name="utteranceID">the current utterance ID that needs to be cancelled.</param>
         /// <param name="brainName">the full name of the characters in the scene.</param>
         /// <param name="immediate">if this packet needs to send immediately without order. By default it's true (Need to make sure client is connected first).</param>
-        public virtual void SendCancelEventTo(string interactionID = "", string utteranceID = "", string brainName = null, bool immediate = true)
+        public virtual bool SendCancelEventTo(string interactionID = "", string utteranceID = "", string brainName = null, bool immediate = true)
         {
             if (!Current.UpdateLiveInfo(brainName))
-                return;
+                return false;
             CancelResponse cancelResponses = new CancelResponse();
             if (!string.IsNullOrEmpty(interactionID))
                 cancelResponses.interactionId = interactionID;
@@ -580,6 +586,7 @@ namespace Inworld
             };
             InworldPacket rawPkt = new MutationPacket(mutation);
             PreparePacketToSend(rawPkt, immediate);
+            return true;
         }
         /// <summary>
         /// Legacy Send the CancelResponse Event to InworldServer to interrupt the character's speaking.
@@ -587,10 +594,10 @@ namespace Inworld
         /// <param name="characterID">the live session ID of the character to send</param>
         /// <param name="utteranceID">the current utterance ID that needs to be cancelled.</param>
         /// <param name="interactionID">the handle of the dialog context that needs to be cancelled.</param>
-        public virtual void SendCancelEvent(string characterID, string interactionID = "", string utteranceID = "")
+        public virtual bool SendCancelEvent(string characterID, string interactionID = "", string utteranceID = "")
         {
             if (string.IsNullOrEmpty(characterID))
-                return;
+                return false;
             CancelResponse cancelResponses = new CancelResponse();
             if (!string.IsNullOrEmpty(interactionID))
                 cancelResponses.interactionId = interactionID;
@@ -609,14 +616,17 @@ namespace Inworld
             };
             OnPacketSent?.Invoke(cancelPacket); 
             m_Socket.SendAsync(cancelPacket.ToJson);
+            return true;
         }
         /// <summary>
         /// Immediately send regenerate response to the specific interaction
         /// </summary>
         /// <param name="characterID">The live session ID of the character.</param>
         /// <param name="interactionID"></param>
-        public virtual void SendRegenerateEvent(string characterID, string interactionID)
+        public virtual bool SendRegenerateEvent(string characterID, string interactionID)
         {
+            if (string.IsNullOrEmpty(characterID) || string.IsNullOrEmpty(interactionID))
+                return false;
             MutationPacket regenPacket = new MutationPacket
             {
                 timestamp = InworldDateTime.UtcNow,
@@ -633,6 +643,7 @@ namespace Inworld
             };
             OnPacketSent?.Invoke(regenPacket); 
             m_Socket.SendAsync(regenPacket.ToJson);
+            return true;
         }
         /// <summary>
         /// Select a packet from all the responses to continue conversation.
@@ -640,10 +651,10 @@ namespace Inworld
         /// </summary>
         /// <param name="characterID">The live session ID of the character.</param>
         /// <param name="regenResponsePid">The packet ID that you want to continue.</param>
-        public virtual void SendApplyResponseEvent(string characterID, PacketId regenResponsePid)
+        public virtual bool SendApplyResponseEvent(string characterID, PacketId regenResponsePid)
         {
             if (string.IsNullOrEmpty(characterID))
-                return;
+                return false;
             MutationPacket regenPacket = new MutationPacket
             {
                 timestamp = InworldDateTime.UtcNow,
@@ -660,6 +671,7 @@ namespace Inworld
             };
             OnPacketSent?.Invoke(regenPacket); 
             m_Socket.SendAsync(regenPacket.ToJson);
+            return true;
         }
         /// <summary>
         /// New Send the trigger to an InworldCharacter in the current scene.
@@ -670,14 +682,15 @@ namespace Inworld
         /// <param name="parameters">the parameters and their values for the triggers.</param>
         /// <param name="brainName">the full name of the characters in the scene.</param>
         /// <param name="immediate">if this packet needs to send immediately without order. By default it's true (Need to make sure client is connected first).</param>
-        public virtual void SendTriggerTo(string triggerName, Dictionary<string, string> parameters = null, string brainName = null, bool immediate = false)
+        public virtual bool SendTriggerTo(string triggerName, Dictionary<string, string> parameters = null, string brainName = null, bool immediate = false)
         {
             if (string.IsNullOrEmpty(triggerName))
-                return;
+                return false;
             if (!Current.UpdateLiveInfo(brainName))
-                return;
+                return false;
             InworldPacket rawPkt = new CustomPacket(triggerName, parameters);
             PreparePacketToSend(rawPkt, immediate);
+            return true;
         }
         /// <summary>
         /// Legacy Send the trigger to an InworldCharacter in the current scene.
@@ -685,10 +698,10 @@ namespace Inworld
         /// <param name="charID">the live session ID of the character to send.</param>
         /// <param name="triggerName">the name of the trigger to send.</param>
         /// <param name="parameters">the parameters and their values for the triggers.</param>
-        public virtual void SendTrigger(string charID, string triggerName, Dictionary<string, string> parameters = null)
+        public virtual bool SendTrigger(string charID, string triggerName, Dictionary<string, string> parameters = null)
         {
             if (string.IsNullOrEmpty(charID))
-                return;
+                return false;
             InworldPacket packet = new CustomPacket
             {
                 timestamp = InworldDateTime.UtcNow,
@@ -699,6 +712,7 @@ namespace Inworld
             };
             InworldAI.Log($"Send Trigger {triggerName}");
             m_Socket.SendAsync(packet.ToJson);
+            return true;
         }
         /// <summary>
         /// New Send AUDIO_SESSION_START control events to server.
@@ -707,26 +721,32 @@ namespace Inworld
         /// </summary>
         /// <param name="brainName">the full name of the characters to send.</param>
         /// <param name="micMode">If you'd like to enable the character interrupt you, check this option to OPEN_MIC.</param>
+        /// <param name="understandingMode">By default is FULL if you'd like the server to also return the response.</param>
         /// <param name="immediate">if sending immediately (need to make sure client has connected)</param>
-        public virtual void StartAudioTo(string brainName = null, MicrophoneMode micMode = MicrophoneMode.EXPECT_AUDIO_END, bool immediate = false)
+        public virtual bool StartAudioTo(string brainName = null, 
+            MicrophoneMode micMode = MicrophoneMode.EXPECT_AUDIO_END, 
+            UnderstandingMode understandingMode = UnderstandingMode.FULL,
+            bool immediate = false)
         {
             if (Current.AudioSession.IsSameSession(brainName))
-                return;
+                return true;
             StopAudioTo();
             if (!Current.UpdateLiveInfo(brainName))
-                return;
+                return false;
             ControlEvent control = new AudioControlEvent
             {
                 action = ControlType.AUDIO_SESSION_START,
                 audioSessionStart = new AudioSessionPayload
                 {
-                    mode = micMode
+                    mode = micMode,
+                    understandingMode = understandingMode
                 }
             };
             InworldPacket rawPkt = new ControlPacket(control);
             PreparePacketToSend(rawPkt, immediate);
             Current.StartAudioSession(rawPkt.packetId.packetId);
             InworldAI.Log($"Start talking to {Current.Name}");
+            return true;
         }
         /// <summary>
         /// Legacy Send AUDIO_SESSION_START control events to server.
@@ -735,10 +755,13 @@ namespace Inworld
         /// </summary>
         /// <param name="charID">the live session ID of the character to send.</param>
         /// <param name="micMode">If you'd like to enable the character interrupt you, check this option to OPEN_MIC.</param>
-        public virtual void StartAudio(string charID, MicrophoneMode micMode = MicrophoneMode.EXPECT_AUDIO_END)
+        /// <param name="understandingMode">By default is FULL if you'd like the server to also return the response.</param>
+        public virtual bool StartAudio(string charID, 
+            MicrophoneMode micMode = MicrophoneMode.EXPECT_AUDIO_END, 
+            UnderstandingMode understandingMode = UnderstandingMode.FULL)
         {
             if (string.IsNullOrEmpty(charID))
-                return;
+                return false;
 
             InworldPacket packet = new ControlPacket
             {
@@ -751,11 +774,13 @@ namespace Inworld
                     action = ControlType.AUDIO_SESSION_START,
                     audioSessionStart = new AudioSessionPayload
                     {
-                        mode = micMode
+                        mode = micMode,
+                        understandingMode = understandingMode
                     }
                 }
             };
             m_Socket.SendAsync(packet.ToJson);
+            return true;
         }
         /// <summary>
         /// New Send AUDIO_SESSION_END control events to server to.
@@ -763,12 +788,12 @@ namespace Inworld
         ///       2. New method support broadcasting to multiple characters.
         /// </summary>
         /// <param name="immediate">If immediately send message (needs connected to server first).</param>
-        public virtual void StopAudioTo(bool immediate = false)
+        public virtual bool StopAudioTo(bool immediate = false)
         {
             if (!Current.AudioSession.HasStarted)
-                return;
+                return true;
             if (!Current.UpdateLiveInfo(Current.IsConversation ? "" : Current.AudioSession.Target))
-                return;
+                return false;
             ControlEvent control = new ControlEvent
             {
                 action = ControlType.AUDIO_SESSION_END,
@@ -777,16 +802,17 @@ namespace Inworld
             PreparePacketToSend(rawPkt, immediate);
             Current.StopAudioSession();
             InworldAI.Log($"Stop talking to {Current.Name}");
+            return true;
         }
         /// <summary>
         /// Legacy Send AUDIO_SESSION_END control events to server to.
         /// </summary>
         /// <param name="charID">the live session ID of the character to send.</param>
-        public virtual void StopAudio(string charID)
+        public virtual bool StopAudio(string charID)
         {
             if (string.IsNullOrEmpty(charID))
             {
-                return;
+                return false;
             }
             InworldPacket packet = new ControlPacket
             {
@@ -800,6 +826,7 @@ namespace Inworld
                 }
             };
             m_Socket.SendAsync(packet.ToJson);
+            return true;
         }
         /// <summary>
         /// New Send the wav data to server to a specific character.
@@ -812,10 +839,10 @@ namespace Inworld
         /// <param name="base64">the base64 string of the wave data to send.</param>
         /// <param name="brainName">the character's full name.</param>
         /// <param name="immediate">if you want to send the data immediately (Need connected first).</param>
-        public virtual void SendAudioTo(string base64, string brainName = null, bool immediate = false)
+        public virtual bool SendAudioTo(string base64, string brainName = null, bool immediate = false)
         {
             if (string.IsNullOrEmpty(base64))
-                return;
+                return false;
             DataChunk dataChunk = new DataChunk
             {
                 type = DataType.AUDIO,
@@ -829,6 +856,7 @@ namespace Inworld
                 output.PrepareToSend();
                 m_Socket.SendAsync(output.ToJson);
             }
+            return true;
         }
 
         /// <summary>
@@ -840,12 +868,12 @@ namespace Inworld
         /// </summary>
         /// <param name="charID">the live session ID of the character to send.</param>
         /// <param name="base64">the base64 string of the wave data to send.</param>
-        public virtual void SendAudio(string charID, string base64)
+        public virtual bool SendAudio(string charID, string base64)
         {
             if (Status != InworldConnectionStatus.Connected)
-                return;
+                return false;
             if (string.IsNullOrEmpty(charID))
-                return;
+                return false;
             InworldPacket packet = new AudioPacket
             {
                 timestamp = InworldDateTime.UtcNow,
@@ -860,18 +888,19 @@ namespace Inworld
             };
             OnPacketSent?.Invoke(packet);
             m_Socket.SendAsync(packet.ToJson);
+            return true;
         }
-        public virtual void UpdateConversation(string conversationID = "", List<string> brainNames = null)
+        public virtual bool UpdateConversation(string conversationID = "", List<string> brainNames = null)
         {
             if (string.IsNullOrEmpty(conversationID))
                 conversationID = InworldController.CharacterHandler.ConversationID;
             brainNames ??= InworldController.CharacterHandler.CurrentCharacterNames;
             if (brainNames?.Count < 1)
-                return;
+                return false;
             if (!Current.UpdateMultiTargets(conversationID, brainNames))
-                return;
+                return false;
             if (!EnableGroupChat)
-                return;
+                return false;
             Dictionary<string, string> characterTable = GetLiveSessionCharacterDataByFullNames(brainNames);
             ControlEvent control = new ConversationControlEvent
             {
@@ -883,6 +912,7 @@ namespace Inworld
             };
             InworldPacket rawPkt = new ControlPacket(control, characterTable);
             PreparePacketToSend(rawPkt);
+            return true;
         }
 #endregion
 
@@ -1092,12 +1122,12 @@ namespace Inworld
         }
         
         
-        protected void PreparePacketToSend(InworldPacket rawPkt, bool immediate = false, bool needCallback = true)
+        protected bool PreparePacketToSend(InworldPacket rawPkt, bool immediate = false, bool needCallback = true)
         {
             if (!immediate)
                 m_Prepared.Enqueue(rawPkt);
             else if (Status != InworldConnectionStatus.Connected)
-                return;
+                return false;
             else
             {
                 rawPkt.PrepareToSend();
@@ -1105,6 +1135,7 @@ namespace Inworld
             }
             if (needCallback)
                 OnPacketSent?.Invoke(rawPkt);
+            return true;
         }
         protected IEnumerator _GetHistoryAsync(string sceneFullName)
         {

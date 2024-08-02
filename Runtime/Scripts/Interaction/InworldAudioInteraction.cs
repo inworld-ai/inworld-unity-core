@@ -44,12 +44,14 @@ namespace Inworld.Interactions
         /// <summary>
         /// Interrupt this character by cancelling its incoming responses.
         /// </summary>
-        public override void CancelResponse(bool isHardCancelling = true)
+        public override bool CancelResponse(bool isHardCancelling = true)
         {
-            base.CancelResponse(isHardCancelling);
+            if (base.CancelResponse(isHardCancelling))
+                return false;
             if(m_Interruptable)
                 m_PlaybackSource.Stop();
             m_WaitTimer = 0;
+            return true;
         }
         protected override void Awake()
         {

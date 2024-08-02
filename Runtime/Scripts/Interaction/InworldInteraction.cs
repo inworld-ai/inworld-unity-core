@@ -55,10 +55,10 @@ namespace Inworld.Interactions
         /// Soft cancelling will only cancel the stored interactions.
         /// </summary>
         /// <param name="isHardCancelling">If it's hard cancelling. By default it's true.</param>
-        public virtual void CancelResponse(bool isHardCancelling = true)
+        public virtual bool CancelResponse(bool isHardCancelling = true)
         {
             if (string.IsNullOrEmpty(m_Character.ID) || !m_Interruptable)
-                return;
+                return false;
             if (isHardCancelling && m_CurrentInteraction != null)
             {
                 InworldController.Client.SendCancelEvent(m_Character.ID, m_CurrentInteraction.ID, m_CurrentInteraction.CurrentUtterance?.ID);
@@ -66,6 +66,7 @@ namespace Inworld.Interactions
             }
             m_Prepared.PourTo(m_Cancelled);
             m_CurrentInteraction = null;
+            return true;
         }
         protected virtual void Awake()
         {
