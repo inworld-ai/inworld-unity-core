@@ -32,6 +32,8 @@ namespace Inworld.Packet
 				return jo.ToObject<LoadSceneEvent>(serializer);
 			if (jo["loadCharacters"] != null)
 				return jo.ToObject<LoadCharactersEvent>(serializer);
+			if (jo["unloadCharacters"] != null)
+				return jo.ToObject<UnloadCharactersRequest>(serializer);
 			return jo.ToObject<MutationEvent>(serializer);
 		}
 		public override bool CanConvert(Type objectType)
@@ -56,6 +58,19 @@ namespace Inworld.Packet
 				name.Add(new CharacterName(charName));
 			}
 		}
+	}
+	public class UnloadCharactersRequest
+	{
+		public List<InworldCharacterData> agents;
+
+		public UnloadCharactersRequest(List<InworldCharacterData> agentsToUnload)
+		{
+			agents = new List<InworldCharacterData>(agentsToUnload);
+		}
+	}
+	public class UnloadCharactersEvent : MutationEvent
+	{
+		public UnloadCharactersRequest unloadCharacters;
 	}
 	public class LoadCharactersEvent : MutationEvent
 	{
@@ -132,7 +147,18 @@ namespace Inworld.Packet
 			}
 		}.ToJson;
 
-		public static string LoadCharacters(List<string> characterFullName) => new MutationPacket
+		public static string UnloadCharacters(List<InworldCharacterData> characters) => new MutationPacket
+		{
+			timestamp = InworldDateTime.UtcNow,
+			type = PacketType.MUTATION,
+			packetId = new PacketId(),
+			routing = new Routing(),
+			mutation = new UnloadCharactersEvent
+			{
+				unloadCharacters = new UnloadCharactersRequest(characters)
+			}
+		}.ToJson;
+		public static string LoadCharacters(List<string> charactersFullName) => new MutationPacket
 		{
 			timestamp = InworldDateTime.UtcNow,
 			type = PacketType.MUTATION,
@@ -140,7 +166,7 @@ namespace Inworld.Packet
 			routing = new Routing(),
 			mutation = new LoadCharactersEvent
 			{
-				loadCharacters = new LoadCharactersRequest(characterFullName)
+				loadCharacters = new LoadCharactersRequest(charactersFullName)
 			}
 		}.ToJson;
 	}
