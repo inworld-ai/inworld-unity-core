@@ -155,6 +155,7 @@ namespace Inworld
     }
     public enum Strength
     {
+        UNSPECIFIED,
         WEAK,
         NEUTRAL,
         STRONG

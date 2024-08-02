@@ -21,6 +21,8 @@ namespace Inworld.Entities
         public string givenName;
         public string description;
         public CharacterAssets characterAssets;
+        
+        [JsonIgnore]
         public Texture2D thumbnail;
 
         public InworldCharacterData(){}
@@ -47,6 +49,8 @@ namespace Inworld.Entities
                 thumbnail = (uwr.downloadHandler as DownloadHandlerTexture)?.texture;
             }
         }
+        public override string ToString() => $"{givenName}: {brainName} ID: {agentId}";
+
         [JsonIgnore]
         public string CharacterFileName
         {
