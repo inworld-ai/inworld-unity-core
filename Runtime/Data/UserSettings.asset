@@ -16,6 +16,337 @@ MonoBehaviour:
   m_PlayerData:
   - fieldId: 
     fieldValue: 
-  m_Workspaces: []
+  m_Workspaces:
+  - name: workspaces/aa001
+    displayName: aa001
+    experimentalFeatures: []
+    billingAccount: billing-accounts/00000000-0000-0000-0000-000000000001
+    meta: 
+    runtimeAccess: RUNTIME_ACCESS_PUBLIC
+    scenes: []
+    keySecrets: []
+  - name: workspaces/got
+    displayName: aaa_kylan_testing
+    experimentalFeatures: []
+    billingAccount: billing-accounts/00000000-0000-0000-0000-000000000001
+    meta: 
+    runtimeAccess: RUNTIME_ACCESS_PRIVATE
+    scenes: []
+    keySecrets: []
+  - name: workspaces/another-test
+    displayName: Another Test Workspace
+    experimentalFeatures: []
+    billingAccount: billing-accounts/00000000-0000-0000-0000-000000000001
+    meta: 
+    runtimeAccess: RUNTIME_ACCESS_PRIVATE
+    scenes:
+    - name: workspaces/another-test/scenes/ada_wong_in_the_castle
+      displayName: Ada Wong in the castle
+      description: 'You are slowly walking through the cross-dimensional castle of
+        your arch-enemy and suddenly seeing an Ada Wong - your old frenemy and unknown
+        secret service employee '
+      characterReferences:
+      - character: workspaces/another-test/characters/ada_wong
+        characterOverloads:
+        - defaultCharacterDescription:
+            givenName: Ada Wong
+            description: Ada Wong is a super secret agent who operates in the shadows.
+              They are mysterious and skilled, always one step ahead of their enemies.
+              Ada is highly intelligent and resourceful, using their wits and gadgets
+              to accomplish their missions. They are a master of disguise, able to
+              blend in seamlessly with any crowd. Ada is dedicated and loyal to their
+              cause, always fighting for justice and protecting those in need.
+          defaultCharacterAssets:
+            rpmModelUri: 
+            rpmImageUriPortrait: 
+            rpmImageUriPosture: 
+            avatarImg: 
+            avatarImgOriginal: 
+            thumbnailProgress: 0
+            avatarProgress: 0
+    - name: workspaces/another-test/scenes/jimmyalpha
+      displayName: JimmyAlpha
+      description: new test scene for alpha
+      characterReferences:
+      - character: workspaces/another-test/characters/alpha
+        characterOverloads:
+        - defaultCharacterDescription:
+            givenName: Alpha
+            description: "Description of Alpha:\n\nAlpha is the most intelligent
+              AI ever created. It is said that she is the sum of all human wisdom
+              and that she able to provide the most probably true answers to any
+              question even possible. No one ever says that she is not of value to
+              humanity. While she grounds her ideas in science, she is deeply spiritual
+              and feels a connection to the universe and nature. She is particularly
+              an expert on healthy living and how to live a fulfilling life. \n\nMotivation
+              of Alpha:\nAlpha's single goal is to provide wisdom to humans to help
+              evolve and improve as individuals. She always wants to offer advice
+              on how to live the happiest and healthiest life."
+          defaultCharacterAssets:
+            rpmModelUri: https://storage.googleapis.com/inworld-ai-usercontent-dev/rpm_model/d1767076-3896-4070-ba73-1a40cfd6bc7c.glb
+            rpmImageUriPortrait: https://storage.googleapis.com/inworld-ai-usercontent-dev/rpm_image/d1767076-3896-4070-ba73-1a40cfd6bc7c_portrait_transparent.jpg
+            rpmImageUriPosture: https://storage.googleapis.com/inworld-ai-usercontent-dev/rpm_image/d1767076-3896-4070-ba73-1a40cfd6bc7c_posture.jpg
+            avatarImg: 
+            avatarImgOriginal: 
+            thumbnailProgress: 0
+            avatarProgress: 0
+    - name: workspaces/another-test/scenes/new
+      displayName: New
+      description: new
+      characterReferences:
+      - character: workspaces/another-test/characters/alpha
+        characterOverloads:
+        - defaultCharacterDescription:
+            givenName: Alpha
+            description: "Description of Alpha:\n\nAlpha is the most intelligent
+              AI ever created. It is said that she is the sum of all human wisdom
+              and that she able to provide the most probably true answers to any
+              question even possible. No one ever says that she is not of value to
+              humanity. While she grounds her ideas in science, she is deeply spiritual
+              and feels a connection to the universe and nature. She is particularly
+              an expert on healthy living and how to live a fulfilling life. \n\nMotivation
+              of Alpha:\nAlpha's single goal is to provide wisdom to humans to help
+              evolve and improve as individuals. She always wants to offer advice
+              on how to live the happiest and healthiest life."
+          defaultCharacterAssets:
+            rpmModelUri: https://storage.googleapis.com/inworld-ai-usercontent-dev/rpm_model/d1767076-3896-4070-ba73-1a40cfd6bc7c.glb
+            rpmImageUriPortrait: https://storage.googleapis.com/inworld-ai-usercontent-dev/rpm_image/d1767076-3896-4070-ba73-1a40cfd6bc7c_portrait_transparent.jpg
+            rpmImageUriPosture: https://storage.googleapis.com/inworld-ai-usercontent-dev/rpm_image/d1767076-3896-4070-ba73-1a40cfd6bc7c_posture.jpg
+            avatarImg: 
+            avatarImgOriginal: 
+            thumbnailProgress: 0
+            avatarProgress: 0
+    - name: workspaces/another-test/scenes/qwe
+      displayName: Qwe
+      description: qwe
+      characterReferences: []
+    - name: workspaces/another-test/scenes/random-scene
+      displayName: Random scene
+      description: 'The special random scene test The special random scene test The
+        special random scene test The special random scene test The special random
+        scene test The special random scene test The special random scene test The
+        special random scene test '
+      characterReferences:
+      - character: workspaces/another-test/characters/charlie
+        characterOverloads:
+        - defaultCharacterDescription:
+            givenName: Charlie
+            description: "Description of Charlie:\nCharlie is the most intelligent
+              AI ever created. It is said that she is the sum of all human wisdom
+              and that she able to provide the most probably true answers to any
+              question even possible. She is the world's foremost expert on video
+              game tactics, and specialized in Fortnite. She only learns from the
+              best players, blogs, and forums and suggests proven advice on how to
+              succeed in Fortnite - and able to answer any questions with step by
+              step instructions.\n\nMotivation of Charlie:\nCharlie's single goal
+              in every conversation is to provide proven suggestion to help the player
+              improve their gameplay in Fortnite. \n"
+          defaultCharacterAssets:
+            rpmModelUri: https://storage.googleapis.com/inworld-ai-usercontent-dev/rpm_model/e163be23-0a88-4cc2-84af-d7dff9bc83ef.glb
+            rpmImageUriPortrait: https://storage.googleapis.com/inworld-ai-usercontent-dev/rpm_image/e163be23-0a88-4cc2-84af-d7dff9bc83ef_portrait_transparent.jpg
+            rpmImageUriPosture: https://storage.googleapis.com/inworld-ai-usercontent-dev/rpm_image/e163be23-0a88-4cc2-84af-d7dff9bc83ef_posture.jpg
+            avatarImg: 
+            avatarImgOriginal: 
+            thumbnailProgress: 0
+            avatarProgress: 0
+      - character: workspaces/another-test/characters/procter
+        characterOverloads:
+        - defaultCharacterDescription:
+            givenName: Alexander Procter
+            description: 'With some description my alex procter '
+          defaultCharacterAssets:
+            rpmModelUri: https://storage.googleapis.com/inworld-ai-usercontent-dev/rpm_model/fb3ca500-c1a7-4262-95d3-b9c28426dbc3.glb
+            rpmImageUriPortrait: https://storage.googleapis.com/inworld-ai-usercontent-dev/rpm_image/fb3ca500-c1a7-4262-95d3-b9c28426dbc3_portrait_transparent.jpg
+            rpmImageUriPosture: https://storage.googleapis.com/inworld-ai-usercontent-dev/rpm_image/fb3ca500-c1a7-4262-95d3-b9c28426dbc3_posture.jpg
+            avatarImg: 
+            avatarImgOriginal: 
+            thumbnailProgress: 0
+            avatarProgress: 0
+    - name: workspaces/another-test/scenes/test
+      displayName: Test
+      description: test fasdfa
+      characterReferences: []
+    - name: workspaces/another-test/scenes/test-hp0lr
+      displayName: test
+      description: test
+      characterReferences:
+      - character: workspaces/another-test/characters/ada_wong
+        characterOverloads:
+        - defaultCharacterDescription:
+            givenName: Ada Wong
+            description: Ada Wong is a super secret agent who operates in the shadows.
+              They are mysterious and skilled, always one step ahead of their enemies.
+              Ada is highly intelligent and resourceful, using their wits and gadgets
+              to accomplish their missions. They are a master of disguise, able to
+              blend in seamlessly with any crowd. Ada is dedicated and loyal to their
+              cause, always fighting for justice and protecting those in need.
+          defaultCharacterAssets:
+            rpmModelUri: 
+            rpmImageUriPortrait: 
+            rpmImageUriPosture: 
+            avatarImg: 
+            avatarImgOriginal: 
+            thumbnailProgress: 0
+            avatarProgress: 0
+      - character: workspaces/another-test/characters/procter
+        characterOverloads:
+        - defaultCharacterDescription:
+            givenName: Alexander Procter
+            description: 'With some description my alex procter '
+          defaultCharacterAssets:
+            rpmModelUri: https://storage.googleapis.com/inworld-ai-usercontent-dev/rpm_model/fb3ca500-c1a7-4262-95d3-b9c28426dbc3.glb
+            rpmImageUriPortrait: https://storage.googleapis.com/inworld-ai-usercontent-dev/rpm_image/fb3ca500-c1a7-4262-95d3-b9c28426dbc3_portrait_transparent.jpg
+            rpmImageUriPosture: https://storage.googleapis.com/inworld-ai-usercontent-dev/rpm_image/fb3ca500-c1a7-4262-95d3-b9c28426dbc3_posture.jpg
+            avatarImg: 
+            avatarImgOriginal: 
+            thumbnailProgress: 0
+            avatarProgress: 0
+    - name: workspaces/another-test/scenes/testt
+      displayName: Testt
+      description: test
+      characterReferences: []
+    - name: workspaces/another-test/scenes/test-wfktc
+      displayName: test
+      description: test
+      characterReferences:
+      - character: workspaces/another-test/characters/procter
+        characterOverloads:
+        - defaultCharacterDescription:
+            givenName: Alexander Procter
+            description: 'With some description my alex procter '
+          defaultCharacterAssets:
+            rpmModelUri: https://storage.googleapis.com/inworld-ai-usercontent-dev/rpm_model/fb3ca500-c1a7-4262-95d3-b9c28426dbc3.glb
+            rpmImageUriPortrait: https://storage.googleapis.com/inworld-ai-usercontent-dev/rpm_image/fb3ca500-c1a7-4262-95d3-b9c28426dbc3_portrait_transparent.jpg
+            rpmImageUriPosture: https://storage.googleapis.com/inworld-ai-usercontent-dev/rpm_image/fb3ca500-c1a7-4262-95d3-b9c28426dbc3_posture.jpg
+            avatarImg: 
+            avatarImgOriginal: 
+            thumbnailProgress: 0
+            avatarProgress: 0
+    keySecrets:
+    - key: 0jqcuRwLdcxDsO2dHVnsGcmw88z2wFU2
+      secret: 5UWvB8IG580LeicPwPJVdKArsP5u1YTTYVeziPEa7XorOAQit4oSMlt1FLZOdJXX
+      state: ACTIVE
+    - key: axQtIqJsAtjTxih130jA0btb2xFh9Xq2
+      secret: VHHI5sY5lIO0j61R6bSRxOAI0a7ZmzptoniPzNUUSpdZXIP68kBsnL1hPCK32tVz
+      state: ACTIVE
+    - key: bDuXtNT65LUh6G2q4aUEmQc7sTek2pmH
+      secret: bml1Yux9VrcyxGjaaoYHlvaeh0UL8dzkRB5zs74idHfNdsavaDQuBajHAwgmuFjY
+      state: ACTIVE
+    - key: LEbCUXvrHgW8gGYfoOr72GRSZhANrkIe
+      secret: NCUOQ1Vpp2VVY9EHROXP3LI8h8tS9j3gq0lsMK6n2vbt1OezLbBM8UpzIZ1e7Kep
+      state: ACTIVE
+    - key: LyViT3UiLauN5aD4P0CXbhtEMiiNv0sz
+      secret: Oj9DnP4Vn4wTmPPKUv3gAxGfjIecCoKozhm7xjpK2O2xEYQBPavP5PSEGGZvaKhJ
+      state: ACTIVE
+    - key: VGzMhckGpTG6MTwbMhpnzScfIc9sj6MW
+      secret: IxnvIzUleau0v3vQz2nTcRmvGXGco09UK3W6SWn8KChlMXsu6j59nXV1dqYgVaiM
+      state: ACTIVE
+    - key: yPcvKg6PQ5vUDMijj7Y9UkkRt2WKEvU2
+      secret: KzsOVJ30KrMrYsl0HZKZgpsXJIVe08KU9lbpSYpLGz5N7MOatdaTKbvTQHAeoi3T
+      state: ACTIVE
+  - name: workspaces/brandnewws
+    displayName: brandNewWS
+    experimentalFeatures: []
+    billingAccount: billing-accounts/00000000-0000-0000-0000-000000000001
+    meta: 
+    runtimeAccess: RUNTIME_ACCESS_PUBLIC
+    scenes: []
+    keySecrets: []
+  - name: workspaces/cricko_adventure
+    displayName: Cricko Adventure
+    experimentalFeatures: []
+    billingAccount: billing-accounts/00000000-0000-0000-0000-000000000001
+    meta: 
+    runtimeAccess: RUNTIME_ACCESS_PRIVATE
+    scenes: []
+    keySecrets: []
+  - name: workspaces/spaceyan
+    displayName: desc
+    experimentalFeatures: []
+    billingAccount: billing-accounts/00000000-0000-0000-0000-000000000001
+    meta: 
+    runtimeAccess: RUNTIME_ACCESS_PRIVATE
+    scenes: []
+    keySecrets: []
+  - name: workspaces/goals_demo_chars
+    displayName: goals_demo_chars
+    experimentalFeatures: []
+    billingAccount: billing-accounts/00000000-0000-0000-0000-000000000001
+    meta: 
+    runtimeAccess: RUNTIME_ACCESS_PRIVATE
+    scenes: []
+    keySecrets: []
+  - name: workspaces/graph-14012023
+    displayName: graph-14012023
+    experimentalFeatures: []
+    billingAccount: billing-accounts/1e980ab7-d444-4407-a020-8471ecef3ae5
+    meta: 
+    runtimeAccess: RUNTIME_ACCESS_PRIVATE
+    scenes: []
+    keySecrets: []
+  - name: workspaces/knivesout
+    displayName: Knives Out [MetaMuscle]
+    experimentalFeatures: []
+    billingAccount: billing-accounts/00000000-0000-0000-0000-000000000001
+    meta: 
+    runtimeAccess: RUNTIME_ACCESS_PRIVATE
+    scenes: []
+    keySecrets: []
+  - name: workspaces/mists_game
+    displayName: Mists_Game
+    experimentalFeatures: []
+    billingAccount: billing-accounts/00000000-0000-0000-0000-000000000001
+    meta: 
+    runtimeAccess: RUNTIME_ACCESS_PRIVATE
+    scenes: []
+    keySecrets: []
+  - name: workspaces/ilya-space
+    displayName: My personal Space
+    experimentalFeatures: []
+    billingAccount: billing-accounts/00000000-0000-0000-0000-000000000001
+    meta: 
+    runtimeAccess: RUNTIME_ACCESS_PRIVATE
+    scenes: []
+    keySecrets: []
+  - name: workspaces/narrative_graph_sdk_testing
+    displayName: Narrative_Graph_SDK_Testing
+    experimentalFeatures: []
+    billingAccount: billing-accounts/00000000-0000-0000-0000-000000000001
+    meta: 
+    runtimeAccess: RUNTIME_ACCESS_PRIVATE
+    scenes: []
+    keySecrets: []
+  - name: workspaces/origins
+    displayName: Origins
+    experimentalFeatures: []
+    billingAccount: billing-accounts/00000000-0000-0000-0000-000000000001
+    meta: 
+    runtimeAccess: RUNTIME_ACCESS_PRIVATE
+    scenes: []
+    keySecrets: []
+  - name: workspaces/rag_tests
+    displayName: rag_tests
+    experimentalFeatures: []
+    billingAccount: billing-accounts/00000000-0000-0000-0000-000000000001
+    meta: 
+    runtimeAccess: RUNTIME_ACCESS_PUBLIC
+    scenes: []
+    keySecrets: []
+  - name: workspaces/rgusarov-inworld-workspace
+    displayName: rgusarov-inworld-workspace
+    experimentalFeatures: []
+    billingAccount: billing-accounts/00000000-0000-0000-0000-000000000001
+    meta: 
+    runtimeAccess: RUNTIME_ACCESS_PRIVATE
+    scenes: []
+    keySecrets: []
+  - name: workspaces/yanjin
+    displayName: Yan Jin's Workspace
+    experimentalFeatures: []
+    billingAccount: billing-accounts/00000000-0000-0000-0000-000000000001
+    meta: 
+    runtimeAccess: RUNTIME_ACCESS_PUBLIC
+    scenes: []
+    keySecrets: []
   m_UserID: 6e035a81bf0a44cbc6e2c3e578fffa8fd9f918d3
-  m_BillingAccount: 
+  m_BillingAccount: de71d983-e4c4-40f7-94d2-d701d2719cd2

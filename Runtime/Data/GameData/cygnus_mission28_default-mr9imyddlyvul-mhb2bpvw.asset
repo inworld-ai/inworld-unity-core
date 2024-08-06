@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5abd9eaac9cc3e4585d7e8574c2511c, type: 3}
+  m_Name: cygnus_mission28_default-mr9imyddlyvul-mhb2bpvw
+  m_EditorClassIdentifier: 
+  sceneFullName: workspaces/default-mr9imyddlyvul-mhb2bpvw/scenes/cygnus_mission28
+  apiKey: EJHaIij7fUorQ0iw5PM2vfspvdUxVzvQ
+  apiSecret: exzUhHrzSM0Z86QELUYnYzabmq5tpCrNogecS2lrudQMe9d49nrP24Q3Ul2Dzts9
+  characters:
+  - agentId: 
+    brainName: workspaces/default-mr9imyddlyvul-mhb2bpvw/characters/commissioner_m28
+    givenName: Commissioner
+    characterAssets:
+      rpmModelUri: 
+      rpmImageUriPortrait: 
+      rpmImageUriPosture: 
+      avatarImg: https://storage.googleapis.com/inworld-ai-usercontent-prod/2d_image/d80250ca-5ddc-4603-9a6c-b2260a2266c1.jpg
+      avatarImgOriginal: https://storage.googleapis.com/inworld-ai-usercontent-prod/2d_image/d80250ca-5ddc-4603-9a6c-b2260a2266c1-original.jpg
+      thumbnailProgress: 0
+      avatarProgress: 0
+    thumbnail: {fileID: 0}
+  - agentId: 
+    brainName: workspaces/default-mr9imyddlyvul-mhb2bpvw/characters/pea_m28
+    givenName: PEA
+    characterAssets:
+      rpmModelUri: 
+      rpmImageUriPortrait: 
+      rpmImageUriPosture: 
+      avatarImg: https://storage.googleapis.com/inworld-ai-usercontent-prod/2d_image/72839d49-8e21-46ea-9ccf-2b6b8493f26e.jpg
+      avatarImgOriginal: https://storage.googleapis.com/inworld-ai-usercontent-prod/2d_image/72839d49-8e21-46ea-9ccf-2b6b8493f26e-original.jpg
+      thumbnailProgress: 0
+      avatarProgress: 0
+    thumbnail: {fileID: 0}
+  capabilities:
+    audio: 1
+    emotions: 1
+    interruptions: 1
+    narratedActions: 0
+    regenerateResponse: 1
+    text: 1
+    triggers: 1
+    phonemeInfo: 1
+    relations: 1
+    debugInfo: 0
+    multiAgent: 1

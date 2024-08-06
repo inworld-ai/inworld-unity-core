@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Prod
   m_EditorClassIdentifier: 
   runtime: api-engine.inworld.ai
-  web: studio.inworld.ai
+  web: api.inworld.ai
   tutorialPage: https://docs.inworld.ai/docs/tutorial-integrations/Unity/
   port: 443

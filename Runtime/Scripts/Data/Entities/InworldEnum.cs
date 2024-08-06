@@ -178,6 +178,7 @@ namespace Inworld
         SESSION_CONTROL,
         SESSION_RESPONSE
     }
+
     public enum DataType
     {
         UNSPECIFIED = 0,
