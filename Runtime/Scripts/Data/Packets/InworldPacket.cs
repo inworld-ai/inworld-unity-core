@@ -152,7 +152,7 @@ namespace Inworld.Packet
         ///     Originally OnDequeue in OutgoingPacket.
         ///     Always call it before send to fetch the agent ID.
         /// </summary>
-        public bool PrepareToSend()
+        public virtual bool PrepareToSend()
         {
 	        if (!UpdateSessionInfo())
 		        return false;

@@ -8,6 +8,8 @@ using Inworld.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Inworld.Packet
 {
@@ -20,6 +22,13 @@ namespace Inworld.Packet
     [Serializable]
     public class CustomEvent
     {
+        public enum Type {
+            UNSPECIFIED = 0,
+            TRIGGER = 1,
+            TASK = 2
+        }
+        [JsonConverter(typeof(StringEnumConverter))]
+        public Type type;
         public string name;
         public List<TriggerParameter> parameters;
 

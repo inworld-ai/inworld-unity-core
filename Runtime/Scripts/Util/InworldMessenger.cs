@@ -25,6 +25,9 @@ namespace Inworld.Entities
 		const string k_Critical = "inworld.debug.critical-error";
 		const string k_GoAway = "inworld.debug.goaway";
 		const string k_IncompleteInteraction = "inworld.debug.setup-incomplete-interaction";
+		const string k_Task = "inworld.task";
+		const string k_TaskSucceeded = "inworld.task.succeeded";
+		const string k_TaskFailed = "inworld.task.failed";
 
 		static readonly Dictionary<string, InworldMessage> s_Message;
 
@@ -40,7 +43,8 @@ namespace Inworld.Entities
 				[k_Error] = InworldMessage.Error,
 				[k_Critical] = InworldMessage.Critical,
 				[k_GoAway] = InworldMessage.GoAway,
-				[k_IncompleteInteraction] = InworldMessage.IncompleteInteraction
+				[k_IncompleteInteraction] = InworldMessage.IncompleteInteraction,
+				[k_Task] = InworldMessage.Task
 			};
 		}
 		public static string NextTurn => k_ConversationNextTurn;
@@ -51,6 +55,21 @@ namespace Inworld.Entities
 		public static bool EnableGoal(string goalName, string brainName) => InworldController.Client.SendTriggerTo($"{k_GoalEnable}.{goalName}", null, brainName);
 		
 		public static bool DisableGoal(string goalName, string brainName) => InworldController.Client.SendTriggerTo($"{k_GoalDisable}.{goalName}", null, brainName);
+		
+		public static bool SendTaskSucceeded(string taskID, string brainName) => InworldController.Client.SendTriggerTo(k_TaskSucceeded, new Dictionary<string, string>()
+			{ { "task_id", taskID } }, brainName);
+
+		public static bool SendTaskFailed(string taskID, string reason, string brainName)
+		{
+			if (reason.Length >= 100)
+			{
+				InworldAI.LogWarning("Failed to send TaskFailed message: reason length must be < 100 characters");
+				return false;
+			}
+			
+			return InworldController.Client.SendTriggerTo(k_TaskFailed, new Dictionary<string, string>()
+				{ { "task_id", taskID }, { "reason", reason } }, brainName);
+		}
 
 		public static bool DebugSendError() => InworldController.Instance.SendTrigger(k_Error);
 		

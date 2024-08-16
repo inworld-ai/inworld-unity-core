@@ -86,6 +86,9 @@ namespace Inworld.Sample
                 case MutationPacket mutationPacket:
                     RemoveBubbles(mutationPacket);
                     break;
+                case ItemOperationPacket itemOperationPacket:
+                    // Do nothing
+                    break;
                 default:
                     InworldAI.LogWarning($"Received unknown {incomingPacket.type}");
                     break;

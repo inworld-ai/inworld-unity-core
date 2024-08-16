@@ -29,7 +29,8 @@ namespace Inworld
         Error,
         Critical,
         GoAway,
-        IncompleteInteraction
+        IncompleteInteraction,
+        Task
     }
     public enum ErrorType
     {
@@ -187,7 +188,8 @@ namespace Inworld
         ACTION,
         RELATION,
         SESSION_CONTROL,
-        SESSION_RESPONSE
+        SESSION_RESPONSE,
+        ENTITIES
     }
     public enum DataType
     {
