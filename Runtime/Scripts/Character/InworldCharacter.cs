@@ -180,6 +180,17 @@ namespace Inworld
         /// <param name="goalName">the name of the goal to disable.</param>
         public virtual bool DisableGoal(string goalName) => InworldMessenger.DisableGoal(goalName, ID);
         /// <summary>
+        /// Succeed a task performed by this character.
+        /// </summary>
+        /// <param name="taskID">the ID of the task which succeeded.</param>
+        public virtual bool SucceedTask(string taskID) => InworldMessenger.SendTaskSucceeded(taskID, ID);
+        /// <summary>
+        /// Fail a task performed by this character.
+        /// </summary>
+        /// <param name="taskID">the ID of the task which failed.</param>
+        /// <param name="reason">the reason explaining why this task failed (must be less than 100 characters).</param>
+        public virtual bool FailTask(string taskID, string reason) => InworldMessenger.SendTaskFailed(taskID, reason, ID);
+        /// <summary>
         /// Interrupt the current character's speaking.
         /// Ignore all the current incoming messages from the character.
         /// </summary>
@@ -307,6 +318,18 @@ namespace Inworld
             }
             return true;
         }
+        protected virtual void HandleTask(CustomPacket taskPacket)
+        {
+            string taskID = taskPacket.custom.name.Substring(taskPacket.custom.name.LastIndexOf('.') + 1);
+            if (m_VerboseLog)
+            {
+                string output = $"{Name} received Task: {taskID}";
+                output = taskPacket.custom.parameters.Aggregate(output, (current, param) => current + $"\n{param.name}: {param.value}");
+                InworldAI.Log(output);
+            }
+            m_CharacterEvents.onTaskReceived.Invoke(BrainName, taskID);
+        }
+        
         protected virtual bool HandleEmotion(EmotionPacket packet)
         {
             if (!packet.IsSource(ID) && !packet.IsTarget(ID))
@@ -320,10 +343,14 @@ namespace Inworld
         {
             if (!customPacket.IsSource(ID) && !customPacket.IsTarget(ID))
                 return false;
-            if (customPacket.Message == InworldMessage.RelationUpdate)
+            switch (customPacket.Message)
             {
-                HandleRelation(customPacket);
-                return true;
+                case InworldMessage.RelationUpdate:
+                    HandleRelation(customPacket);
+                    return true;
+                case InworldMessage.Task:
+                    HandleTask(customPacket);
+                    return true;
             }
             if (m_VerboseLog)
             {

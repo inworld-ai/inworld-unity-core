@@ -23,6 +23,7 @@ namespace Inworld.Entities
         public bool relations;
         public bool debugInfo;
         public bool multiAgent;
+        public bool multiModalActionPlanning;
 
         public Capabilities() {}
         public Capabilities(Capabilities rhs)
@@ -38,6 +39,7 @@ namespace Inworld.Entities
             relations = rhs.relations;
             debugInfo = rhs.debugInfo;
             multiAgent = rhs.multiAgent;
+            multiModalActionPlanning = rhs.multiModalActionPlanning;
         }
         public void CopyFrom(Capabilities rhs)
         {
@@ -52,6 +54,7 @@ namespace Inworld.Entities
             relations = rhs.relations;
             debugInfo = rhs.debugInfo;
             multiAgent = rhs.multiAgent;
+            multiModalActionPlanning = rhs.multiModalActionPlanning;
         }
         public override string ToString()
         {
@@ -75,7 +78,9 @@ namespace Inworld.Entities
             if (relations)
                 result += "RELATIONS ";
             if (multiAgent)
-                result += "MULTIAGENT";
+                result += "MULTIAGENT ";
+            if (multiModalActionPlanning)
+                result += "MAP";
             return result;
         }
     }

@@ -24,6 +24,7 @@ namespace Inworld
 		public UnityEvent<string, string> onCharacterSpeaks;
 		public UnityEvent<string, string> onEmotionChanged;
 		public UnityEvent<string, string> onGoalCompleted;
+		public UnityEvent<string, string> onTaskReceived;
 		public UnityEvent<string> onRelationUpdated;
 
 		public void RemoveAllEvents()
@@ -37,6 +38,7 @@ namespace Inworld
 			onCharacterSpeaks.RemoveAllListeners();
 			onEmotionChanged.RemoveAllListeners();
 			onGoalCompleted.RemoveAllListeners();
+			onTaskReceived.RemoveAllListeners();
 			onRelationUpdated.RemoveAllListeners();
 		}
 	}

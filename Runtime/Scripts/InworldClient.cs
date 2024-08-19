@@ -914,6 +914,118 @@ namespace Inworld
             PreparePacketToSend(rawPkt);
             return true;
         }
+        #region Entities
+        /// <summary>
+        /// Create new items or update existing items.
+        /// If an item with the given id already exists, it will update it instead of creating a new one.
+        /// </summary>
+        /// <param name="items">Set of items to create or update. Each item has to have an id. If an item with the
+        ///     given id already exists on the server, it will be rewritten with new values; otherwise, a new item is created.</param>
+        /// <param name="addToEntities">Set of entities names to add created entities to.</param>
+        public virtual bool CreateItems(List<EntityItem> items, List<string> addToEntities)
+        {
+            if (items == null || items.Count == 0 || addToEntities == null || addToEntities.Count == 0)
+                return false;
+            InworldPacket rawPkt = new ItemOperationPacket()
+            {
+                entitiesItemsOperation = new CreateOrUpdateItemsOperationEvent(items, addToEntities)
+            };
+            string log = "Create Entity Items: \n";
+            foreach (EntityItem entityItem in items)
+                log += entityItem.ToString();
+            log += "Add to Entities:";
+            foreach (string entity in addToEntities)
+                log += $" {entity}";
+            InworldAI.Log(log);
+            return PreparePacketToSend(rawPkt);
+        }
+        /// <summary>
+        /// Add given items to given entities. If an item is already part of an entity, then does nothing. If an item
+        ///     or entity does not exist, then it fails.
+        /// </summary>
+        /// <param name="itemIDs">Operation item ids.</param>
+        /// <param name="entityNames">Operation entity names.</param>
+        public virtual bool AddItemsToEntities(List<string> itemIDs, List<string> entityNames)
+        {
+            if (itemIDs == null || itemIDs.Count == 0 || entityNames == null || entityNames.Count == 0)
+                return false;
+            InworldPacket rawPkt = new ItemOperationPacket()
+            {
+                entitiesItemsOperation = new ItemsInEntitiesOperationEvent(ItemsInEntitiesOperation.Type.ADD, itemIDs, entityNames)
+            };
+            string log = "Add Items to Entities: ";
+            foreach (string itemID in itemIDs)
+                log += $" {itemID}";
+            log += "\nAdd to Entities:";
+            foreach (string entity in entityNames)
+                log += $" {entity}";
+            InworldAI.Log(log);
+            return PreparePacketToSend(rawPkt);
+        }
+        /// <summary>
+        /// Remove given items from given entities. If an item or entity does not exist, then errors out.
+        ///     If an item is not part of an entity, then does nothing.
+        /// </summary>
+        /// <param name="itemIDs">Operation item ids.</param>
+        /// <param name="entityNames">Operation entity names.</param>
+        public virtual bool RemoveItemsFromEntities(List<string> itemIDs, List<string> entityNames)
+        {
+            if (itemIDs == null || itemIDs.Count == 0 || entityNames == null || entityNames.Count == 0)
+                return false;
+            InworldPacket rawPkt = new ItemOperationPacket()
+            {
+                entitiesItemsOperation = new ItemsInEntitiesOperationEvent(ItemsInEntitiesOperation.Type.REMOVE, itemIDs, entityNames)
+            };
+            string log = "Remove Items from Entities: ";
+            foreach (string itemID in itemIDs)
+                log += $" {itemID}";
+            log += "\nRemove from Entities:";
+            foreach (string entity in entityNames)
+                log += $" {entity}";
+            InworldAI.Log(log);
+            return PreparePacketToSend(rawPkt);
+        }
+        /// <summary>
+        /// Remove all items in given entities and then replace them with a new set. Errors out if an entity or item does not exist.
+        /// </summary>
+        /// <param name="itemIDs">Operation item ids.</param>
+        /// <param name="entityNames">Operation entity names.</param>
+        public virtual bool ReplaceItemsEntities(List<string> itemIDs, List<string> entityNames)
+        {
+            if (itemIDs == null || itemIDs.Count == 0 || entityNames == null || entityNames.Count == 0)
+                return false;
+            InworldPacket rawPkt = new ItemOperationPacket()
+            {
+                entitiesItemsOperation = new ItemsInEntitiesOperationEvent(ItemsInEntitiesOperation.Type.REPLACE, itemIDs, entityNames)
+            };
+            string log = "Replace Entities of Items: ";
+            foreach (string itemID in itemIDs)
+                log += $" {itemID}";
+            log += "\nReplace with Entities:";
+            foreach (string entity in entityNames)
+                log += $" {entity}";
+            InworldAI.Log(log);
+            return PreparePacketToSend(rawPkt);
+        }
+        /// <summary>
+        /// Removes items by id. Items are automatically removed from all entities on removal.
+        /// </summary>
+        /// <param name="items">Set of ids to remove items.</param>
+        public virtual bool DestroyItems(List<string> itemIDs)
+        {
+            if (itemIDs == null || itemIDs.Count == 0)
+                return false;
+            InworldPacket rawPkt = new ItemOperationPacket()
+            {
+                entitiesItemsOperation = new RemoveItemsOperationEvent(itemIDs)
+            };
+            string log = "Destroy Entity Items: ";
+            foreach (string itemID in itemIDs)
+                log += $" {itemID}";
+            InworldAI.Log(log);
+            return PreparePacketToSend(rawPkt);
+        }
+        #endregion
 #endregion
 
 #region Private Functions

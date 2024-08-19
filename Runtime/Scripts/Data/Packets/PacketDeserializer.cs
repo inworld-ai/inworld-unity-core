@@ -39,6 +39,8 @@ namespace Inworld.Packet
 				return jo.ToObject<ActionPacket>(serializer);
 			if (jo["sessionControlResponse"] != null)
 				return jo.ToObject<SessionResponsePacket>(serializer);
+			if (jo["operationStatus"] != null)
+				return jo.ToObject<OperationStatusPacket>(serializer);
 			InworldAI.LogWarning($"Unsupported type {jo}");
 			return jo.ToObject<InworldPacket>(serializer);
 		}
