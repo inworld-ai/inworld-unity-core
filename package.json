@@ -1,6 +1,6 @@
 {
     "name": "com.inworld.unity.core",
-    "version": "3.4.2",
+    "version": "3.5.0",
     "displayName": "Inworld.AI",
     "description": "Elevate NPCs beyond simple dialogue trees with AI characters that can mimic human expression. Give NPCs unscripted dialogue, EQ, and contextual awareness for a much more immersive gaming experience.",
     "unity": "2022.3",
