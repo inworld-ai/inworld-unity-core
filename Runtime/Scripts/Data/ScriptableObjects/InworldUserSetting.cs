@@ -19,7 +19,7 @@ namespace Inworld
         [SerializeField] Texture2D m_PlayerThumbnail;
         [SerializeField] List<PlayerProfileField> m_PlayerData = new List<PlayerProfileField>();
         [SerializeField] List<InworldWorkspaceData> m_Workspaces = new List<InworldWorkspaceData>();
-        [HideInInspector][SerializeField] string m_UserID;
+        [SerializeField] string m_UserID;
         [HideInInspector][SerializeField] string m_BillingAccount;
         /// <summary>
         /// Get/Set the player name, which will be displayed in the game.
@@ -82,7 +82,7 @@ namespace Inworld
             get
             {
                 if (string.IsNullOrEmpty(m_UserID))
-                    m_UserID = BillingAccount;
+                    m_UserID = Guid.NewGuid().ToString();
                 return m_UserID;
             }
             set => m_UserID = value;
