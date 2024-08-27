@@ -4,9 +4,10 @@
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
-using Inworld.Packet;
+
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 
 namespace Inworld.Interactions
@@ -40,6 +41,18 @@ namespace Inworld.Interactions
                 if (m_PlaybackSource)
                     m_PlaybackSource.mute = value;
             }
+        }
+        protected override void OnPlayerStartSpeaking()
+        {
+            if (!m_PlaybackSource || !InworldController.Audio || !InworldController.Audio.EnableVAD)
+                return;
+            m_PlaybackSource.Pause();
+        }
+        protected override void OnPlayerStopSpeaking()
+        {
+            if (!m_PlaybackSource || !InworldController.Audio || !InworldController.Audio.EnableVAD)
+                return;
+            m_PlaybackSource.UnPause();
         }
         /// <summary>
         /// Interrupt this character by cancelling its incoming responses.
@@ -98,9 +111,10 @@ namespace Inworld.Interactions
             {
                 AnimFactor = m_AudioClip.length;
                 InworldController.Audio.CurrentPlayingAudioSource = m_PlaybackSource;
-                m_PlaybackSource.PlayOneShot(m_AudioClip);
+                m_PlaybackSource.clip = m_AudioClip;
+                m_PlaybackSource.Play();
                 m_Character.OnInteractionChanged(m_CurrentInteraction.CurrentUtterance.Packets);
-                yield return new WaitUntil(() => !m_PlaybackSource.isPlaying);
+                yield return new WaitUntil(() => m_PlaybackSource.time >= m_PlaybackSource.clip.length);
             }
             if(m_CurrentInteraction != null)
                 m_CurrentInteraction.CurrentUtterance = null;

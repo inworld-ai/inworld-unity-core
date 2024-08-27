@@ -7,6 +7,7 @@
 
 using UnityEngine;
 using Inworld.Packet;
+using Inworld.Sample;
 using System.Collections;
 using UnityEngine.InputSystem;
 using Random = UnityEngine.Random;
@@ -79,6 +80,8 @@ namespace Inworld.Interactions
         }
         protected virtual void OnEnable()
         {
+            InworldController.Audio.Event.onPlayerStartSpeaking.AddListener(OnPlayerStartSpeaking);
+            InworldController.Audio.Event.onPlayerStopSpeaking.AddListener(OnPlayerStopSpeaking);
             InworldController.Client.OnPacketReceived += ReceivePacket;
             m_CurrentCoroutine = InteractionCoroutine();
             StartCoroutine(m_CurrentCoroutine);
@@ -88,7 +91,19 @@ namespace Inworld.Interactions
         {
             StopCoroutine(m_CurrentCoroutine);
             if (InworldController.Instance)
+            {
+                InworldController.Audio.Event.onPlayerStartSpeaking.RemoveListener(OnPlayerStartSpeaking);
+                InworldController.Audio.Event.onPlayerStopSpeaking.RemoveListener(OnPlayerStopSpeaking);
                 InworldController.Client.OnPacketReceived -= ReceivePacket;
+            }
+        }
+        protected virtual void OnPlayerStartSpeaking()
+        {
+            
+        }
+        protected virtual void OnPlayerStopSpeaking()
+        {
+            
         }
         void Update()
         {
