@@ -7,8 +7,6 @@
 
 using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
-
 
 namespace Inworld.Interactions
 {
@@ -52,7 +50,10 @@ namespace Inworld.Interactions
         {
             if (!m_PlaybackSource || !InworldController.Audio || !InworldController.Audio.EnableVAD)
                 return;
-            m_PlaybackSource.UnPause();
+            if (m_PlaybackSource.time == 0)
+                m_PlaybackSource.Play();
+            else
+                m_PlaybackSource.UnPause();
         }
         /// <summary>
         /// Interrupt this character by cancelling its incoming responses.
@@ -109,12 +110,10 @@ namespace Inworld.Interactions
             }
             else
             {
-                AnimFactor = m_AudioClip.length;
-                InworldController.Audio.CurrentPlayingAudioSource = m_PlaybackSource;
                 m_PlaybackSource.clip = m_AudioClip;
                 m_PlaybackSource.Play();
                 m_Character.OnInteractionChanged(m_CurrentInteraction.CurrentUtterance.Packets);
-                yield return new WaitUntil(() => m_PlaybackSource.time >= m_PlaybackSource.clip.length);
+                yield return new WaitUntil(() => m_PlaybackSource.time >= m_PlaybackSource.clip.length - Time.fixedUnscaledDeltaTime);
             }
             if(m_CurrentInteraction != null)
                 m_CurrentInteraction.CurrentUtterance = null;

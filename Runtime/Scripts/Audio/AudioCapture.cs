@@ -101,10 +101,7 @@ namespace Inworld
         /// Gets the event handler of AudioCapture.
         /// </summary>
         public AudioEvent Event => m_AudioEvent;
-        /// <summary>
-        /// Gets/Sets the current playing audio source.
-        /// </summary>
-        public AudioSource CurrentPlayingAudioSource { get; set; }
+
         /// <summary>
         /// Gets the global setting of the volumes (From 0 to 1). 
         /// </summary>

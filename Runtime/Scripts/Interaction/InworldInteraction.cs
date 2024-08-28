@@ -26,6 +26,7 @@ namespace Inworld.Interactions
         protected InputAction m_ContinueAction;
         protected InputAction m_SkipAction;
         protected IEnumerator m_CurrentCoroutine;
+        protected AudioSource m_CurrentPlayingSource;
         protected readonly IndexQueue<Interaction> m_Prepared = new IndexQueue<Interaction>();
         protected readonly IndexQueue<Interaction> m_Processed = new IndexQueue<Interaction>();
         protected readonly IndexQueue<Interaction> m_Cancelled = new IndexQueue<Interaction>();
@@ -152,9 +153,7 @@ namespace Inworld.Interactions
                 }
                 if (m_CurrentInteraction != null && m_CurrentInteraction.CurrentUtterance != null)
                 {
-                    if (InworldController.Audio.SampleMode != MicSampleMode.TURN_BASED || 
-                               !InworldController.Audio.CurrentPlayingAudioSource || 
-                               !InworldController.Audio.CurrentPlayingAudioSource.isPlaying)
+                    if (InworldController.Audio.SampleMode != MicSampleMode.TURN_BASED) 
                         yield return PlayNextUtterance();
                 }
                 else if (m_Character)
@@ -179,11 +178,6 @@ namespace Inworld.Interactions
         {
             if (!IsRelated(incomingPacket))
                 return;
-            if (incomingPacket is CustomPacket || incomingPacket is EmotionPacket)
-            {
-                m_Character.ProcessPacket(incomingPacket);
-                return;
-            }
             if (incomingPacket.Source == SourceType.PLAYER && (incomingPacket.IsBroadCast || incomingPacket.IsTarget(m_Character.ID)))
             {
                 if (!(incomingPacket is AudioPacket))
@@ -211,7 +205,8 @@ namespace Inworld.Interactions
         }
         protected IEnumerator RemoveExceedItems()
         {
-            m_Cancelled.Clear();
+            if (m_Cancelled.Count > m_MaxItemCount)
+                m_Cancelled.Dequeue();
             if (m_Processed.Count > m_MaxItemCount)
                 m_Processed.Dequeue();
             yield break;
