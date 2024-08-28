@@ -319,7 +319,7 @@ namespace Inworld
         }
         public virtual bool StartAudio()
         {
-            MicrophoneMode micMode = IsRecording ? MicrophoneMode.EXPECT_AUDIO_END : MicrophoneMode.OPEN_MIC;
+            MicrophoneMode micMode = m_SamplingMode == MicSampleMode.PUSH_TO_TALK ? MicrophoneMode.EXPECT_AUDIO_END : MicrophoneMode.OPEN_MIC;
             UnderstandingMode understandingMode = m_TestMode ? UnderstandingMode.SPEECH_RECOGNITION_ONLY : UnderstandingMode.FULL;
             InworldCharacter character = InworldController.CharacterHandler.CurrentCharacter;
             return InworldController.Client.StartAudioTo(character ? character.BrainName : null, micMode, understandingMode);
@@ -439,25 +439,7 @@ namespace Inworld
             m_CurrentAudioSwitchingTimer -= Time.unscaledDeltaTime;
             m_CurrentAudioSwitchingTimer = m_CurrentAudioSwitchingTimer < 0 ? 0 : m_CurrentAudioSwitchingTimer;
         }
-        /// <summary>
-        /// Resample all the incoming audio data to the Inworld server supported data (16000 * 1).
-        /// </summary>
-        protected float[] Resample(float[] inputSamples, int inputSampleRate, int inputChannels) 
-        {
-            int nResampleRatio = inputSampleRate * inputChannels / k_SampleRate;
-            if (nResampleRatio == 1)
-                return inputSamples;
-            int nTargetLength = inputSamples.Length / nResampleRatio;
 
-            float[] resamples = new float[nTargetLength];
-
-            for (int i = 0; i < nTargetLength; i++)
-            {
-                int index = i * nResampleRatio;
-                resamples[i] = inputSamples[index];
-            }
-            return resamples;
-        }
         
         protected virtual IEnumerator AudioCoroutine()
         {
@@ -470,15 +452,7 @@ namespace Inworld
                 yield return new WaitForSecondsRealtime(0.1f);
             }
         }
-        protected virtual void PreProcessAudioData(ref List<short> array, float[] data, int channels, bool debug = true)
-        {
-            float[] resampledData = debug ? data : Resample(data, m_OutputSampleRate, channels);
-            foreach (float sample in resampledData)
-            {
-                float clampedSample = Math.Max(-1.0f, Math.Min(1.0f, sample));
-                array.Add((short)(clampedSample * 32767));
-            }
-        }
+        
         protected virtual void RemoveOverDueData(ref List<short> array)
         {
             if (array.Count > k_SampleRate * m_BufferSeconds)
@@ -551,7 +525,7 @@ namespace Inworld
             if (!Recording.clip)
                 return -1;
             Recording.clip.GetData(m_RawInput, m_LastPosition);
-            PreProcessAudioData(ref m_InputBuffer, m_RawInput, 1);
+            WavUtility.ConvertAudioClipDataToInt16Array(ref m_InputBuffer, m_RawInput, k_SampleRate, 1);
 #endif
             m_LastPosition = m_nPosition % m_BufferSize;
             return nSize;
