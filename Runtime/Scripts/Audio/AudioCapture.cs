@@ -316,7 +316,7 @@ namespace Inworld
         }
         public virtual bool StartAudio()
         {
-            MicrophoneMode micMode = m_SamplingMode == MicSampleMode.PUSH_TO_TALK ? MicrophoneMode.EXPECT_AUDIO_END : MicrophoneMode.OPEN_MIC;
+            MicrophoneMode micMode = IsRecording ? MicrophoneMode.EXPECT_AUDIO_END : MicrophoneMode.OPEN_MIC;
             UnderstandingMode understandingMode = m_TestMode ? UnderstandingMode.SPEECH_RECOGNITION_ONLY : UnderstandingMode.FULL;
             InworldCharacter character = InworldController.CharacterHandler.CurrentCharacter;
             return InworldController.Client.StartAudioTo(character ? character.BrainName : null, micMode, understandingMode);

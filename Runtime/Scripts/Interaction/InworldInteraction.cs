@@ -26,7 +26,8 @@ namespace Inworld.Interactions
         protected InputAction m_ContinueAction;
         protected InputAction m_SkipAction;
         protected IEnumerator m_CurrentCoroutine;
-        protected AudioSource m_CurrentPlayingSource;
+        protected AudioSource m_PlaybackSource;
+        protected AudioClip m_AudioClip;
         protected readonly IndexQueue<Interaction> m_Prepared = new IndexQueue<Interaction>();
         protected readonly IndexQueue<Interaction> m_Processed = new IndexQueue<Interaction>();
         protected readonly IndexQueue<Interaction> m_Cancelled = new IndexQueue<Interaction>();
@@ -39,12 +40,12 @@ namespace Inworld.Interactions
         /// Gets the factor for selecting animation clips.
         /// If without Audio, it's a random value between 0 and 1.
         /// </summary>
-        public virtual float AnimFactor
-        {
-            get => Random.Range(0, 1);
-            set => m_AnimFactor = value;
-        }
+        public virtual float AnimFactor => Random.Range(0, 1);
 
+        /// <summary>
+        /// Gets this character's audio source
+        /// </summary>
+        public AudioSource PlaybackSource => m_PlaybackSource;
         /// <summary>
         /// If the target packet is sent or received by this character.
         /// </summary>

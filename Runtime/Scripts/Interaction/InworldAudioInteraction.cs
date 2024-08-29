@@ -14,20 +14,12 @@ namespace Inworld.Interactions
     public class InworldAudioInteraction : InworldInteraction
     {
         [Range (0, 1)][SerializeField] protected float m_VolumeOnPlayerSpeaking = 1f;
-        AudioSource m_PlaybackSource;
-        AudioClip m_AudioClip;
+
         float m_WaitTimer;
         const string k_NoAudioCapabilities = "Audio Capabilities have been disabled in the Inworld AI object. Audio is required to be enabled when using the InworldAudioInteraction component.";
         const float k_WaitTime = 2f;
-        public override float AnimFactor
-        {
-            get => m_AnimFactor;
-            set => m_AnimFactor = value;
-        }
-        /// <summary>
-        /// Gets this character's audio source
-        /// </summary>
-        public AudioSource PlaybackSource => m_PlaybackSource;
+        public override float AnimFactor => m_PlaybackSource ? m_PlaybackSource.time : base.AnimFactor;
+
         /// <summary>
         /// Mute/Unmute this character.
         /// </summary>
@@ -102,18 +94,23 @@ namespace Inworld.Interactions
                 m_WaitTimer += Time.unscaledDeltaTime;
                 yield break;
             }
-            m_AudioClip = m_CurrentInteraction.CurrentUtterance.GetAudioClip();
-            if (m_AudioClip == null)
+            AudioClip audioClip = m_CurrentInteraction.CurrentUtterance.GetAudioClip();
+            if (audioClip == null)
             {
                 m_Character.OnInteractionChanged(m_CurrentInteraction.CurrentUtterance.Packets);
                 yield return new WaitForSeconds(m_CurrentInteraction.CurrentUtterance.GetTextSpeed() * m_TextSpeedMultipler);
             }
             else
             {
-                m_PlaybackSource.clip = m_AudioClip;
-                m_PlaybackSource.Play();
+                if (audioClip != m_AudioClip)
+                {
+                    m_AudioClip = audioClip;
+                    m_PlaybackSource.clip = m_AudioClip;
+                    m_PlaybackSource.Play();
+                }
                 m_Character.OnInteractionChanged(m_CurrentInteraction.CurrentUtterance.Packets);
-                yield return new WaitUntil(() => m_PlaybackSource.time >= m_PlaybackSource.clip.length - Time.fixedUnscaledDeltaTime);
+                yield return new WaitUntil(() => m_PlaybackSource.clip == null || m_PlaybackSource.time >= m_PlaybackSource.clip.length - Time.fixedUnscaledDeltaTime);
+                m_PlaybackSource.clip = null;
             }
             if(m_CurrentInteraction != null)
                 m_CurrentInteraction.CurrentUtterance = null;
