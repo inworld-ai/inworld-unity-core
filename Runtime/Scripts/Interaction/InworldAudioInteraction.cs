@@ -5,8 +5,10 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
+using Inworld.Packet;
 using UnityEngine;
 using System.Collections;
+using System.Linq;
 
 namespace Inworld.Interactions
 {
@@ -52,10 +54,14 @@ namespace Inworld.Interactions
         /// </summary>
         public override bool CancelResponse(bool isHardCancelling = true)
         {
-            if (base.CancelResponse(isHardCancelling))
+            if (!base.CancelResponse(isHardCancelling))
                 return false;
-            if(m_Interruptable)
+            if (m_Interruptable)
+            {
+                m_PlaybackSource.clip = null;
                 m_PlaybackSource.Stop();
+            }
+                
             m_WaitTimer = 0;
             return true;
         }
