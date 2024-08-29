@@ -34,7 +34,6 @@ namespace Inworld
         [SerializeField] protected int m_AudioToPushCapacity = 100;
         [SerializeField] protected string m_DeviceName;
         [SerializeField] protected bool m_DetectPlayerSpeaking = true;
-        [Range(0.1f, 1f)] [SerializeField] protected float m_SwitchingAudioTimer = 0.5f;
         [Tooltip("By checking this, client will not sample player's voice")]
         [SerializeField] protected bool m_MutePlayerMic;
         [Tooltip("By enabling testing mode, Inworld server will only send you the Text-To-Speech result, without any character's response.")]
@@ -57,7 +56,6 @@ namespace Inworld
         protected bool m_IsCapturing;
         protected float m_BackgroundNoise;
         protected float m_CalibratingTime;
-        protected float m_CurrentAudioSwitchingTimer;
         // Last known position in AudioClip buffer.
         protected int m_LastPosition;
         // Size of audioclip used to collect information, need to be big enough to keep up with collect. 
@@ -175,11 +173,6 @@ namespace Inworld
                     Event.onPlayerStopSpeaking?.Invoke();
             }
         }
-        
-        /// <summary>
-        /// Gets if is switching audio.
-        /// </summary>
-        public bool IsSwitchingAudio => m_CurrentAudioSwitchingTimer != 0;
         /// <summary>
         /// Signifies it's currently capturing.
         /// </summary>
@@ -188,12 +181,9 @@ namespace Inworld
             get => m_IsCapturing;
             set
             {
-                if (IsSwitchingAudio)
-                    return;
                 if (m_IsCapturing == value)
                     return;
                 m_IsCapturing = value;
-                m_CurrentAudioSwitchingTimer = m_SwitchingAudioTimer;
                 if (m_IsCapturing)
                 {
                     Event.onRecordingStart?.Invoke();
@@ -381,7 +371,6 @@ namespace Inworld
         }
         protected void Update()
         {
-            TimerCountDown();
             if (m_AudioToPush.Count > m_AudioToPushCapacity)
                 m_AudioToPush.TryDequeue(out AudioChunk chunk);
         }
@@ -430,13 +419,6 @@ namespace Inworld
             }
             Event.onStopCalibrating?.Invoke();
         }
-
-        protected virtual void TimerCountDown()
-        {
-            m_CurrentAudioSwitchingTimer -= Time.unscaledDeltaTime;
-            m_CurrentAudioSwitchingTimer = m_CurrentAudioSwitchingTimer < 0 ? 0 : m_CurrentAudioSwitchingTimer;
-        }
-
         
         protected virtual IEnumerator AudioCoroutine()
         {
