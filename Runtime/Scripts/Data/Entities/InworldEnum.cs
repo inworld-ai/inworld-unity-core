@@ -96,6 +96,16 @@ namespace Inworld
         // Do not trigger the understanding part; only send the speech recognition results to the client.
         SPEECH_RECOGNITION_ONLY = 2
     }
+    // Types of access control policy in Runtime
+    public enum RuntimeAccess 
+    {
+        // Unspecified
+        RUNTIME_ACCESS_UNSPECIFIED = 0,
+        // Default policy - only the owner can read assets
+        RUNTIME_ACCESS_PRIVATE = 1,
+        // Public - everyone can read assets
+        RUNTIME_ACCESS_PUBLIC = 2
+    }
     public enum ControlType
     {
         UNKNOWN = 0,

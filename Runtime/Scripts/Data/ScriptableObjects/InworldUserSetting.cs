@@ -115,5 +115,11 @@ namespace Inworld
             InworldWorkspaceData wsData = m_Workspaces.FirstOrDefault(ws => ws.name == workspaceName);
             return wsData?.scenes.FirstOrDefault(scene => scene.name == sceneFullName);
         }
+        public InworldCharacterData GetCharacterByFullName(string characterFullName)
+        {
+            string workspaceName = characterFullName.Substring(0, characterFullName.IndexOf("/characters/", StringComparison.Ordinal));
+            InworldWorkspaceData wsData = m_Workspaces.FirstOrDefault(ws => ws.name == workspaceName);
+            return wsData?.characters.FirstOrDefault(character => character.brainName == characterFullName);
+        }
     }
 }

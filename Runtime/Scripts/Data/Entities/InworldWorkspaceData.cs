@@ -25,6 +25,7 @@ namespace Inworld.Entities
         // YAN: Now charRef in scenes would be updated. No need to list characters.
         public List<InworldSceneData> scenes;
         public List<InworldKeySecret> keySecrets;
+        public List<InworldCharacterData> characters;
         [JsonIgnore]
         public InworldKeySecret DefaultKey => keySecrets.Count > 0 ? keySecrets[0] : null;
 
