@@ -922,7 +922,7 @@ namespace Inworld
         /// <param name="items">Set of items to create or update. Each item has to have an id. If an item with the
         ///     given id already exists on the server, it will be rewritten with new values; otherwise, a new item is created.</param>
         /// <param name="addToEntities">Set of entities names to add created entities to.</param>
-        public virtual bool CreateItems(List<EntityItem> items, List<string> addToEntities)
+        public virtual bool CreateOrUpdateItems(List<EntityItem> items, List<string> addToEntities)
         {
             if (items == null || items.Count == 0 || addToEntities == null || addToEntities.Count == 0)
                 return false;
