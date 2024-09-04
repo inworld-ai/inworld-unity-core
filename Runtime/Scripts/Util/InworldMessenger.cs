@@ -52,8 +52,8 @@ namespace Inworld.Entities
 		public static bool GetTask(string triggerName, out string taskName)
 		{
 			taskName = null;
-			if (!string.IsNullOrEmpty(triggerName) && triggerName.StartsWith(k_Task))
-				taskName = triggerName.Remove(0, k_Task.Length);
+			if (!string.IsNullOrEmpty(triggerName) && triggerName.StartsWith(k_Task) && taskName.Length >= k_Task.Length + 1)
+				taskName = triggerName.Remove(0, k_Task.Length + 1);
 
 			return !string.IsNullOrEmpty(triggerName);
 		}
