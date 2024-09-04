@@ -26,15 +26,19 @@ namespace Inworld.Entities
         public List<InworldSceneData> scenes;
         public List<InworldKeySecret> keySecrets;
         public List<InworldCharacterData> characters;
+        
         [JsonIgnore]
         public InworldKeySecret DefaultKey => keySecrets.Count > 0 ? keySecrets[0] : null;
+        
+        [JsonIgnore]
+        public float Progress => characters.Count == 0 ? 1 : characters.Sum(cr => cr.Progress) / characters.Count;
 
         /// <summary>
         /// Get the first scene in the list, that all the input characters are in that scene.
         /// </summary>
-        /// <param name="characters">the brain names of these characters.</param>
+        /// <param name="characterNames">the brain names of these characters.</param>
         /// <returns>the scene full name if exists. Or the first character name (We don't support load a new scene with all new characters)</returns>
-        public string GetSceneNameByCharacters(List<string> characters) => scenes.FirstOrDefault(s => s.Contains(characters))?.name;
+        public string GetSceneNameByCharacters(List<string> characterNames) => scenes.FirstOrDefault(s => s.Contains(characterNames))?.name;
     }
     [Serializable]
     public class ListWorkspaceResponse

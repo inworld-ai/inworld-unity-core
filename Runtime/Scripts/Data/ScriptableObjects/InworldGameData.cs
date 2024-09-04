@@ -15,6 +15,7 @@ namespace Inworld
 {
     public class InworldGameData : ScriptableObject
     {
+        public string workspaceFullName;
         public string sceneFullName;
         public string apiKey;
         public string apiSecret;
@@ -36,31 +37,70 @@ namespace Inworld
         /// Gets the progress of the assets downloading.
         /// </summary>
         public float Progress => characters?.Count > 0 ? characters.Sum(character => character.characterAssets.Progress) / characters.Count : 1;
-    
+
         /// <summary>
         /// Set the data for the scriptable object instantiated.
         /// </summary>
-        /// <param name="sceneData">The InworldSceneData to load</param>
+        /// <param name="workspace">The workspace loading.</param>
         /// <param name="keySecret">The API key secret to use</param>
-        public void SetData(InworldSceneData sceneData, InworldKeySecret keySecret)
+        public void Init(string workspace, InworldKeySecret keySecret)
         {
-            if (sceneData != null)
-            {
-                sceneFullName = sceneData.name;
-                if (characters == null)
-                    characters = new List<InworldCharacterData>();
-                characters.Clear();
-                foreach (CharacterReference charRef in sceneData.characterReferences)
-                {
-                    characters.Add(new InworldCharacterData(charRef));
-                }
-            }
+            if (!string.IsNullOrEmpty(workspace))
+                workspaceFullName = workspace;
             if (keySecret != null)
             {
                 apiKey = keySecret.key;
                 apiSecret = keySecret.secret;
             }
             capabilities = new Capabilities(InworldAI.Capabilities);
+    #if UNITY_EDITOR
+            EditorUtility.SetDirty(this);
+            AssetDatabase.SaveAssets();
+    #endif
+        }
+
+        /// <summary>
+        /// Set Initial InworldSceneData
+        /// </summary>
+        /// <param name="sceneData"></param>
+        public void SetInworldScene(InworldSceneData sceneData)
+        {
+            if (sceneData != null)
+            {
+                sceneFullName = sceneData.name;
+                if (characters == null)
+                    characters = new List<InworldCharacterData>();
+                if (sceneData.characterReferences.Count > 0)
+                {
+                    characters.Clear();
+                    foreach (CharacterReference charRef in sceneData.characterReferences)
+                    {
+                        characters.Add(new InworldCharacterData(charRef));
+                    }
+                }
+            }
+    #if UNITY_EDITOR
+            EditorUtility.SetDirty(this);
+            AssetDatabase.SaveAssets();
+    #endif
+        }
+        
+        /// <summary>
+        /// Set InitialCharacterData
+        /// </summary>
+        /// <param name="characterNames"></param>
+        public void SetInworldCharacter(List<InworldCharacterData> characterNames)
+        {
+            if (characterNames != null && characterNames.Count != 0)
+            {
+                if (characters == null)
+                    characters = new List<InworldCharacterData>();
+                characters.Clear();
+                foreach (var charData in characterNames)
+                {
+                    characters.Add(charData);
+                }
+            }
     #if UNITY_EDITOR
             EditorUtility.SetDirty(this);
             AssetDatabase.SaveAssets();

@@ -27,6 +27,9 @@ namespace Inworld.Entities
         [JsonIgnore]
         public Texture2D thumbnail;
 
+        [JsonIgnore]
+        public float Progress => characterAssets.Progress;
+       
         public InworldCharacterData(){}
 
         public InworldCharacterData(CharacterOverLoad overLoad)
@@ -192,16 +195,5 @@ namespace Inworld.Entities
     {
         public string character; // agentID
         public List<CharacterOverLoad> characterOverloads;
-        [JsonIgnore]
-        public float Progress => characterOverloads.Count == 1 ? characterOverloads[0].defaultCharacterAssets.Progress : 0;
-        [JsonIgnore]
-        public string CharacterFileName
-        {
-            get
-            {
-                string[] data = character.Split('/');
-                return data.Length < 4 ? character : $"{data[3]}_{data[1]}";
-            }
-        }
     }
 }
