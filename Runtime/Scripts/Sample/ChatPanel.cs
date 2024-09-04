@@ -137,22 +137,17 @@ namespace Inworld.Sample
             if (!m_ChatOptions.task || !IsUIReady)
                 return false;
             string key = m_ChatOptions.longBubbleMode ? taskPacket.packetId.interactionId : taskPacket.packetId.utteranceId;
+            List<TriggerParameter> parameters = new List<TriggerParameter>(taskPacket.custom.parameters);
+            TriggerParameter taskIDParameter = parameters.Find(parameter => parameter.name == "task_id");
+            if(taskIDParameter != null)
+                parameters.Remove(taskIDParameter);
             string content;
             if (taskPacket.Source == SourceType.PLAYER)
-            {
-                var parameters = new List<TriggerParameter>(taskPacket.custom.parameters);
-                parameters.Remove(parameters[0]);
                 content = $"{taskPacket.custom.name}\n" + parameters.Aggregate("", (current, param) => current + $"{param.name}: {param.value}\n");
-                content = $"<i><color=#AAAAAA>{content}</color></i>";
-            }
             else
-            {
-                var parameters = new List<TriggerParameter>(taskPacket.custom.parameters);
-                parameters.Remove(parameters[0]);
                 content = $"Received Task: {taskPacket.custom.name}\n" + parameters.Aggregate("", (current, param) => current + $"{param.name}: {param.value}\n");
-                content = $"<i><color=#AAAAAA>{content}</color></i>";
-            }
-            InsertBubbleWithPacketInfo(key, taskPacket.packetId, m_BubbleLeft, "Task", m_ChatOptions.longBubbleMode, content, InworldAI.DefaultThumbnail);
+            
+            InsertBubbleWithPacketInfo(key, taskPacket.packetId, m_BubbleLeft, "Task", m_ChatOptions.longBubbleMode, $"<i><color=#AAAAAA>{content}</color></i>", InworldAI.DefaultThumbnail);
             return true;
         }
         protected virtual bool HandleTrigger(CustomPacket customPacket)

@@ -320,7 +320,8 @@ namespace Inworld
         }
         protected virtual void HandleTask(CustomPacket taskPacket)
         {
-            string taskName = taskPacket.custom.name.Substring(taskPacket.custom.name.LastIndexOf('.') + 1);
+            if (!InworldMessenger.GetTask(taskPacket.custom.name, out string taskName)) return;
+
             if (m_VerboseLog)
             {
                 string output = $"{Name} received Task: {taskName}";
