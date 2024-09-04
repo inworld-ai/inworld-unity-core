@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -19,18 +20,28 @@ namespace Inworld.Entities
         public string agentId;
         public string brainName;
         public string givenName;
-        public string description;
+        public CharacterDescription description;
         public CharacterAssets characterAssets;
+        public string language;
         
         [JsonIgnore]
         public Texture2D thumbnail;
 
         public InworldCharacterData(){}
+
+        public InworldCharacterData(CharacterOverLoad overLoad)
+        {
+            brainName = overLoad.name;
+            givenName = overLoad.defaultCharacterDescription.givenName;
+            language = overLoad.language;
+            description = overLoad.defaultCharacterDescription;
+            characterAssets = new CharacterAssets(overLoad.defaultCharacterAssets);
+        }
         public InworldCharacterData(CharacterReference charRef)
         {
             brainName = charRef.character;
             givenName = charRef.characterOverloads[0].defaultCharacterDescription.givenName;
-            description = charRef.characterOverloads[0].defaultCharacterDescription.description;
+            description = charRef.characterOverloads[0].defaultCharacterDescription;
             characterAssets = new CharacterAssets(charRef.characterOverloads[0].defaultCharacterAssets);
         }
         public IEnumerator UpdateThumbnail(Texture2D inputThumbnail = null)
@@ -74,15 +85,21 @@ namespace Inworld.Entities
             languageCode = language;
         }
     }
+    [Serializable]
+    public class RPMInfo
+    {
+        public string rpmModelUri;
+        public string rpmImageUri;
+    }
     
     [Serializable]
     public class CharacterAssets
     {
         public string rpmModelUri;
-        public string rpmImageUriPortrait;
-        public string rpmImageUriPosture;
+        public string rpmImageUri;
         public string avatarImg;
         public string avatarImgOriginal;
+        public RPMInfo rpmAvatar;
 
         public float thumbnailProgress;
         public float avatarProgress;
@@ -92,9 +109,7 @@ namespace Inworld.Entities
         public float Progress => _ThumbnailProgress + _AvatarProgress;
         public bool IsAsset(string url)
         {
-            if (rpmImageUriPortrait == url)
-                return true;
-            if (rpmImageUriPosture == url)
+            if (rpmImageUri == url)
                 return true;
             if (avatarImg == url)
                 return true;
@@ -111,10 +126,8 @@ namespace Inworld.Entities
                     return avatarImg;
                 if (!string.IsNullOrEmpty(avatarImgOriginal))
                     return avatarImgOriginal;
-                if (!string.IsNullOrEmpty(rpmImageUriPortrait))
-                    return rpmImageUriPortrait;
-                if (!string.IsNullOrEmpty(rpmImageUriPosture))
-                    return rpmImageUriPosture;
+                if (!string.IsNullOrEmpty(rpmImageUri))
+                    return rpmImageUri;
                 return null;
             }
         }
@@ -123,18 +136,30 @@ namespace Inworld.Entities
         public CharacterAssets(CharacterAssets rhs)
         {
             rpmModelUri = rhs.rpmModelUri;
-            rpmImageUriPortrait = rhs.rpmImageUriPortrait;
-            rpmImageUriPosture = rhs.rpmImageUriPosture;
+            rpmImageUri = rhs.rpmImageUri;
             avatarImg = rhs.avatarImg;
             avatarImgOriginal = rhs.avatarImgOriginal;
+            // Apply New structure to Legacy.
+            if (rhs.rpmAvatar == null)
+                return;
+            if (!string.IsNullOrEmpty(rhs.rpmAvatar.rpmImageUri))
+                rpmImageUri = rhs.rpmAvatar.rpmImageUri;
+            if (!string.IsNullOrEmpty(rhs.rpmAvatar.rpmModelUri))
+                rpmImageUri = rhs.rpmImageUri;
         }
         public void CopyFrom(CharacterAssets rhs)
         {
             rpmModelUri = rhs.rpmModelUri;
-            rpmImageUriPortrait = rhs.rpmImageUriPortrait;
-            rpmImageUriPosture = rhs.rpmImageUriPosture;
+            rpmImageUri = rhs.rpmImageUri;
             avatarImg = rhs.avatarImg;
             avatarImgOriginal = rhs.avatarImgOriginal;
+            // Apply New structure to Legacy.
+            if (rhs.rpmAvatar == null)
+                return;
+            if (!string.IsNullOrEmpty(rhs.rpmAvatar.rpmImageUri))
+                rpmImageUri = rhs.rpmAvatar.rpmImageUri;
+            if (!string.IsNullOrEmpty(rhs.rpmAvatar.rpmModelUri))
+                rpmImageUri = rhs.rpmImageUri;
         }
     }
     [Serializable]
@@ -142,12 +167,25 @@ namespace Inworld.Entities
     {
         public string givenName;
         public string description;
+        [JsonConverter(typeof(StringEnumConverter))]
+        public Pronoun pronoun;
+        public List<string> nickNames;
+        public string motivation;
+        public List<string> personalityAdjectives;
+        [JsonConverter(typeof(StringEnumConverter))]
+        public LifeStage lifeStage;
+        public List<string> hobbyOrInterests;
+        public string characterRole;
+        public string flaws;
     }
     [Serializable]
     public class CharacterOverLoad
     {
+        public string name; // full Name.
+        public string language;
         public CharacterDescription defaultCharacterDescription;
         public CharacterAssets defaultCharacterAssets;
+        public List<string> commonKnowledges;
     }
     [Serializable]
     public class CharacterReference

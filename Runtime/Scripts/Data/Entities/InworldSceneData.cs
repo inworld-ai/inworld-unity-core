@@ -19,7 +19,12 @@ namespace Inworld.Entities
         public string name; // Full name
         public string displayName;
         public string description;
+        public string timePeriod;
+        public List<SceneTrigger> sceneTriggers;
+        public List<string> commonKnowledges;
         public List<CharacterReference> characterReferences;
+        public SceneAssets defaultSceneAssets;
+        public List<SceneCharacterReference> characters;
         
         [JsonIgnore]
         public float Progress => characterReferences.Count == 0 ? 1 : characterReferences.Sum(cr => cr.Progress) / characterReferences.Count;
@@ -36,6 +41,30 @@ namespace Inworld.Entities
     public class ListSceneResponse
     {
         public List<InworldSceneData> scenes;
-        public string nextPageToken;
+    }
+    [Serializable]
+    public class ListCharacterResponse
+    {
+        public List<CharacterOverLoad> characters;
+    }
+    [Serializable]
+    public class SceneTrigger
+    {
+        public string trigger;
+        public string description;
+    }
+    [Serializable]
+    public class SceneCharacterReference
+    {
+        public string character;
+        public string displayTitle;
+        public string imageUri;
+        public string additionalAgentInfo;
+    }
+    [Serializable]
+    public class SceneAssets
+    {
+        public string sceneImg;
+        public string sceneImgOriginal;
     }
 }
