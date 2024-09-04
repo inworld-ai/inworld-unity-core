@@ -49,6 +49,14 @@ namespace Inworld.Entities
 		}
 		public static string NextTurn => k_ConversationNextTurn;
 		public static int GoalCompleteHead => k_GoalComplete.Length + 1; // YAN: With a dot in the end.
+		public static bool GetTask(string triggerName, out string taskName)
+		{
+			taskName = null;
+			if (!string.IsNullOrEmpty(triggerName) && triggerName.StartsWith(k_Task))
+				taskName = triggerName.Remove(0, k_Task.Length);
+
+			return !string.IsNullOrEmpty(triggerName);
+		}
 		public static InworldMessage ProcessPacket(CustomPacket packet) => 
 			(from data in s_Message where packet.custom.name.StartsWith(data.Key) select data.Value).FirstOrDefault();
 

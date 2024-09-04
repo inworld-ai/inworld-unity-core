@@ -6,6 +6,7 @@
  *************************************************************************************************/
 using Inworld.Packet;
 using System;
+using System.Collections.Generic;
 using UnityEngine.Events;
 
 namespace Inworld
@@ -24,7 +25,7 @@ namespace Inworld
 		public UnityEvent<string, string> onCharacterSpeaks;
 		public UnityEvent<string, string> onEmotionChanged;
 		public UnityEvent<string, string> onGoalCompleted;
-		public UnityEvent<string, string> onTaskReceived;
+		public UnityEvent<string, string, List<TriggerParameter>> onTaskReceived;
 		public UnityEvent<string> onRelationUpdated;
 
 		public void RemoveAllEvents()

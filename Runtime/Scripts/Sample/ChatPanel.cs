@@ -9,6 +9,7 @@ using Inworld.Entities;
 using Inworld.Packet;
 using Inworld.UI;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -25,6 +26,7 @@ namespace Inworld.Sample
         public bool relation;
         public bool trigger;
         public bool longBubbleMode;
+        public bool task;
     }
     public class ChatPanel : BubblePanel
     {
@@ -130,10 +132,30 @@ namespace Inworld.Sample
             InsertBubbleWithPacketInfo(key, relationPacket.packetId, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
             return true;
         }
+        protected virtual bool HandleTask(CustomPacket taskPacket)
+        {
+            if (!m_ChatOptions.task || !IsUIReady)
+                return false;
+            string key = m_ChatOptions.longBubbleMode ? taskPacket.packetId.interactionId : taskPacket.packetId.utteranceId;
+            List<TriggerParameter> parameters = new List<TriggerParameter>(taskPacket.custom.parameters);
+            TriggerParameter taskIDParameter = parameters.Find(parameter => parameter.name == "task_id");
+            if(taskIDParameter != null)
+                parameters.Remove(taskIDParameter);
+            string content;
+            if (taskPacket.Source == SourceType.PLAYER)
+                content = $"{taskPacket.custom.name}\n" + parameters.Aggregate("", (current, param) => current + $"{param.name}: {param.value}\n");
+            else
+                content = $"Received Task: {taskPacket.custom.name}\n" + parameters.Aggregate("", (current, param) => current + $"{param.name}: {param.value}\n");
+            
+            InsertBubbleWithPacketInfo(key, taskPacket.packetId, m_BubbleLeft, "Task", m_ChatOptions.longBubbleMode, $"<i><color=#AAAAAA>{content}</color></i>", InworldAI.DefaultThumbnail);
+            return true;
+        }
         protected virtual bool HandleTrigger(CustomPacket customPacket)
         {
             if (customPacket.Message == InworldMessage.RelationUpdate)
                 HandleRelation(customPacket);
+            else if (customPacket.Message == InworldMessage.Task)
+                HandleTask(customPacket);
             if (!m_ChatOptions.trigger || customPacket.custom == null || !IsUIReady)
                 return false;
             if (!InworldController.Client.LiveSessionData.TryGetValue(customPacket.routing.source.name, out InworldCharacterData charData))
