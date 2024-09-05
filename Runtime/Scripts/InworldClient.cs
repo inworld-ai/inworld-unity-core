@@ -408,6 +408,11 @@ namespace Inworld
             }
             return true;
         }
+        /// <summary>
+        /// Send SessionConfig, send it immediately after session started to start conversation. 
+        /// </summary>
+        /// <param name="loadHistory">check if history is loaded.</param>
+        /// <param name="gameSessionID">send the user's customized game session ID for analyze report.</param>
         public virtual void SendSessionConfig(bool loadHistory = true, string gameSessionID = "")
         {
             if (loadHistory)
@@ -448,6 +453,29 @@ namespace Inworld
             }
             InworldAI.Log("Prepare Session...");
             m_Socket.SendAsync(ctrlPacket.ToJson);
+        }
+        /// <summary>
+        /// Send PingPong Response for latency Test.
+        /// </summary>
+        /// <param name="packetID"></param>
+        public virtual void SendLatencyTestResponse(PacketId packetID)
+        {
+            LatencyReportPacket latencyReport = new LatencyReportPacket
+            {
+                timestamp = InworldDateTime.UtcNow,
+                packetId = new PacketId(),
+                routing = new Routing("WORLD"),
+                latencyReport = new PingPongEvent
+                {
+                    pingPong = new PingPong
+                    {
+                        type = PingPongType.PONG,
+                        pingPacketId = packetID,
+                        pingTimestamp = InworldDateTime.UtcNow
+                    }
+                }
+            };
+            m_Socket.SendAsync(latencyReport.ToJson);
         }
         /// <summary>
         /// Send Capabilities to Inworld Server.
@@ -1142,6 +1170,14 @@ namespace Inworld
         /// <returns>True if need dispatch, False if error or discard.</returns>
         bool _HandleRawPackets(InworldPacket receivedPacket)
         {
+            if (receivedPacket is LatencyReportPacket latencyReportPacket)
+            {
+                if (latencyReportPacket.latencyReport is PingPongEvent)
+                {
+                    SendLatencyTestResponse(latencyReportPacket.packetId);
+                }
+                return false;
+            }
             if (receivedPacket is SessionResponsePacket)
                 return false;
             if (receivedPacket is ControlPacket controlPacket)

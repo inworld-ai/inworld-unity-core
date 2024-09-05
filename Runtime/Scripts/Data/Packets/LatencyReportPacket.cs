@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Specialized;
@@ -39,9 +40,9 @@ namespace Inworld.Packet
 	}
 
 	[Serializable]
-	public class PingPongEvent : LatencyReportEvent
+	public class PingPong
 	{
-		[JsonConverter(typeof(StringEnumerator))]
+		[JsonConverter(typeof(StringEnumConverter))]
 		public PingPongType type;
 
 		// The pong response will have a copy of the ping packet ID.
@@ -50,33 +51,41 @@ namespace Inworld.Packet
 		// The pong response will have a copy of the ping timestamp.
 		public string pingTimestamp;
 	}
-
+	[Serializable]
+	public class PingPongEvent : LatencyReportEvent
+	{
+		public PingPong pingPong;
+	}
+	[Serializable]
+	public class PerceivedLatency
+	{
+		[JsonConverter(typeof(StringEnumConverter))]
+		public Precision precision;
+		public string latency;
+	}
 	[Serializable]
 	public class PerceivedLatencyEvent : LatencyReportEvent
 	{
-		[JsonConverter(typeof(StringEnumerator))]
-		public Precision precision;
-
-		public string latency;
+		PerceivedLatency perceivedLatency;
 	}
 	[Serializable]
 	public class LatencyReportPacket : InworldPacket
 	{
 		[JsonConverter(typeof(LatencyEventDeserializer))]
-		public LatencyReportEvent report;
+		public LatencyReportEvent latencyReport;
 		
 		public LatencyReportPacket()
 		{
-			report = new LatencyReportEvent();
+			latencyReport = new LatencyReportEvent();
 		}
 		public LatencyReportPacket(LatencyReportEvent evt)
 		{
-			report = evt;
+			latencyReport = evt;
 			PreProcess();
 		}
 		public LatencyReportPacket(InworldPacket rhs, LatencyReportEvent evt) : base(rhs)
 		{
-			report = evt;
+			latencyReport = evt;
 		}
 	}
 }

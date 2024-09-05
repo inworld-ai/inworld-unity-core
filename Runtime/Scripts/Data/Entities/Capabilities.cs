@@ -24,6 +24,8 @@ namespace Inworld.Entities
         public bool debugInfo;
         public bool multiAgent;
         public bool multiModalActionPlanning;
+        public bool pingPongReport;
+        public bool perceivedLatencyReport;
 
         public Capabilities() {}
         public Capabilities(Capabilities rhs)
@@ -40,6 +42,8 @@ namespace Inworld.Entities
             debugInfo = rhs.debugInfo;
             multiAgent = rhs.multiAgent;
             multiModalActionPlanning = rhs.multiModalActionPlanning;
+            pingPongReport = rhs.pingPongReport;
+            perceivedLatencyReport = rhs.perceivedLatencyReport;
         }
         public void CopyFrom(Capabilities rhs)
         {
@@ -55,6 +59,8 @@ namespace Inworld.Entities
             debugInfo = rhs.debugInfo;
             multiAgent = rhs.multiAgent;
             multiModalActionPlanning = rhs.multiModalActionPlanning;
+            pingPongReport = rhs.pingPongReport;
+            perceivedLatencyReport = rhs.perceivedLatencyReport;
         }
         public override string ToString()
         {
@@ -68,7 +74,7 @@ namespace Inworld.Entities
             if (narratedActions)
                 result += "NARRATIVE ";
             if (regenerateResponse)
-                result += "REGENERATERESPONSE ";
+                result += "REGENERATE_RESPONSE ";
             if (text)
                 result += "TEXT ";
             if (triggers)
@@ -78,9 +84,13 @@ namespace Inworld.Entities
             if (relations)
                 result += "RELATIONS ";
             if (multiAgent)
-                result += "MULTIAGENT ";
+                result += "MULTI_AGENT ";
             if (multiModalActionPlanning)
-                result += "MAP";
+                result += "MAP ";
+            if (pingPongReport)
+                result += "PING_PONG ";
+            if (perceivedLatencyReport)
+                result += "PERCEIVED_LATENCY ";
             return result;
         }
     }
