@@ -5,10 +5,9 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
-using Inworld.Packet;
 using UnityEngine;
 using System.Collections;
-using System.Linq;
+
 
 namespace Inworld.Interactions
 {
@@ -21,7 +20,11 @@ namespace Inworld.Interactions
         const string k_NoAudioCapabilities = "Audio Capabilities have been disabled in the Inworld AI object. Audio is required to be enabled when using the InworldAudioInteraction component.";
         const float k_WaitTime = 2f;
         public override float AnimFactor => m_PlaybackSource ? m_PlaybackSource.time : base.AnimFactor;
-
+        
+        /// <summary>
+        /// Gets this character's audio source
+        /// </summary>
+        public AudioSource PlaybackSource => m_PlaybackSource;
         /// <summary>
         /// Mute/Unmute this character.
         /// </summary>

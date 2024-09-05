@@ -7,7 +7,6 @@
 
 using UnityEngine;
 using Inworld.Packet;
-using Inworld.Sample;
 using System.Collections;
 using UnityEngine.InputSystem;
 using Random = UnityEngine.Random;
@@ -33,7 +32,6 @@ namespace Inworld.Interactions
         protected readonly IndexQueue<Interaction> m_Cancelled = new IndexQueue<Interaction>();
 
         protected bool m_Proceed = true;
-        protected float m_AnimFactor;
         protected bool m_IsContinueKeyPressed;
         protected bool m_LastFromPlayer;
         /// <summary>
@@ -42,10 +40,6 @@ namespace Inworld.Interactions
         /// </summary>
         public virtual float AnimFactor => Random.Range(0, 1);
 
-        /// <summary>
-        /// Gets this character's audio source
-        /// </summary>
-        public AudioSource PlaybackSource => m_PlaybackSource;
         /// <summary>
         /// If the target packet is sent or received by this character.
         /// </summary>
