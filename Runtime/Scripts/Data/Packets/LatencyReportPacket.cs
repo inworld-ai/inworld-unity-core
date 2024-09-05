@@ -67,19 +67,16 @@ namespace Inworld.Packet
 		
 		public LatencyReportPacket()
 		{
-			type = PacketType.LATENCY_REPORT;
 			report = new LatencyReportEvent();
 		}
 		public LatencyReportPacket(LatencyReportEvent evt)
 		{
 			report = evt;
-			type = PacketType.LATENCY_REPORT;
 			PreProcess();
 		}
 		public LatencyReportPacket(InworldPacket rhs, LatencyReportEvent evt) : base(rhs)
 		{
 			report = evt;
-			type = PacketType.LATENCY_REPORT;
 		}
 	}
 }

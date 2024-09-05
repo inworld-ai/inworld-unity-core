@@ -81,8 +81,6 @@ namespace Inworld.Packet
 		public PacketId packetId;
 		public Routing routing;
 		public string timestamp;
-		[JsonConverter(typeof(StringEnumConverter))]
-		public PacketType type;
 
 		public InworldPacket()
 		{
@@ -95,7 +93,6 @@ namespace Inworld.Packet
 			timestamp = rhs.timestamp;
 			packetId = rhs.packetId;
 			routing = rhs.routing;
-			type = rhs.type;
 		}
 
 #region NonSerialized Properties

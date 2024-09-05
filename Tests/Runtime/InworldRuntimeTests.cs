@@ -105,7 +105,7 @@ namespace Inworld.Test
 		{
 			while (timeout > 0)
 			{
-				if (m_Conversation.Any(p => p.type == PacketType.CONTROL))
+				if (m_Conversation.Any(p => p is ControlPacket))
 				{
 					yield break;
 				}
@@ -135,8 +135,8 @@ namespace Inworld.Test
 			m_Conversation.Clear();
 			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Hello");
 			yield return ConversationCheck(10);
-			Assert.IsTrue(m_Conversation.Any(p => p.type == PacketType.TEXT));
-			Assert.IsTrue(m_Conversation.Any(p => p.type == PacketType.AUDIO));
+			Assert.IsTrue(m_Conversation.Any(p => p is TextPacket));
+			Assert.IsTrue(m_Conversation.Any(p => p is AudioPacket));
 		}
 		
 		[UnityTest]
@@ -151,8 +151,8 @@ namespace Inworld.Test
 			yield return new WaitForSeconds(0.1f);
 			InworldController.Client.StopAudio(agentID);
 			yield return ConversationCheck(10);
-			Assert.IsTrue(m_Conversation.Any(p => p.type == PacketType.TEXT));
-			Assert.IsTrue(m_Conversation.Any(p => p.type == PacketType.AUDIO));
+			Assert.IsTrue(m_Conversation.Any(p => p is TextPacket));
+			Assert.IsTrue(m_Conversation.Any(p => p is AudioPacket));
 		}
 		[UnityTest]
 		public IEnumerator InworldRuntimeTest_SayVerbatim()
@@ -180,19 +180,19 @@ namespace Inworld.Test
 			m_Conversation.Clear();
 			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Hello");
 			yield return ConversationCheck(10);
-			Assert.IsTrue(m_Conversation.Any(p => p.type == PacketType.TEXT));
-			Assert.IsTrue(m_Conversation.Any(p => p.type == PacketType.AUDIO));
+			Assert.IsTrue(m_Conversation.Any(p => p is TextPacket));
+			Assert.IsTrue(m_Conversation.Any(p => p is AudioPacket));
 			InworldController.Client.Disconnect();
 			m_Conversation.Clear();
 			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Hello");
-			Assert.IsFalse(m_Conversation.Any(p => p.type == PacketType.TEXT));
-			Assert.IsFalse(m_Conversation.Any(p => p.type == PacketType.AUDIO));
+			Assert.IsFalse(m_Conversation.Any(p => p is TextPacket));
+			Assert.IsFalse(m_Conversation.Any(p => p is AudioPacket));
 			yield return InitTest();
 			m_Conversation.Clear();
 			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Hello");
 			yield return ConversationCheck(10);
-			Assert.IsTrue(m_Conversation.Any(p => p.type == PacketType.TEXT));
-			Assert.IsTrue(m_Conversation.Any(p => p.type == PacketType.AUDIO));		
+			Assert.IsTrue(m_Conversation.Any(p => p is TextPacket));
+			Assert.IsTrue(m_Conversation.Any(p => p is AudioPacket));		
 		}
 		[UnityTest]
 		public IEnumerator InworldRuntimeTest_InterleaveTextAudio()
@@ -200,8 +200,8 @@ namespace Inworld.Test
 			m_Conversation.Clear();
 			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Hello");
 			yield return ConversationCheck(10);
-			Assert.IsTrue(m_Conversation.Any(p => p.type == PacketType.TEXT));
-			Assert.IsTrue(m_Conversation.Any(p => p.type == PacketType.AUDIO));
+			Assert.IsTrue(m_Conversation.Any(p => p is TextPacket));
+			Assert.IsTrue(m_Conversation.Any(p => p is AudioPacket));
 			m_Conversation.Clear();
 			InworldController.Audio.AutoDetectPlayerSpeaking = false;
 			string agentID = InworldController.Client.LiveSessionData.Values.First().agentId;
@@ -211,8 +211,8 @@ namespace Inworld.Test
 			yield return new WaitForSeconds(0.1f);
 			InworldController.Client.StopAudio(agentID);
 			yield return ConversationCheck(10);
-			Assert.IsTrue(m_Conversation.Any(p => p.type == PacketType.TEXT));
-			Assert.IsTrue(m_Conversation.Any(p => p.type == PacketType.AUDIO));
+			Assert.IsTrue(m_Conversation.Any(p => p is TextPacket));
+			Assert.IsTrue(m_Conversation.Any(p => p is AudioPacket));
 		}
 		
 		[UnityTest]

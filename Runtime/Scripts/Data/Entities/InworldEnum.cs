@@ -228,24 +228,7 @@ namespace Inworld
         PLAYER,
         WORLD
     }
-    public enum PacketType
-    {
-        UNKNOWN,
-        TEXT,
-        CONTROL,
-        AUDIO,
-        GESTURE,
-        CUSTOM,
-        CANCEL_RESPONSE,
-        MUTATION,
-        LATENCY_REPORT,
-        EMOTION,
-        ACTION,
-        RELATION,
-        SESSION_CONTROL,
-        SESSION_RESPONSE,
-        ENTITIES
-    }
+
     public enum DataType
     {
         UNSPECIFIED = 0,

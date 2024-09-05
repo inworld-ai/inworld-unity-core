@@ -90,7 +90,7 @@ namespace Inworld.Sample
                     // Do nothing
                     break;
                 default:
-                    InworldAI.LogWarning($"Received unknown {incomingPacket.type}");
+                    InworldAI.LogWarning($"Received unknown {incomingPacket}");
                     break;
             }
         }

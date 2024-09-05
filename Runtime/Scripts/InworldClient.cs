@@ -423,7 +423,6 @@ namespace Inworld
             ControlPacket ctrlPacket = new ControlPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = PacketType.CONTROL,
                 packetId = new PacketId(),
                 routing = new Routing("WORLD"),
                 control = new SessionControlEvent
@@ -507,7 +506,6 @@ namespace Inworld
             InworldPacket packet = new TextPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = PacketType.TEXT,
                 packetId = new PacketId(),
                 routing = new Routing(characterID),
                 text = new TextEvent(textToSend)
@@ -547,7 +545,6 @@ namespace Inworld
             InworldPacket packet = new ActionPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = PacketType.ACTION,
                 packetId = new PacketId(),
                 routing = new Routing(characterID),
                 action = new ActionEvent
@@ -606,7 +603,6 @@ namespace Inworld
             MutationPacket cancelPacket = new MutationPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = PacketType.MUTATION,
                 packetId = new PacketId(),
                 routing = new Routing(characterID),
                 mutation = new CancelResponseEvent
@@ -630,7 +626,6 @@ namespace Inworld
             MutationPacket regenPacket = new MutationPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = PacketType.MUTATION,
                 packetId = new PacketId(),
                 routing = new Routing(characterID), 
                 mutation = new RegenerateResponseEvent
@@ -658,7 +653,6 @@ namespace Inworld
             MutationPacket regenPacket = new MutationPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = PacketType.MUTATION,
                 packetId = new PacketId(),
                 routing = new Routing(characterID),
                 mutation = new ApplyResponseEvent
@@ -705,7 +699,6 @@ namespace Inworld
             InworldPacket packet = new CustomPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = PacketType.CUSTOM,
                 packetId = new PacketId(),
                 routing = new Routing(charID),
                 custom = new CustomEvent(triggerName, parameters)
@@ -766,7 +759,6 @@ namespace Inworld
             InworldPacket packet = new ControlPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = PacketType.CONTROL,
                 packetId = new PacketId(),
                 routing = new Routing(charID),
                 control = new AudioControlEvent
@@ -817,7 +809,6 @@ namespace Inworld
             InworldPacket packet = new ControlPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = PacketType.TEXT,
                 packetId = new PacketId(),
                 routing = new Routing(charID),
                 control = new ControlEvent
@@ -877,7 +868,6 @@ namespace Inworld
             InworldPacket packet = new AudioPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = PacketType.AUDIO,
                 packetId = new PacketId(),
                 routing = new Routing(charID),
                 dataChunk = new DataChunk
@@ -1152,43 +1142,30 @@ namespace Inworld
         /// <returns>True if need dispatch, False if error or discard.</returns>
         bool _HandleRawPackets(InworldPacket receivedPacket)
         {
-            switch (receivedPacket.type)
+            if (receivedPacket is SessionResponsePacket)
+                return false;
+            if (receivedPacket is ControlPacket controlPacket)
             {
-                case PacketType.UNKNOWN:
-                    InworldAI.LogWarning($"Received Unknown {receivedPacket}");
-                    return false;
-                case PacketType.SESSION_RESPONSE:
-                    // Deprecated.
-                    return false;
-                case PacketType.CONTROL:
+                switch (controlPacket.Action)
                 {
-                    if (receivedPacket is ControlPacket controlPacket)
-                    {
-                        switch (controlPacket.Action)
+                    case ControlType.WARNING:
+                        InworldAI.LogWarning(controlPacket.control.description);
+                        return false;
+                    case ControlType.INTERACTION_END:
+                        _FinishInteraction(controlPacket.packetId.correlationId);
+                        break;
+                    case ControlType.CURRENT_SCENE_STATUS:
+                        if (controlPacket.control is CurrentSceneStatusEvent currentSceneStatusEvent)
                         {
-                            case ControlType.WARNING:
-                                InworldAI.LogWarning(controlPacket.control.description);
-                                return false;
-                            case ControlType.INTERACTION_END:
-                                _FinishInteraction(controlPacket.packetId.correlationId);
-                                break;
-                            case ControlType.CURRENT_SCENE_STATUS:
-                                if (controlPacket.control is CurrentSceneStatusEvent currentSceneStatusEvent)
-                                {
-                                    _RegisterLiveSession(currentSceneStatusEvent.currentSceneStatus.agents);
-                                    UpdateConversation();
-                                    Status = InworldConnectionStatus.Connected;
-                                    m_ReconnectThreshold = m_CurrentReconnectThreshold = 1;
-                                    return true;
-                                }
-                                InworldAI.LogError($"Load Scene Error: {controlPacket.control}");
-                                break;
+                            _RegisterLiveSession(currentSceneStatusEvent.currentSceneStatus.agents);
+                            UpdateConversation();
+                            Status = InworldConnectionStatus.Connected;
+                            m_ReconnectThreshold = m_CurrentReconnectThreshold = 1;
+                            return true;
                         }
-                    }
-                    break;
+                        InworldAI.LogError($"Load Scene Error: {controlPacket.control}");
+                        break;
                 }
-                default:
-                    return true;
             }
             return true;
         }

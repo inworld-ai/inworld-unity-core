@@ -42,7 +42,6 @@ namespace Inworld.Packet
         
         public AudioPacket()
         {
-            type = PacketType.AUDIO;
             dataChunk = new DataChunk
             {
                 type = DataType.AUDIO
@@ -50,13 +49,11 @@ namespace Inworld.Packet
         }
         public AudioPacket(DataChunk chunk)
         {
-            type = PacketType.AUDIO;
             dataChunk = chunk;
             PreProcess();
         }
         public AudioPacket(InworldPacket rhs, DataChunk chunk) : base(rhs)
         {
-            type = PacketType.AUDIO;
             dataChunk = chunk;
         }
         /// <summary>

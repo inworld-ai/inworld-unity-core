@@ -52,12 +52,10 @@ namespace Inworld.Packet
 		
 		public SessionResponsePacket()
 		{
-			type = PacketType.SESSION_RESPONSE;
 			sessionControlResponse = new SessionResponseEvent();
 		}
 		public SessionResponsePacket(InworldPacket rhs, SessionResponseEvent evt) : base(rhs)
 		{
-			type = PacketType.SESSION_RESPONSE;
 			sessionControlResponse = evt;
 		}
 	}
