@@ -28,7 +28,7 @@ namespace Inworld.Entities
         public Texture2D thumbnail;
 
         [JsonIgnore]
-        public float Progress => characterAssets.Progress;
+        public float Progress => characterAssets?.Progress ?? 0;
        
         public InworldCharacterData(){}
 
@@ -104,10 +104,18 @@ namespace Inworld.Entities
         public string avatarImgOriginal;
         public RPMInfo rpmAvatar;
 
+        [JsonIgnore]
         public float thumbnailProgress;
+        
+        [JsonIgnore]
         public float avatarProgress;
-        float _ThumbnailProgress => string.IsNullOrEmpty(ThumbnailURL) ? 0.2f : thumbnailProgress * 0.2f;
-        float _AvatarProgress => string.IsNullOrEmpty(rpmModelUri) ? 0.8f : avatarProgress * 0.8f;
+        
+        [JsonIgnore]
+        float _ThumbnailProgress => thumbnailProgress * 0.2f; //string.IsNullOrEmpty(ThumbnailURL) ? 0.2f : 
+        
+        [JsonIgnore]
+        float _AvatarProgress => avatarProgress * 0.8f;
+        
         [JsonIgnore]
         public float Progress => _ThumbnailProgress + _AvatarProgress;
         public bool IsAsset(string url)
@@ -148,7 +156,7 @@ namespace Inworld.Entities
             if (!string.IsNullOrEmpty(rhs.rpmAvatar.rpmImageUri))
                 rpmImageUri = rhs.rpmAvatar.rpmImageUri;
             if (!string.IsNullOrEmpty(rhs.rpmAvatar.rpmModelUri))
-                rpmImageUri = rhs.rpmImageUri;
+                rpmModelUri = rhs.rpmAvatar.rpmModelUri;
         }
         public void CopyFrom(CharacterAssets rhs)
         {
@@ -162,7 +170,7 @@ namespace Inworld.Entities
             if (!string.IsNullOrEmpty(rhs.rpmAvatar.rpmImageUri))
                 rpmImageUri = rhs.rpmAvatar.rpmImageUri;
             if (!string.IsNullOrEmpty(rhs.rpmAvatar.rpmModelUri))
-                rpmImageUri = rhs.rpmImageUri;
+                rpmModelUri = rhs.rpmAvatar.rpmModelUri;
         }
     }
     [Serializable]

@@ -31,7 +31,7 @@ namespace Inworld.Entities
         public InworldKeySecret DefaultKey => keySecrets.Count > 0 ? keySecrets[0] : null;
         
         [JsonIgnore]
-        public float Progress => characters.Count == 0 ? 1 : characters.Sum(cr => cr.Progress) / characters.Count;
+        public float Progress => characters == null || characters.Count == 0 ? 0 : characters.Sum(cr => cr.Progress) / characters.Count;
 
         /// <summary>
         /// Get the first scene in the list, that all the input characters are in that scene.

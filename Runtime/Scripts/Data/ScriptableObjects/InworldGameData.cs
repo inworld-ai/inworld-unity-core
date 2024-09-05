@@ -11,17 +11,20 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
+
 namespace Inworld
 {
     public class InworldGameData : ScriptableObject
     {
-        public string workspaceFullName;
-        public string sceneFullName;
+        public string workspaceFullName; 
+        public string sceneFullName; 
         public string apiKey;
         public string apiSecret;
         public List<InworldCharacterData> characters;
         public Capabilities capabilities;
-    
+
+        public string WsFileName => workspaceFullName.Replace("workspaces/", "");
+
         /// <summary>
         /// Get the generated name for the scriptable object.
         /// </summary>
