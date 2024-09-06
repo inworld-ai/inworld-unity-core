@@ -15,7 +15,9 @@ namespace Inworld.Entities
         public string type;
         public string expirationTime;
         public string sessionId;
-        
+
+        public override string ToString() => token;
+
         public bool IsValid
         {
             get
