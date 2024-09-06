@@ -39,13 +39,17 @@ namespace Inworld.Interactions
         /// If without Audio, it's a random value between 0 and 1.
         /// </summary>
         public virtual float AnimFactor => Random.Range(0, 1);
-
         /// <summary>
         /// If the target packet is sent or received by this character.
         /// </summary>
         /// <param name="packet">the target packet.</param>
         public bool IsRelated(InworldPacket packet) => packet.IsRelated(m_Character.ID);
-        
+
+        public virtual IEnumerator CancelResponseAsync()
+        {
+            yield return new WaitForSecondsRealtime(1f);
+            CancelResponse();
+        }
         /// <summary>
         /// Interrupt this character by cancelling its incoming sentences.
         /// Hard cancelling means even cancel and interrupt the current interaction.
@@ -68,7 +72,11 @@ namespace Inworld.Interactions
         protected virtual void Awake()
         {
             if (!m_Character)
+            {
                 m_Character = GetComponent<InworldCharacter>();
+                m_Character.Event.onCharacterSelected.AddListener(OnCharacterSelected);
+                m_Character.Event.onCharacterDeselected.AddListener(OnCharacterDeselected);
+            }
             if (!m_Character)
                 enabled = false;
             m_ContinueAction = InworldAI.InputActions["Continue"];
@@ -86,12 +94,21 @@ namespace Inworld.Interactions
         protected virtual void OnDisable()
         {
             StopCoroutine(m_CurrentCoroutine);
-            if (InworldController.Instance)
-            {
-                InworldController.Audio.Event.onPlayerStartSpeaking.RemoveListener(OnPlayerStartSpeaking);
-                InworldController.Audio.Event.onPlayerStopSpeaking.RemoveListener(OnPlayerStopSpeaking);
-                InworldController.Client.OnPacketReceived -= ReceivePacket;
-            }
+            if (!InworldController.Instance)
+                return;
+            InworldController.Audio.Event.onPlayerStartSpeaking.RemoveListener(OnPlayerStartSpeaking);
+            InworldController.Audio.Event.onPlayerStopSpeaking.RemoveListener(OnPlayerStopSpeaking);
+            InworldController.Client.OnPacketReceived -= ReceivePacket;
+        }
+        protected virtual void OnCharacterDeselected(string brainName)
+        {
+            if (brainName != m_Character.BrainName)
+                return;
+            StartCoroutine(CancelResponseAsync());
+        }
+        protected virtual void OnCharacterSelected(string brainName)
+        {
+
         }
         protected virtual void OnPlayerStartSpeaking()
         {

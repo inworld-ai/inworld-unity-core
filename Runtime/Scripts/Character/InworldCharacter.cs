@@ -8,6 +8,7 @@ using Inworld.Interactions;
 using Inworld.Packet;
 using Inworld.Entities;
 using Inworld.Sample;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -173,28 +174,38 @@ namespace Inworld
         /// By default, all the goals are already enabled.
         /// </summary>
         /// <param name="goalName">the name of the goal to enable.</param>
-        public virtual bool EnableGoal(string goalName) => InworldMessenger.EnableGoal(goalName, ID);
+        public virtual bool EnableGoal(string goalName) => InworldMessenger.EnableGoal(goalName, BrainName);
         /// <summary>
         /// Disable target goal of this character.
         /// </summary>
         /// <param name="goalName">the name of the goal to disable.</param>
-        public virtual bool DisableGoal(string goalName) => InworldMessenger.DisableGoal(goalName, ID);
+        public virtual bool DisableGoal(string goalName) => InworldMessenger.DisableGoal(goalName, BrainName);
         /// <summary>
         /// Succeed a task performed by this character.
         /// </summary>
         /// <param name="taskID">the ID of the task which succeeded.</param>
-        public virtual bool SucceedTask(string taskID) => InworldMessenger.SendTaskSucceeded(taskID, ID);
+        public virtual bool SucceedTask(string taskID) => InworldMessenger.SendTaskSucceeded(taskID, BrainName);
         /// <summary>
         /// Fail a task performed by this character.
         /// </summary>
         /// <param name="taskID">the ID of the task which failed.</param>
         /// <param name="reason">the reason explaining why this task failed (must be less than 100 characters).</param>
-        public virtual bool FailTask(string taskID, string reason) => InworldMessenger.SendTaskFailed(taskID, reason, ID);
+        public virtual bool FailTask(string taskID, string reason) => InworldMessenger.SendTaskFailed(taskID, reason, BrainName);
         /// <summary>
         /// Interrupt the current character's speaking.
         /// Ignore all the current incoming messages from the character.
         /// </summary>
         public virtual bool CancelResponse() => m_Interaction.CancelResponse();
+
+        /// <summary>
+        /// Gradually lower the volume and call cancelresponse.
+        /// </summary>
+        /// <returns></returns>
+        public virtual void CancelResponseAsync()
+        {
+            if (m_Interaction)
+                StartCoroutine(m_Interaction.CancelResponseAsync());
+        }
         protected virtual void Awake()
         {
             if (m_Interaction == null)
@@ -206,7 +217,6 @@ namespace Inworld
             InworldController.Audio.Event.onRecordingStart.AddListener(OnAudioCaptureStarted);
             InworldController.Client.OnStatusChanged += OnStatusChanged;
         }
-
         protected virtual void OnDisable()
         {
             if (!InworldController.Instance)

@@ -25,6 +25,7 @@ namespace Inworld.Interactions
         /// Gets this character's audio source
         /// </summary>
         public AudioSource PlaybackSource => m_PlaybackSource;
+        
         /// <summary>
         /// Mute/Unmute this character.
         /// </summary>
@@ -36,6 +37,12 @@ namespace Inworld.Interactions
                 if (m_PlaybackSource)
                     m_PlaybackSource.mute = value;
             }
+        }
+        protected override void OnCharacterSelected(string brainName)
+        {
+            if (brainName != m_Character.BrainName)
+                return;
+            m_PlaybackSource.volume = 1;
         }
         protected override void OnPlayerStartSpeaking()
         {
@@ -52,6 +59,16 @@ namespace Inworld.Interactions
             else
                 m_PlaybackSource.UnPause();
         }
+        public override IEnumerator CancelResponseAsync()
+        {
+            while (m_PlaybackSource && m_PlaybackSource.volume > 0.1f)
+            {
+                m_PlaybackSource.volume -= Time.fixedUnscaledDeltaTime;
+                yield return new WaitForFixedUpdate();
+            }
+            CancelResponse();
+        }
+
         /// <summary>
         /// Interrupt this character by cancelling its incoming responses.
         /// </summary>
