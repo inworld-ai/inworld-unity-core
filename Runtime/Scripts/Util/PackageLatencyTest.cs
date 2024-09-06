@@ -83,7 +83,7 @@ namespace Inworld.Sample
         {
             float latency = Time.unscaledTime - m_PerceivedTimeSampler;
             InworldAI.Log($"Perceived Latency: {latency}s.");
+            InworldController.Client.SendPerceivedLatencyReport(latency);
         }
-
     }
 }

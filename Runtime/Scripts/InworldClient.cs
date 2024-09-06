@@ -471,10 +471,11 @@ namespace Inworld
                     perceivedLatency = new PerceivedLatency
                     {
                         precision = precisionToSend,
-                        latency = InworldDateTime.ToDuration(latencyPerceived)
+                        latency = $"{latencyPerceived}s"
                     }
                 }
             };
+            latencyReport.packetId.correlationId = Guid.NewGuid().ToString();
             m_Socket.SendAsync(latencyReport.ToJson);
         }
         /// <summary>

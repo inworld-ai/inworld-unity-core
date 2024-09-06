@@ -62,7 +62,8 @@ namespace Inworld.Packet
 	{
 		[JsonConverter(typeof(StringEnumConverter))]
 		public Precision precision;
-		public Duration latency; 
+		[JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+		public string latency; 
 	}
 	[Serializable]
 	public class PerceivedLatencyEvent : LatencyReportEvent

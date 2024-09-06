@@ -104,7 +104,8 @@ namespace Inworld.Interactions
         {
             if (brainName != m_Character.BrainName)
                 return;
-            StartCoroutine(CancelResponseAsync());
+            if (m_Character.gameObject.activeSelf)
+                StartCoroutine(CancelResponseAsync());
         }
         protected virtual void OnCharacterSelected(string brainName)
         {
