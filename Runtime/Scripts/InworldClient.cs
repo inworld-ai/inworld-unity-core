@@ -455,6 +455,29 @@ namespace Inworld
             m_Socket.SendAsync(ctrlPacket.ToJson);
         }
         /// <summary>
+        /// Send Perceived Latency Report to server.
+        /// </summary>
+        /// <param name="precisionToSend"></param>
+        /// <param name="latencyPerceived"></param>
+        public virtual void SendPerceivedLatencyReport(float latencyPerceived, Precision precisionToSend = Precision.FINE)
+        {
+            LatencyReportPacket latencyReport = new LatencyReportPacket
+            {
+                timestamp = InworldDateTime.UtcNow,
+                packetId = new PacketId(),
+                routing = new Routing("WORLD"),
+                latencyReport = new PerceivedLatencyEvent
+                {
+                    perceivedLatency = new PerceivedLatency
+                    {
+                        precision = precisionToSend,
+                        latency = InworldDateTime.ToDuration(latencyPerceived)
+                    }
+                }
+            };
+            m_Socket.SendAsync(latencyReport.ToJson);
+        }
+        /// <summary>
         /// Send PingPong Response for latency Test.
         /// </summary>
         /// <param name="packetID"></param>

@@ -64,8 +64,12 @@ namespace Inworld.Packet
 
 	public class PacketId
 	{
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string conversationId; // Used in the conversations.
+		
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string correlationId; // Used in callback for server packets.
+		
 		public string interactionId = Guid.NewGuid().ToString(); // Lot of sentences included in one interaction.
 		public string packetId = Guid.NewGuid().ToString(); // Unique.
 		public string utteranceId = Guid.NewGuid().ToString(); // Each sentence is an utterance. But can be interpreted as multiple behavior (Text, EmotionChange, Audio, etc)

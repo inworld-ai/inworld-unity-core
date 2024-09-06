@@ -8,6 +8,12 @@
 using System;
 namespace Inworld
 {
+    [Serializable]
+    public class Duration
+    {
+        public long seconds;
+        public int nanos; // milliseconds * 1,000,000,000
+    }
     public static class InworldDateTime
     {
         // YAN: In Unity we use the first format.
@@ -40,5 +46,11 @@ namespace Inworld
             System.Globalization.DateTimeStyles.RoundtripKind,
             out DateTime outTime
         ) ? outTime : DateTime.MinValue;
+
+        public static Duration ToDuration(float duration) => new Duration()
+        {
+            seconds = (long)duration,
+            nanos = (int)((duration - (long)duration) * 1000000000)
+        };
     }
 }

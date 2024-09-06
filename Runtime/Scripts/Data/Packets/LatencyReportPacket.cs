@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Specialized;
+
 namespace Inworld.Packet
 {
 	public class LatencyEventDeserializer : JsonConverter
@@ -56,17 +56,18 @@ namespace Inworld.Packet
 	{
 		public PingPong pingPong;
 	}
+
 	[Serializable]
 	public class PerceivedLatency
 	{
 		[JsonConverter(typeof(StringEnumConverter))]
 		public Precision precision;
-		public string latency;
+		public Duration latency; 
 	}
 	[Serializable]
 	public class PerceivedLatencyEvent : LatencyReportEvent
 	{
-		PerceivedLatency perceivedLatency;
+		public PerceivedLatency perceivedLatency;
 	}
 	[Serializable]
 	public class LatencyReportPacket : InworldPacket
