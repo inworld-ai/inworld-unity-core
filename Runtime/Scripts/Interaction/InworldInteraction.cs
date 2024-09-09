@@ -148,8 +148,7 @@ namespace Inworld.Interactions
                 }
                 if (m_CurrentInteraction != null && m_CurrentInteraction.CurrentUtterance != null)
                 {
-                    if (InworldController.Audio.SampleMode != MicSampleMode.TURN_BASED) 
-                        yield return PlayNextUtterance();
+                    yield return PlayNextUtterance();
                 }
                 else if (m_Character)
                     m_Character.IsSpeaking = false;
