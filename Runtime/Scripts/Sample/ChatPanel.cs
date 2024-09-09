@@ -123,7 +123,8 @@ namespace Inworld.Sample
         {
             if (!m_ChatOptions.relation || !IsUIReady)
                 return false;
-            if (!InworldController.Client.LiveSessionData.TryGetValue(relationPacket.routing.source.name, out InworldCharacterData charData))
+            InworldCharacterData charData = InworldController.Client.GetCharacterDataByID(relationPacket.routing.source.name);
+            if (charData == null)
                 return false;
             string key = m_ChatOptions.longBubbleMode ? relationPacket.packetId.interactionId : relationPacket.packetId.utteranceId;
             string charName = charData.givenName ?? "Character";
@@ -158,7 +159,8 @@ namespace Inworld.Sample
                 HandleTask(customPacket);
             if (!m_ChatOptions.trigger || customPacket.custom == null || !IsUIReady)
                 return false;
-            if (!InworldController.Client.LiveSessionData.TryGetValue(customPacket.routing.source.name, out InworldCharacterData charData))
+            InworldCharacterData charData = InworldController.Client.GetCharacterDataByID(relationPacket.routing.source.name);
+            if (charData == null)
                 return false;
             string key = m_ChatOptions.longBubbleMode ? customPacket.packetId.interactionId : customPacket.packetId.utteranceId;
             string charName = charData.givenName ?? "Character";
