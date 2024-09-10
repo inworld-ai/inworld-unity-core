@@ -65,6 +65,7 @@ namespace Inworld
         protected List<short> m_InputBuffer = new List<short>();
         protected float[] m_RawInput;
         protected List<short> m_ProcessedWaveData = new List<short>();
+        protected float m_CapturingTimer;
         static int m_nPosition;
 #if UNITY_WEBGL
         protected static float[] s_WebGLBuffer;
@@ -456,7 +457,16 @@ namespace Inworld
             if (nSize <= 0)
                 return false;
             IsPlayerSpeaking = DetectPlayerSpeaking();
-            IsCapturing = IsRecording || IsPlayerSpeaking;
+            if (IsRecording || IsPlayerSpeaking)
+            {
+                m_CapturingTimer += 0.1f;
+                if (m_CapturingTimer > m_BufferSeconds)
+                    IsCapturing = true;
+            }
+            else
+            {
+                m_CapturingTimer = 0;
+            }
             if (!IsCapturing)
                 return false;
             string charName = InworldController.CharacterHandler.CurrentCharacter ? InworldController.CharacterHandler.CurrentCharacter.BrainName : "";

@@ -76,8 +76,8 @@ namespace Inworld.Interactions
         }
         protected virtual void OnEnable()
         {
-            InworldController.Audio.Event.onPlayerStartSpeaking.AddListener(OnPlayerStartSpeaking);
-            InworldController.Audio.Event.onPlayerStopSpeaking.AddListener(OnPlayerStopSpeaking);
+            InworldController.Audio.Event.onRecordingStart.AddListener(OnPlayerStartSpeaking);
+            InworldController.Audio.Event.onRecordingEnd.AddListener(OnPlayerStopSpeaking);
             InworldController.Client.OnPacketReceived += ReceivePacket;
             m_CurrentCoroutine = InteractionCoroutine();
             StartCoroutine(m_CurrentCoroutine);
