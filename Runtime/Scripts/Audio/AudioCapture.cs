@@ -12,6 +12,7 @@ using System.Collections.Concurrent;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 #if UNITY_WEBGL
 using AOT;
@@ -30,6 +31,7 @@ namespace Inworld
     {
         [SerializeField] protected MicSampleMode m_SamplingMode = MicSampleMode.NO_FILTER;
         [Range(0, 30)][SerializeField] protected float m_PlayerVolumeThreshold = 10f;
+        [Range(0.3f, 2f)][SerializeField] protected float m_CaptureCheckingDuration = 0.5f;
         [Range(0.1f, 2f)][SerializeField] protected int m_BufferSeconds = 1;
         [SerializeField] protected int m_AudioToPushCapacity = 100;
         [SerializeField] protected string m_DeviceName;
@@ -65,6 +67,7 @@ namespace Inworld
         protected List<short> m_InputBuffer = new List<short>();
         protected float[] m_RawInput;
         protected List<short> m_ProcessedWaveData = new List<short>();
+        protected float m_CapturingTimer;
         static int m_nPosition;
 #if UNITY_WEBGL
         protected static float[] s_WebGLBuffer;
@@ -456,7 +459,16 @@ namespace Inworld
             if (nSize <= 0)
                 return false;
             IsPlayerSpeaking = DetectPlayerSpeaking();
-            IsCapturing = IsRecording || IsPlayerSpeaking;
+            if (IsRecording || IsPlayerSpeaking)
+            {
+                m_CapturingTimer += 0.1f;
+                if (m_CapturingTimer > m_CaptureCheckingDuration)
+                    IsCapturing = true;
+            }
+            else
+            {
+                m_CapturingTimer = 0;
+            }
             if (!IsCapturing)
                 return false;
             string charName = InworldController.CharacterHandler.CurrentCharacter ? InworldController.CharacterHandler.CurrentCharacter.BrainName : "";

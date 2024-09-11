@@ -38,12 +38,14 @@ namespace Inworld.Interactions
                     m_PlaybackSource.mute = value;
             }
         }
+
         protected override void OnCharacterSelected(string brainName)
         {
             if (brainName != m_Character.BrainName)
                 return;
             m_PlaybackSource.volume = 1;
         }
+
         protected override void OnPlayerStartSpeaking()
         {
             if (!m_PlaybackSource || !InworldController.Audio || !InworldController.Audio.EnableVAD)
@@ -59,6 +61,7 @@ namespace Inworld.Interactions
             else
                 m_PlaybackSource.UnPause();
         }
+
         public override IEnumerator CancelResponseAsync()
         {
             while (m_PlaybackSource && m_PlaybackSource.volume > 0.1f)

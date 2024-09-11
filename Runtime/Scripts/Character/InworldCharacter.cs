@@ -330,14 +330,15 @@ namespace Inworld
         }
         protected virtual void HandleTask(CustomPacket taskPacket)
         {
-            string taskID = taskPacket.custom.name.Substring(taskPacket.custom.name.LastIndexOf('.') + 1);
+            if (!InworldMessenger.GetTask(taskPacket, out string taskName)) return;
+
             if (m_VerboseLog)
             {
-                string output = $"{Name} received Task: {taskID}";
+                string output = $"{Name} received Task: {taskName}";
                 output = taskPacket.custom.parameters.Aggregate(output, (current, param) => current + $"\n{param.name}: {param.value}");
                 InworldAI.Log(output);
             }
-            m_CharacterEvents.onTaskReceived.Invoke(BrainName, taskID);
+            m_CharacterEvents.onTaskReceived.Invoke(BrainName, taskName, taskPacket.custom.parameters);
         }
         
         protected virtual bool HandleEmotion(EmotionPacket packet)

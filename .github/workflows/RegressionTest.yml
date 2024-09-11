@@ -1,0 +1,24 @@
+name: RegressionTests
+
+on:
+  workflow_dispatch:  # Allows manual triggering
+
+env:
+  UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+  UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+  UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+
+jobs:
+  fetch_versions:
+    name: Fetch releases
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Release
+        id: download_release
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ github.event.inputs.release_version }}  # Use the input release version
+          path: ./releases/test_${{ github.event.inputs.release_version }}  # Specify where to download the release files
+      - name: Cleanup
+        if: always()
+        run: rm -rf releases  # Clean up after running tests

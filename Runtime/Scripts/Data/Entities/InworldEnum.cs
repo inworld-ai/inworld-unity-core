@@ -117,7 +117,6 @@ namespace Inworld
         // They/Them/Theirs
         PRONOUN_OTHER = 3
     }
-
     public enum PingPongType 
     {
         // No type is specified, means this is empty report.

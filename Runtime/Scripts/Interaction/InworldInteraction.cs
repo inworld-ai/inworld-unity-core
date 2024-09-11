@@ -39,6 +39,7 @@ namespace Inworld.Interactions
         /// If without Audio, it's a random value between 0 and 1.
         /// </summary>
         public virtual float AnimFactor => Random.Range(0, 1);
+
         /// <summary>
         /// If the target packet is sent or received by this character.
         /// </summary>
@@ -84,8 +85,8 @@ namespace Inworld.Interactions
         }
         protected virtual void OnEnable()
         {
-            InworldController.Audio.Event.onPlayerStartSpeaking.AddListener(OnPlayerStartSpeaking);
-            InworldController.Audio.Event.onPlayerStopSpeaking.AddListener(OnPlayerStopSpeaking);
+            InworldController.Audio.Event.onRecordingStart.AddListener(OnPlayerStartSpeaking);
+            InworldController.Audio.Event.onRecordingEnd.AddListener(OnPlayerStopSpeaking);
             InworldController.Client.OnPacketReceived += ReceivePacket;
             m_CurrentCoroutine = InteractionCoroutine();
             StartCoroutine(m_CurrentCoroutine);
@@ -94,6 +95,7 @@ namespace Inworld.Interactions
         protected virtual void OnDisable()
         {
             StopCoroutine(m_CurrentCoroutine);
+
             if (!InworldController.Instance)
                 return;
             InworldController.Audio.Event.onPlayerStartSpeaking.RemoveListener(OnPlayerStartSpeaking);
@@ -109,7 +111,12 @@ namespace Inworld.Interactions
         }
         protected virtual void OnCharacterSelected(string brainName)
         {
-
+            if (InworldController.Instance)
+            {
+                InworldController.Audio.Event.onPlayerStartSpeaking.RemoveListener(OnPlayerStartSpeaking);
+                InworldController.Audio.Event.onPlayerStopSpeaking.RemoveListener(OnPlayerStopSpeaking);
+                InworldController.Client.OnPacketReceived -= ReceivePacket;
+            }
         }
         protected virtual void OnPlayerStartSpeaking()
         {
@@ -166,8 +173,7 @@ namespace Inworld.Interactions
                 }
                 if (m_CurrentInteraction != null && m_CurrentInteraction.CurrentUtterance != null)
                 {
-                    if (InworldController.Audio.SampleMode != MicSampleMode.TURN_BASED) 
-                        yield return PlayNextUtterance();
+                    yield return PlayNextUtterance();
                 }
                 else if (m_Character)
                     m_Character.IsSpeaking = false;
