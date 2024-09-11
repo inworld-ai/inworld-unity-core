@@ -25,23 +25,20 @@ namespace Inworld.Interactions
         protected InputAction m_ContinueAction;
         protected InputAction m_SkipAction;
         protected IEnumerator m_CurrentCoroutine;
+        protected AudioSource m_PlaybackSource;
+        protected AudioClip m_AudioClip;
         protected readonly IndexQueue<Interaction> m_Prepared = new IndexQueue<Interaction>();
         protected readonly IndexQueue<Interaction> m_Processed = new IndexQueue<Interaction>();
         protected readonly IndexQueue<Interaction> m_Cancelled = new IndexQueue<Interaction>();
 
         protected bool m_Proceed = true;
-        protected float m_AnimFactor;
         protected bool m_IsContinueKeyPressed;
         protected bool m_LastFromPlayer;
         /// <summary>
         /// Gets the factor for selecting animation clips.
         /// If without Audio, it's a random value between 0 and 1.
         /// </summary>
-        public virtual float AnimFactor
-        {
-            get => Random.Range(0, 1);
-            set => m_AnimFactor = value;
-        }
+        public virtual float AnimFactor => Random.Range(0, 1);
 
         /// <summary>
         /// If the target packet is sent or received by this character.
@@ -79,6 +76,8 @@ namespace Inworld.Interactions
         }
         protected virtual void OnEnable()
         {
+            InworldController.Audio.Event.onRecordingStart.AddListener(OnPlayerStartSpeaking);
+            InworldController.Audio.Event.onRecordingEnd.AddListener(OnPlayerStopSpeaking);
             InworldController.Client.OnPacketReceived += ReceivePacket;
             m_CurrentCoroutine = InteractionCoroutine();
             StartCoroutine(m_CurrentCoroutine);
@@ -88,7 +87,19 @@ namespace Inworld.Interactions
         {
             StopCoroutine(m_CurrentCoroutine);
             if (InworldController.Instance)
+            {
+                InworldController.Audio.Event.onPlayerStartSpeaking.RemoveListener(OnPlayerStartSpeaking);
+                InworldController.Audio.Event.onPlayerStopSpeaking.RemoveListener(OnPlayerStopSpeaking);
                 InworldController.Client.OnPacketReceived -= ReceivePacket;
+            }
+        }
+        protected virtual void OnPlayerStartSpeaking()
+        {
+            
+        }
+        protected virtual void OnPlayerStopSpeaking()
+        {
+            
         }
         void Update()
         {
@@ -137,10 +148,7 @@ namespace Inworld.Interactions
                 }
                 if (m_CurrentInteraction != null && m_CurrentInteraction.CurrentUtterance != null)
                 {
-                    if (InworldController.Audio.SampleMode != MicSampleMode.TURN_BASED || 
-                               !InworldController.Audio.CurrentPlayingAudioSource || 
-                               !InworldController.Audio.CurrentPlayingAudioSource.isPlaying)
-                        yield return PlayNextUtterance();
+                    yield return PlayNextUtterance();
                 }
                 else if (m_Character)
                     m_Character.IsSpeaking = false;
@@ -164,11 +172,6 @@ namespace Inworld.Interactions
         {
             if (!IsRelated(incomingPacket))
                 return;
-            if (incomingPacket is CustomPacket || incomingPacket is EmotionPacket)
-            {
-                m_Character.ProcessPacket(incomingPacket);
-                return;
-            }
             if (incomingPacket.Source == SourceType.PLAYER && (incomingPacket.IsBroadCast || incomingPacket.IsTarget(m_Character.ID)))
             {
                 if (!(incomingPacket is AudioPacket))
@@ -196,7 +199,8 @@ namespace Inworld.Interactions
         }
         protected IEnumerator RemoveExceedItems()
         {
-            m_Cancelled.Clear();
+            if (m_Cancelled.Count > m_MaxItemCount)
+                m_Cancelled.Dequeue();
             if (m_Processed.Count > m_MaxItemCount)
                 m_Processed.Dequeue();
             yield break;

@@ -4,7 +4,7 @@
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
-using Inworld.Packet;
+
 using UnityEngine;
 using System.Collections;
 
@@ -15,16 +15,12 @@ namespace Inworld.Interactions
     public class InworldAudioInteraction : InworldInteraction
     {
         [Range (0, 1)][SerializeField] protected float m_VolumeOnPlayerSpeaking = 1f;
-        AudioSource m_PlaybackSource;
-        AudioClip m_AudioClip;
+
         float m_WaitTimer;
         const string k_NoAudioCapabilities = "Audio Capabilities have been disabled in the Inworld AI object. Audio is required to be enabled when using the InworldAudioInteraction component.";
         const float k_WaitTime = 2f;
-        public override float AnimFactor
-        {
-            get => m_AnimFactor;
-            set => m_AnimFactor = value;
-        }
+        public override float AnimFactor => m_PlaybackSource ? m_PlaybackSource.time : base.AnimFactor;
+        
         /// <summary>
         /// Gets this character's audio source
         /// </summary>
@@ -41,15 +37,34 @@ namespace Inworld.Interactions
                     m_PlaybackSource.mute = value;
             }
         }
+        protected override void OnPlayerStartSpeaking()
+        {
+            if (!m_PlaybackSource || !InworldController.Audio || !InworldController.Audio.EnableVAD)
+                return;
+            m_PlaybackSource.Pause();
+        }
+        protected override void OnPlayerStopSpeaking()
+        {
+            if (!m_PlaybackSource || !InworldController.Audio || !InworldController.Audio.EnableVAD)
+                return;
+            if (m_PlaybackSource.time == 0)
+                m_PlaybackSource.Play();
+            else
+                m_PlaybackSource.UnPause();
+        }
         /// <summary>
         /// Interrupt this character by cancelling its incoming responses.
         /// </summary>
         public override bool CancelResponse(bool isHardCancelling = true)
         {
-            if (base.CancelResponse(isHardCancelling))
+            if (!base.CancelResponse(isHardCancelling))
                 return false;
-            if(m_Interruptable)
+            if (m_Interruptable)
+            {
+                m_PlaybackSource.clip = null;
                 m_PlaybackSource.Stop();
+            }
+                
             m_WaitTimer = 0;
             return true;
         }
@@ -88,19 +103,23 @@ namespace Inworld.Interactions
                 m_WaitTimer += Time.unscaledDeltaTime;
                 yield break;
             }
-            m_AudioClip = m_CurrentInteraction.CurrentUtterance.GetAudioClip();
-            if (m_AudioClip == null)
+            AudioClip audioClip = m_CurrentInteraction.CurrentUtterance.GetAudioClip();
+            if (audioClip == null)
             {
                 m_Character.OnInteractionChanged(m_CurrentInteraction.CurrentUtterance.Packets);
                 yield return new WaitForSeconds(m_CurrentInteraction.CurrentUtterance.GetTextSpeed() * m_TextSpeedMultipler);
             }
             else
             {
-                AnimFactor = m_AudioClip.length;
-                InworldController.Audio.CurrentPlayingAudioSource = m_PlaybackSource;
-                m_PlaybackSource.PlayOneShot(m_AudioClip);
+                if (audioClip != m_AudioClip)
+                {
+                    m_AudioClip = audioClip;
+                    m_PlaybackSource.clip = m_AudioClip;
+                    m_PlaybackSource.Play();
+                }
                 m_Character.OnInteractionChanged(m_CurrentInteraction.CurrentUtterance.Packets);
-                yield return new WaitUntil(() => !m_PlaybackSource.isPlaying);
+                yield return new WaitUntil(() => m_PlaybackSource.clip == null || m_PlaybackSource.time >= m_PlaybackSource.clip.length - Time.fixedUnscaledDeltaTime);
+                m_PlaybackSource.clip = null;
             }
             if(m_CurrentInteraction != null)
                 m_CurrentInteraction.CurrentUtterance = null;

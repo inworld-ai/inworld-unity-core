@@ -19,23 +19,75 @@ namespace Inworld.Entities
         public string name; // Full name
         public string displayName;
         public string description;
+        public string timePeriod;
+        public List<SceneTrigger> sceneTriggers;
+        public List<string> commonKnowledges;
         public List<CharacterReference> characterReferences;
-        
-        [JsonIgnore]
-        public float Progress => characterReferences.Count == 0 ? 1 : characterReferences.Sum(cr => cr.Progress) / characterReferences.Count;
+        public SceneAssets defaultSceneAssets;
+        public List<SceneCharacterReference> characters;
 
         /// <summary>
         /// Returns true if all the characters are inside this scene.
         /// </summary>
-        /// <param name="characters">the brainName of all the characters.</param>
+        /// <param name="characterNames">the brainName of all the characters.</param>
         /// <returns></returns>
-        public bool Contains(List<string> characters) => characters.All(c => characterReferences.Any(cr => cr.character == c));
+        public bool Contains(List<string> characterNames)
+        {
+            if (characterReferences.Count != 0)
+                return characterNames.All(c => characterReferences.Any(cr => cr.character == c));
+            if (characters.Count != 0)
+                return characterNames.All(c => characters.Any(scr => scr.character == c));
+            return false;
+        }
+        public List<InworldCharacterData> GetCharacterDataByReference(InworldWorkspaceData wsData)
+        {
+            List<InworldCharacterData> result = new List<InworldCharacterData>();
+            if (wsData == null)
+                return result;
+            if (characterReferences != null && characterReferences.Count != 0)
+            {
+                result.AddRange(characterReferences.Select
+                    (cr => wsData.characters.FirstOrDefault(c => c.brainName == cr.character))
+                    .Where(charData => charData != null));
+            }
+            else if (characters != null && characters.Count != 0)
+            {
+                result.AddRange(characters.Select
+                    (scr => wsData.characters.FirstOrDefault(c => c.brainName == scr.character))
+                    .Where(characterData => characterData != null));
+            }
+            return result;
+        }
     }
 
     [Serializable]
     public class ListSceneResponse
     {
         public List<InworldSceneData> scenes;
-        public string nextPageToken;
+    }
+    [Serializable]
+    public class ListCharacterResponse
+    {
+        public List<CharacterOverLoad> characters;
+    }
+    [Serializable]
+    public class SceneTrigger
+    {
+        public string trigger;
+        public string description;
+    }
+    [Serializable]
+    public class SceneCharacterReference
+    {
+        public string character;
+        public string displayTitle;
+        public string imageUri;
+        public string additionalAgentInfo;
+    }
+    [Serializable]
+    public class SceneAssets
+    {
+        public string sceneImg;
+        public string sceneImgOriginal;
     }
 }

@@ -142,22 +142,49 @@ namespace Inworld
             memoryStream.Dispose();
         }
         /// <summary>
-        /// Convert the audio clip float data to short array.
+        /// Convert the audio clip float data from any sample rate to 16000 sample rate, 1 channel short array.
         /// Short array is the data format we use in the Inworld server.
         /// </summary>
-        /// <param name="input">the audio clip data.</param>
-        /// <param name="size">the size of the wave data.</param>
-        public static short[] ConvertAudioClipDataToInt16Array(IReadOnlyList<float> input, int size)
+        /// <param name="array">the output audio clip data.</param>
+        /// <param name="data">the raw wave data.</param>
+        /// <param name="sampleRate">the output sample rate</param>
+        /// <param name="channels">the output channels</param>
+        public static void ConvertAudioClipDataToInt16Array(ref List<short> array, float[] data, int sampleRate, int channels)
         {
-            if (input == null || input.Count == 0)
-                return null;
-            short[] output = new short[size];
-
-            for (int index = 0; index < size; ++index)
+            Resample(out float[] resampledData, data, sampleRate, channels); 
+            foreach (float sample in resampledData)
             {
-                output[index] = (short)(input[index] * short.MaxValue);
+                float clampedSample = Mathf.Clamp(sample, -1, 1);
+                array.Add(Convert.ToInt16(clampedSample * short.MaxValue));
+            }
+        }
+        public static float[] ConvertInt16ArrayToFloatArray(short[] input)
+        {
+            float[] output = new float[input.Length];
+            for (int i = 0; i < input.Length; i++)
+            {
+                output[i] = (float)input[i] / short.MaxValue;
             }
             return output;
+        }
+        /// <summary>
+        /// Resample all the incoming audio data to the Inworld server supported data (16000 * 1).
+        /// </summary>
+        public static void Resample(out float[] resamples, float[] inputSamples, int inputSampleRate, int inputChannels) 
+        {
+            int nResampleRatio = inputSampleRate * inputChannels / 16000;
+            if (nResampleRatio == 1)
+            {
+                resamples = inputSamples;
+                return;
+            }
+            int nTargetLength = inputSamples.Length / nResampleRatio;
+            resamples = new float[nTargetLength];
+            for (int i = 0; i < nTargetLength; i++)
+            {
+                int index = i * nResampleRatio;
+                resamples[i] = inputSamples[index];
+            }
         }
         /// <summary>
         /// Get the byte array of the wave data from AudioClip

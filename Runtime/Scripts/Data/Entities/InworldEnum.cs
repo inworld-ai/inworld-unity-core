@@ -96,6 +96,37 @@ namespace Inworld
         // Do not trigger the understanding part; only send the speech recognition results to the client.
         SPEECH_RECOGNITION_ONLY = 2
     }
+    // Types of access control policy in Runtime
+    public enum RuntimeAccess 
+    {
+        // Unspecified
+        RUNTIME_ACCESS_UNSPECIFIED = 0,
+        // Default policy - only the owner can read assets
+        RUNTIME_ACCESS_PRIVATE = 1,
+        // Public - everyone can read assets
+        RUNTIME_ACCESS_PUBLIC = 2
+    }
+    public enum Pronoun 
+    {
+        // No pronoun specified / unknown
+        PRONOUN_UNSPECIFIED = 0,
+        // She/Her/Hers
+        PRONOUN_FEMALE = 1,
+        // He/Him/His
+        PRONOUN_MALE = 2,
+        // They/Them/Theirs
+        PRONOUN_OTHER = 3
+    }
+    // List of life stages for character.
+    public enum LifeStage 
+    {
+        LIFE_STAGE_UNSPECIFIED = 0,
+        LIFE_STAGE_ADOLESCENCE = 1,
+        LIFE_STAGE_YOUNG_ADULTHOOD = 2,
+        LIFE_STAGE_MIDDLE_ADULTHOOD = 3,
+        LIFE_STAGE_LATE_ADULTHOOD = 4,
+        LIFE_STAGE_CHILDHOOD = 5
+    }
     public enum ControlType
     {
         UNKNOWN = 0,

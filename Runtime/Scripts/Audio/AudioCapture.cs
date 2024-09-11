@@ -12,6 +12,7 @@ using System.Collections.Concurrent;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 #if UNITY_WEBGL
 using AOT;
@@ -30,11 +31,11 @@ namespace Inworld
     {
         [SerializeField] protected MicSampleMode m_SamplingMode = MicSampleMode.NO_FILTER;
         [Range(0, 30)][SerializeField] protected float m_PlayerVolumeThreshold = 10f;
+        [Range(0.3f, 2f)][SerializeField] protected float m_CaptureCheckingDuration = 0.5f;
         [Range(0.1f, 2f)][SerializeField] protected int m_BufferSeconds = 1;
         [SerializeField] protected int m_AudioToPushCapacity = 100;
         [SerializeField] protected string m_DeviceName;
         [SerializeField] protected bool m_DetectPlayerSpeaking = true;
-        [Range(0.1f, 1f)] [SerializeField] protected float m_SwitchingAudioTimer = 0.5f;
         [Tooltip("By checking this, client will not sample player's voice")]
         [SerializeField] protected bool m_MutePlayerMic;
         [Tooltip("By enabling testing mode, Inworld server will only send you the Text-To-Speech result, without any character's response.")]
@@ -57,7 +58,6 @@ namespace Inworld
         protected bool m_IsCapturing;
         protected float m_BackgroundNoise;
         protected float m_CalibratingTime;
-        protected float m_CurrentAudioSwitchingTimer;
         // Last known position in AudioClip buffer.
         protected int m_LastPosition;
         // Size of audioclip used to collect information, need to be big enough to keep up with collect. 
@@ -67,6 +67,7 @@ namespace Inworld
         protected List<short> m_InputBuffer = new List<short>();
         protected float[] m_RawInput;
         protected List<short> m_ProcessedWaveData = new List<short>();
+        protected float m_CapturingTimer;
         static int m_nPosition;
 #if UNITY_WEBGL
         protected static float[] s_WebGLBuffer;
@@ -101,10 +102,7 @@ namespace Inworld
         /// Gets the event handler of AudioCapture.
         /// </summary>
         public AudioEvent Event => m_AudioEvent;
-        /// <summary>
-        /// Gets/Sets the current playing audio source.
-        /// </summary>
-        public AudioSource CurrentPlayingAudioSource { get; set; }
+
         /// <summary>
         /// Gets the global setting of the volumes (From 0 to 1). 
         /// </summary>
@@ -178,11 +176,6 @@ namespace Inworld
                     Event.onPlayerStopSpeaking?.Invoke();
             }
         }
-        
-        /// <summary>
-        /// Gets if is switching audio.
-        /// </summary>
-        public bool IsSwitchingAudio => m_CurrentAudioSwitchingTimer != 0;
         /// <summary>
         /// Signifies it's currently capturing.
         /// </summary>
@@ -191,12 +184,9 @@ namespace Inworld
             get => m_IsCapturing;
             set
             {
-                if (IsSwitchingAudio)
-                    return;
                 if (m_IsCapturing == value)
                     return;
                 m_IsCapturing = value;
-                m_CurrentAudioSwitchingTimer = m_SwitchingAudioTimer;
                 if (m_IsCapturing)
                 {
                     Event.onRecordingStart?.Invoke();
@@ -384,7 +374,6 @@ namespace Inworld
         }
         protected void Update()
         {
-            TimerCountDown();
             if (m_AudioToPush.Count > m_AudioToPushCapacity)
                 m_AudioToPush.TryDequeue(out AudioChunk chunk);
         }
@@ -433,31 +422,6 @@ namespace Inworld
             }
             Event.onStopCalibrating?.Invoke();
         }
-
-        protected virtual void TimerCountDown()
-        {
-            m_CurrentAudioSwitchingTimer -= Time.unscaledDeltaTime;
-            m_CurrentAudioSwitchingTimer = m_CurrentAudioSwitchingTimer < 0 ? 0 : m_CurrentAudioSwitchingTimer;
-        }
-        /// <summary>
-        /// Resample all the incoming audio data to the Inworld server supported data (16000 * 1).
-        /// </summary>
-        protected float[] Resample(float[] inputSamples, int inputSampleRate, int inputChannels) 
-        {
-            int nResampleRatio = inputSampleRate * inputChannels / k_SampleRate;
-            if (nResampleRatio == 1)
-                return inputSamples;
-            int nTargetLength = inputSamples.Length / nResampleRatio;
-
-            float[] resamples = new float[nTargetLength];
-
-            for (int i = 0; i < nTargetLength; i++)
-            {
-                int index = i * nResampleRatio;
-                resamples[i] = inputSamples[index];
-            }
-            return resamples;
-        }
         
         protected virtual IEnumerator AudioCoroutine()
         {
@@ -470,15 +434,7 @@ namespace Inworld
                 yield return new WaitForSecondsRealtime(0.1f);
             }
         }
-        protected virtual void PreProcessAudioData(ref List<short> array, float[] data, int channels, bool debug = true)
-        {
-            float[] resampledData = debug ? data : Resample(data, m_OutputSampleRate, channels);
-            foreach (float sample in resampledData)
-            {
-                float clampedSample = Math.Max(-1.0f, Math.Min(1.0f, sample));
-                array.Add((short)(clampedSample * 32767));
-            }
-        }
+        
         protected virtual void RemoveOverDueData(ref List<short> array)
         {
             if (array.Count > k_SampleRate * m_BufferSeconds)
@@ -503,7 +459,16 @@ namespace Inworld
             if (nSize <= 0)
                 return false;
             IsPlayerSpeaking = DetectPlayerSpeaking();
-            IsCapturing = IsRecording || IsPlayerSpeaking;
+            if (IsRecording || IsPlayerSpeaking)
+            {
+                m_CapturingTimer += 0.1f;
+                if (m_CapturingTimer > m_CaptureCheckingDuration)
+                    IsCapturing = true;
+            }
+            else
+            {
+                m_CapturingTimer = 0;
+            }
             if (!IsCapturing)
                 return false;
             string charName = InworldController.CharacterHandler.CurrentCharacter ? InworldController.CharacterHandler.CurrentCharacter.BrainName : "";
@@ -551,7 +516,7 @@ namespace Inworld
             if (!Recording.clip)
                 return -1;
             Recording.clip.GetData(m_RawInput, m_LastPosition);
-            PreProcessAudioData(ref m_InputBuffer, m_RawInput, 1);
+            WavUtility.ConvertAudioClipDataToInt16Array(ref m_InputBuffer, m_RawInput, k_SampleRate, 1);
 #endif
             m_LastPosition = m_nPosition % m_BufferSize;
             return nSize;
