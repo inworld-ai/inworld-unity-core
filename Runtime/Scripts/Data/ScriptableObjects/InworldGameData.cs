@@ -6,6 +6,7 @@
  *************************************************************************************************/
 
 using Inworld.Entities;
+using Inworld.Entities.LLM;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -20,8 +21,10 @@ namespace Inworld
         public string sceneFullName; 
         public string apiKey;
         public string apiSecret;
+        public InworldGameMode gameMode;
         public List<InworldCharacterData> characters;
         public Capabilities capabilities;
+        public TextGenerationConfig llmConfig;
 
         public string WsFileName => workspaceFullName.Replace("workspaces/", "");
 

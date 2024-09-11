@@ -59,5 +59,4 @@ namespace Inworld.Entities.LLM
 		// The model called a tool. Returned in CompleteChat method only.
 		FINISH_REASON_TOOL_CALL = 5
 	}
-	
 }

@@ -7,6 +7,12 @@
 
 namespace Inworld
 {
+    public enum InworldGameMode
+    {
+        CharacterIntegration,
+        LLMService
+    }
+    
     public enum InworldConnectionStatus
     {
         Idle, // Initial state
