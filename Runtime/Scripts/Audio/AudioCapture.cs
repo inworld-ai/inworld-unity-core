@@ -189,6 +189,8 @@ namespace Inworld
                 m_IsCapturing = value;
                 if (m_IsCapturing)
                 {
+                    if (!EnableAEC)
+                        m_ProcessedWaveData.Clear();
                     Event.onRecordingStart?.Invoke();
                     StartAudio();
                 }
@@ -467,9 +469,11 @@ namespace Inworld
             }
             else
             {
+                IsCapturing = false;
+                m_ProcessedWaveData.Clear();
                 m_CapturingTimer = 0;
             }
-            if (!IsCapturing)
+            if (!IsCapturing || m_CapturingTimer < m_CaptureCheckingDuration * 0.5f)
                 return false;
             string charName = InworldController.CharacterHandler.CurrentCharacter ? InworldController.CharacterHandler.CurrentCharacter.BrainName : "";
             byte[] output = Output(m_ProcessedWaveData.Count);
