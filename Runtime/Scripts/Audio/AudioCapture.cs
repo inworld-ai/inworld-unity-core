@@ -473,7 +473,7 @@ namespace Inworld
                 m_ProcessedWaveData.Clear();
                 m_CapturingTimer = 0;
             }
-            if (!IsCapturing || m_CapturingTimer < m_CaptureCheckingDuration * 0.5f)
+            if (!IsCapturing)
                 return false;
             string charName = InworldController.CharacterHandler.CurrentCharacter ? InworldController.CharacterHandler.CurrentCharacter.BrainName : "";
             byte[] output = Output(m_ProcessedWaveData.Count);

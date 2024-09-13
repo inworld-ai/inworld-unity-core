@@ -22,6 +22,7 @@ namespace Inworld.Interactions
         [SerializeField] protected float m_TextSpeedMultipler = 0.02f;
         protected InworldCharacter m_Character;
         protected Interaction m_CurrentInteraction;
+        protected IEnumerator m_FadeOutCoroutine;
         protected InputAction m_ContinueAction;
         protected InputAction m_SkipAction;
         protected IEnumerator m_CurrentCoroutine;
@@ -106,17 +107,19 @@ namespace Inworld.Interactions
         {
             if (brainName != m_Character.BrainName)
                 return;
-            if (m_Character.gameObject.activeSelf)
-                StartCoroutine(CancelResponseAsync());
+            if (!m_Character.gameObject.activeSelf || m_FadeOutCoroutine != null)
+                return;
+            m_FadeOutCoroutine = CancelResponseAsync();
+            StartCoroutine(m_FadeOutCoroutine);
         }
         protected virtual void OnCharacterSelected(string brainName)
         {
-            if (InworldController.Instance)
-            {
-                InworldController.Audio.Event.onPlayerStartSpeaking.RemoveListener(OnPlayerStartSpeaking);
-                InworldController.Audio.Event.onPlayerStopSpeaking.RemoveListener(OnPlayerStopSpeaking);
-                InworldController.Client.OnPacketReceived -= ReceivePacket;
-            }
+            if (brainName != m_Character.BrainName)
+                return;
+            if (m_FadeOutCoroutine == null)
+                return;
+            StopCoroutine(m_FadeOutCoroutine);
+            m_FadeOutCoroutine = null;
         }
         protected virtual void OnPlayerStartSpeaking()
         {

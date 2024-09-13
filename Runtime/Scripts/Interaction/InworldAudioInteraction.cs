@@ -43,6 +43,7 @@ namespace Inworld.Interactions
         {
             if (brainName != m_Character.BrainName)
                 return;
+            base.OnCharacterSelected(brainName);
             m_PlaybackSource.volume = 1;
         }
 
