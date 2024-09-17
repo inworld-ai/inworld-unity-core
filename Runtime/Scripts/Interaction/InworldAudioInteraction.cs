@@ -51,16 +51,13 @@ namespace Inworld.Interactions
         {
             if (!m_PlaybackSource || !InworldController.Audio || !InworldController.Audio.EnableVAD)
                 return;
-            m_PlaybackSource.Pause();
+            m_PlaybackSource.volume = m_VolumeOnPlayerSpeaking;
         }
         protected override void OnPlayerStopSpeaking()
         {
             if (!m_PlaybackSource || !InworldController.Audio || !InworldController.Audio.EnableVAD)
                 return;
-            if (m_PlaybackSource.time == 0)
-                m_PlaybackSource.Play();
-            else
-                m_PlaybackSource.UnPause();
+            m_PlaybackSource.volume = 1;
         }
 
         public override IEnumerator CancelResponseAsync()

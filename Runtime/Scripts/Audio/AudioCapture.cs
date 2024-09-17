@@ -31,7 +31,7 @@ namespace Inworld
     {
         [SerializeField] protected MicSampleMode m_SamplingMode = MicSampleMode.NO_FILTER;
         [Range(0, 30)][SerializeField] protected float m_PlayerVolumeThreshold = 10f;
-        [Range(0.3f, 2f)][SerializeField] protected float m_CaptureCheckingDuration = 0.5f;
+        [Range(0.1f, 1f)][SerializeField] protected float m_CaptureCheckingDuration = 0.1f;
         [Range(0.1f, 2f)][SerializeField] protected int m_BufferSeconds = 1;
         [SerializeField] protected int m_AudioToPushCapacity = 100;
         [SerializeField] protected string m_DeviceName;
@@ -638,7 +638,7 @@ namespace Inworld
             WebGLMicStart(microphoneDeviceIDFromName, k_SampleRate, m_BufferSeconds);
             return true;
 #else
-            Recording.clip = Microphone.Start(deviceName, true, m_BufferSeconds, k_SampleRate);
+            Recording.clip = Microphone.Start(deviceName, true, m_BufferSeconds,k_SampleRate);
             return Recording.clip;
 #endif
         }

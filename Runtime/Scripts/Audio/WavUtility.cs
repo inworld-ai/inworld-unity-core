@@ -151,10 +151,11 @@ namespace Inworld
         /// <param name="channels">the output channels</param>
         public static void ConvertAudioClipDataToInt16Array(ref List<short> array, float[] data, int sampleRate, int channels)
         {
-            Resample(out float[] resampledData, data, sampleRate, channels); 
+            Resample(out float[] resampledData, data, sampleRate, channels);
+
             foreach (float sample in resampledData)
             {
-                float clampedSample = Mathf.Clamp(sample, -1, 1);
+                float clampedSample = Mathf.Clamp(sample, -1, 1); 
                 array.Add(Convert.ToInt16(clampedSample * short.MaxValue));
             }
         }
