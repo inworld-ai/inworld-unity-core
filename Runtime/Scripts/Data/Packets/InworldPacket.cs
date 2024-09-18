@@ -10,7 +10,8 @@ using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.UI;
+
+
 namespace Inworld.Packet
 {
 	[Serializable]
@@ -63,8 +64,12 @@ namespace Inworld.Packet
 
 	public class PacketId
 	{
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string conversationId; // Used in the conversations.
+		
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string correlationId; // Used in callback for server packets.
+		
 		public string interactionId = Guid.NewGuid().ToString(); // Lot of sentences included in one interaction.
 		public string packetId = Guid.NewGuid().ToString(); // Unique.
 		public string utteranceId = Guid.NewGuid().ToString(); // Each sentence is an utterance. But can be interpreted as multiple behavior (Text, EmotionChange, Audio, etc)
@@ -80,8 +85,6 @@ namespace Inworld.Packet
 		public PacketId packetId;
 		public Routing routing;
 		public string timestamp;
-		[JsonConverter(typeof(StringEnumConverter))]
-		public PacketType type;
 
 		public InworldPacket()
 		{
@@ -94,7 +97,6 @@ namespace Inworld.Packet
 			timestamp = rhs.timestamp;
 			packetId = rhs.packetId;
 			routing = rhs.routing;
-			type = rhs.type;
 		}
 
 #region NonSerialized Properties

@@ -117,6 +117,28 @@ namespace Inworld
         // They/Them/Theirs
         PRONOUN_OTHER = 3
     }
+    public enum PingPongType 
+    {
+        // No type is specified, means this is empty report.
+        UNSPECIFIED = 0,
+        // Sent from the server to the client.
+        PING = 1,
+        // Upon receiving a ping, the client has to send back a pong packet.
+        PONG = 2
+    }
+    public enum Precision 
+    {
+        // Precision is not specified.
+        UNSPECIFIED = 0,
+        // Measured based on local Voice Activity Detection.
+        FINE = 1,
+        // Measured based on the client assuming when the user started to speak (e.g., using speech recognition results).
+        ESTIMATED = 2,
+        // Measured from the moment the player released the push-to-talk button.
+        PUSH_TO_TALK = 3,
+        // Measured from sending a text or a trigger.
+        NON_SPEECH = 4
+    }
     // List of life stages for character.
     public enum LifeStage 
     {
@@ -205,23 +227,7 @@ namespace Inworld
         PLAYER,
         WORLD
     }
-    public enum PacketType
-    {
-        UNKNOWN,
-        TEXT,
-        CONTROL,
-        AUDIO,
-        GESTURE,
-        CUSTOM,
-        CANCEL_RESPONSE,
-        MUTATION,
-        EMOTION,
-        ACTION,
-        RELATION,
-        SESSION_CONTROL,
-        SESSION_RESPONSE,
-        ENTITIES
-    }
+
     public enum DataType
     {
         UNSPECIFIED = 0,

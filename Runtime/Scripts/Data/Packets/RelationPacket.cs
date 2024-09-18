@@ -78,12 +78,10 @@ namespace Inworld.Packet
         
         public RelationPacket()
         {
-            type = PacketType.RELATION;
             debugInfo = new RelationEvent();
         }
         public RelationPacket(InworldPacket rhs, RelationEvent evt) : base(rhs)
         {
-            type = PacketType.RELATION;
             debugInfo = evt;
         }
         [JsonIgnore]

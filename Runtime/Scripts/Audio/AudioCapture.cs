@@ -189,6 +189,8 @@ namespace Inworld
                 m_IsCapturing = value;
                 if (m_IsCapturing)
                 {
+                    if (!EnableAEC)
+                        m_ProcessedWaveData.Clear();
                     Event.onRecordingStart?.Invoke();
                     StartAudio();
                 }
@@ -463,11 +465,20 @@ namespace Inworld
             {
                 m_CapturingTimer += 0.1f;
                 if (m_CapturingTimer > m_CaptureCheckingDuration)
+                {
+                    m_CapturingTimer = m_CaptureCheckingDuration;
                     IsCapturing = true;
+                }
             }
             else
             {
-                m_CapturingTimer = 0;
+                m_CapturingTimer -= 0.1f;
+                if (m_CapturingTimer < 0)
+                {
+                    IsCapturing = false;
+                    m_ProcessedWaveData.Clear();
+                    m_CapturingTimer = 0;
+                }
             }
             if (!IsCapturing)
                 return false;

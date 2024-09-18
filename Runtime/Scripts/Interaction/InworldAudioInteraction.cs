@@ -25,6 +25,7 @@ namespace Inworld.Interactions
         /// Gets this character's audio source
         /// </summary>
         public AudioSource PlaybackSource => m_PlaybackSource;
+        
         /// <summary>
         /// Mute/Unmute this character.
         /// </summary>
@@ -37,21 +38,38 @@ namespace Inworld.Interactions
                     m_PlaybackSource.mute = value;
             }
         }
+
+        protected override void OnCharacterSelected(string brainName)
+        {
+            if (brainName != m_Character.BrainName)
+                return;
+            base.OnCharacterSelected(brainName);
+            m_PlaybackSource.volume = 1;
+        }
+
         protected override void OnPlayerStartSpeaking()
         {
             if (!m_PlaybackSource || !InworldController.Audio || !InworldController.Audio.EnableVAD)
                 return;
-            m_PlaybackSource.Pause();
+            m_PlaybackSource.volume = m_VolumeOnPlayerSpeaking;
         }
         protected override void OnPlayerStopSpeaking()
         {
             if (!m_PlaybackSource || !InworldController.Audio || !InworldController.Audio.EnableVAD)
                 return;
-            if (m_PlaybackSource.time == 0)
-                m_PlaybackSource.Play();
-            else
-                m_PlaybackSource.UnPause();
+            m_PlaybackSource.volume = 1;
         }
+
+        public override IEnumerator CancelResponseAsync()
+        {
+            while (m_PlaybackSource && m_PlaybackSource.volume > 0.1f)
+            {
+                m_PlaybackSource.volume -= Time.fixedUnscaledDeltaTime;
+                yield return new WaitForFixedUpdate();
+            }
+            CancelResponse();
+        }
+
         /// <summary>
         /// Interrupt this character by cancelling its incoming responses.
         /// </summary>
@@ -83,7 +101,6 @@ namespace Inworld.Interactions
         {
             while (true)
             {
-                yield return AdjustVolume();
                 yield return RemoveExceedItems();
                 yield return HandleNextUtterance();
                 yield return null;
@@ -130,11 +147,6 @@ namespace Inworld.Interactions
             base.SkipCurrentUtterance();
             m_PlaybackSource.Stop();
             m_WaitTimer = 0;
-        }
-        protected IEnumerator AdjustVolume()
-        {
-            m_PlaybackSource.volume = (InworldController.Audio.IsPlayerSpeaking ? m_VolumeOnPlayerSpeaking : 1f) * InworldController.Audio.Volume;
-            yield break;
         }
     }
 }

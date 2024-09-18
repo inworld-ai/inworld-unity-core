@@ -12,50 +12,78 @@ namespace Inworld.Sample
 {
     public class PackageLatencyTest : MonoBehaviour
     {
-        [SerializeField] PacketType m_PacketType = PacketType.TEXT;
-        [SerializeField] bool m_IsEnabled;
-        
-        bool IsFromPlayer(InworldPacket packet) => packet.Source == SourceType.PLAYER;
-        bool m_LastPacketIsFromPlayer;
-        float m_PlayerTime;
-        float m_ServerTime;
+        [SerializeField] bool m_AutoAttached = true;
+        bool m_IsFromPlayer;
+        float m_RoundTripTimeSampler;
+        float m_PerceivedTimeSampler;
+
         void OnEnable()
         {
+            if (!m_AutoAttached)
+                return;
+            if (!InworldController.Instance)
+                return;
+            InworldController.Client.OnPacketReceived += RoundTripPacketReceived;
+            InworldController.Audio.Event.onPlayerStopSpeaking.AddListener(StartSampling);
             InworldController.CharacterHandler.Event.onCharacterListJoined.AddListener(OnCharacterJoined);
             InworldController.CharacterHandler.Event.onCharacterListLeft.AddListener(OnCharacterLeft);
         }
-
         void OnDisable()
         {
             if (!InworldController.Instance)
                 return;
+            InworldController.Client.OnPacketReceived -= RoundTripPacketReceived;
             InworldController.CharacterHandler.Event.onCharacterListJoined.RemoveListener(OnCharacterJoined);
             InworldController.CharacterHandler.Event.onCharacterListLeft.RemoveListener(OnCharacterLeft);
         }
         protected virtual void OnCharacterJoined(InworldCharacter character)
         {
             // YAN: Clear existing event listener to avoid adding multiple times.
-            character.Event.onPacketReceived.RemoveListener(OnInteraction); 
-            character.Event.onPacketReceived.AddListener(OnInteraction);
+            character.Event.onPacketReceived.RemoveListener(RoundTripPacketReceived); 
+            character.Event.onPacketReceived.AddListener(RoundTripPacketReceived);
+            character.Event.onBeginSpeaking.RemoveListener(StopSampling);
+            character.Event.onBeginSpeaking.AddListener(StopSampling);
         }
 
         protected virtual void OnCharacterLeft(InworldCharacter character)
         {
-            character.Event.onPacketReceived.RemoveListener(OnInteraction); 
+            character.Event.onPacketReceived.RemoveListener(RoundTripPacketReceived); 
+            character.Event.onBeginSpeaking.RemoveListener(StopSampling);
         }
-        void OnInteraction(InworldPacket incomingPacket)
+        protected virtual void RoundTripPacketReceived(InworldPacket packet)
         {
-            if (incomingPacket.type== m_PacketType && IsFromPlayer(incomingPacket))
+            switch (packet.Source)
             {
-                m_LastPacketIsFromPlayer = true;
-                m_PlayerTime = Time.time;
+                case SourceType.PLAYER:
+                    m_IsFromPlayer = true;
+                    m_RoundTripTimeSampler = Time.unscaledTime;
+                    break;
+                case SourceType.AGENT:
+                {
+                    if (m_IsFromPlayer)
+                    {
+                        InworldAI.Log($"RoundTrip Latency: {Time.unscaledTime - m_RoundTripTimeSampler}s.");
+                        m_IsFromPlayer = false;
+                    }
+                    break;
+                }
             }
-            else if (incomingPacket.type == m_PacketType)
-            {
-                if (m_LastPacketIsFromPlayer && m_IsEnabled)
-                    InworldAI.Log($"Package Latency: {Time.time - m_PlayerTime}");
-                m_LastPacketIsFromPlayer = false;
-            }
+        }
+        /// <summary>
+        /// Start Sampling. if AutoAttached is not toggled, you can assign this function anywhere.
+        /// </summary>
+        public virtual void StartSampling()
+        {
+            m_PerceivedTimeSampler = Time.unscaledTime;
+        }
+        /// <summary>
+        /// Stop Sampling. if AutoAttached is not toggled, you can assign this function anywhere.
+        /// </summary>
+        public virtual void StopSampling(string _)
+        {
+            float latency = Time.unscaledTime - m_PerceivedTimeSampler;
+            InworldAI.Log($"Perceived Latency: {latency}s.");
+            InworldController.Client.SendPerceivedLatencyReport(latency);
         }
     }
 }

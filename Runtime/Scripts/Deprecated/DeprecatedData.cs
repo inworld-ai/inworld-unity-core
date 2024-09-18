@@ -22,12 +22,10 @@ namespace Inworld.Packet
         
         public GesturePacket()
         {
-            type = PacketType.GESTURE;
             gesture = new GestureEvent();
         }
         public GesturePacket(InworldPacket rhs, GestureEvent evt) : base(rhs)
         {
-            type = PacketType.GESTURE;
             gesture = evt;
         }
     }
@@ -39,7 +37,6 @@ namespace Inworld.Packet
         public LoadScenePacket(string sceneFullName)
         {
             timestamp = InworldDateTime.UtcNow;
-            type = PacketType.MUTATION;
             packetId = new PacketId();
             routing = new Routing("WORLD");
             mutation = new LoadSceneEvent
@@ -59,7 +56,6 @@ namespace Inworld.Packet
         public LoadCharactersPacket(List<string> characterFullName)
         {
             timestamp = InworldDateTime.UtcNow;
-            type = PacketType.MUTATION;
             packetId = new PacketId();
             routing = new Routing();
             mutation = new LoadCharactersEvent

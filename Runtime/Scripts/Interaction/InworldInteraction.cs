@@ -22,6 +22,7 @@ namespace Inworld.Interactions
         [SerializeField] protected float m_TextSpeedMultipler = 0.02f;
         protected InworldCharacter m_Character;
         protected Interaction m_CurrentInteraction;
+        protected IEnumerator m_FadeOutCoroutine;
         protected InputAction m_ContinueAction;
         protected InputAction m_SkipAction;
         protected IEnumerator m_CurrentCoroutine;
@@ -45,7 +46,12 @@ namespace Inworld.Interactions
         /// </summary>
         /// <param name="packet">the target packet.</param>
         public bool IsRelated(InworldPacket packet) => packet.IsRelated(m_Character.ID);
-        
+
+        public virtual IEnumerator CancelResponseAsync()
+        {
+            yield return new WaitForSecondsRealtime(1f);
+            CancelResponse();
+        }
         /// <summary>
         /// Interrupt this character by cancelling its incoming sentences.
         /// Hard cancelling means even cancel and interrupt the current interaction.
@@ -68,7 +74,11 @@ namespace Inworld.Interactions
         protected virtual void Awake()
         {
             if (!m_Character)
+            {
                 m_Character = GetComponent<InworldCharacter>();
+                m_Character.Event.onCharacterSelected.AddListener(OnCharacterSelected);
+                m_Character.Event.onCharacterDeselected.AddListener(OnCharacterDeselected);
+            }
             if (!m_Character)
                 enabled = false;
             m_ContinueAction = InworldAI.InputActions["Continue"];
@@ -76,8 +86,8 @@ namespace Inworld.Interactions
         }
         protected virtual void OnEnable()
         {
-            InworldController.Audio.Event.onRecordingStart.AddListener(OnPlayerStartSpeaking);
-            InworldController.Audio.Event.onRecordingEnd.AddListener(OnPlayerStopSpeaking);
+            InworldController.Audio.Event.onPlayerStartSpeaking.AddListener(OnPlayerStartSpeaking);
+            InworldController.Audio.Event.onPlayerStopSpeaking.AddListener(OnPlayerStopSpeaking);
             InworldController.Client.OnPacketReceived += ReceivePacket;
             m_CurrentCoroutine = InteractionCoroutine();
             StartCoroutine(m_CurrentCoroutine);
@@ -86,12 +96,30 @@ namespace Inworld.Interactions
         protected virtual void OnDisable()
         {
             StopCoroutine(m_CurrentCoroutine);
-            if (InworldController.Instance)
-            {
-                InworldController.Audio.Event.onPlayerStartSpeaking.RemoveListener(OnPlayerStartSpeaking);
-                InworldController.Audio.Event.onPlayerStopSpeaking.RemoveListener(OnPlayerStopSpeaking);
-                InworldController.Client.OnPacketReceived -= ReceivePacket;
-            }
+
+            if (!InworldController.Instance)
+                return;
+            InworldController.Audio.Event.onPlayerStartSpeaking.RemoveListener(OnPlayerStartSpeaking);
+            InworldController.Audio.Event.onPlayerStopSpeaking.RemoveListener(OnPlayerStopSpeaking);
+            InworldController.Client.OnPacketReceived -= ReceivePacket;
+        }
+        protected virtual void OnCharacterDeselected(string brainName)
+        {
+            if (brainName != m_Character.BrainName)
+                return;
+            if (!m_Character.gameObject.activeSelf || m_FadeOutCoroutine != null)
+                return;
+            m_FadeOutCoroutine = CancelResponseAsync();
+            StartCoroutine(m_FadeOutCoroutine);
+        }
+        protected virtual void OnCharacterSelected(string brainName)
+        {
+            if (brainName != m_Character.BrainName)
+                return;
+            if (m_FadeOutCoroutine == null)
+                return;
+            StopCoroutine(m_FadeOutCoroutine);
+            m_FadeOutCoroutine = null;
         }
         protected virtual void OnPlayerStartSpeaking()
         {

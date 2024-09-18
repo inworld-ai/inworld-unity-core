@@ -113,24 +113,20 @@ namespace Inworld.Packet
         public ControlEvent control;
         public ControlPacket()
         {
-            type = PacketType.CONTROL;
             control = new ControlEvent();
         }
         public ControlPacket(ControlEvent evt)
         {
-            type = PacketType.CONTROL;
             control = evt;
             PreProcess();
         }
         public ControlPacket(ControlEvent evt, Dictionary<string, string> targets)
         {
-            type = PacketType.CONTROL;
             control = evt;
             PreProcess(targets);
         }
         public ControlPacket(InworldPacket rhs, ControlEvent evt) : base(rhs)
         {
-            type = PacketType.CONTROL;
             control = evt;
         }
         protected override void UpdateRouting()

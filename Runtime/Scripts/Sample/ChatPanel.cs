@@ -92,7 +92,7 @@ namespace Inworld.Sample
                     // Do nothing
                     break;
                 default:
-                    InworldAI.LogWarning($"Received unknown {incomingPacket.type}");
+                    InworldAI.LogWarning($"Received unknown {incomingPacket}");
                     break;
             }
         }
@@ -108,7 +108,7 @@ namespace Inworld.Sample
             if (m_ChatOptions.longBubbleMode)
                 RemoveBubble(response.interactionId);
             else
-                response.utteranceId.ForEach(RemoveBubble);
+                response.utteranceId?.ForEach(RemoveBubble);
             return true;
         }
         protected virtual void HandleAudio(AudioPacket audioPacket)

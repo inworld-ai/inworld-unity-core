@@ -29,18 +29,15 @@ namespace Inworld.Packet
         public TextEvent text;
         public TextPacket()
         {
-            type = PacketType.TEXT;
             text = new TextEvent();
         }
         public TextPacket(string textToSend)
         {
-            type = PacketType.TEXT;
             text = new TextEvent(textToSend);
             PreProcess();
         }
         public TextPacket(InworldPacket rhs, TextEvent evt) : base(rhs)
         {
-            type = PacketType.TEXT;
             text = evt;
         }
     }

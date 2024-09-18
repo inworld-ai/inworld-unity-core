@@ -118,24 +118,20 @@ namespace Inworld.Packet
 
 		public MutationPacket()
 		{
-			type = PacketType.MUTATION;
 			mutation = new MutationEvent();
 		}
 		public MutationPacket(MutationEvent evt)
 		{
 			mutation = evt;
-			type = PacketType.MUTATION;
 			PreProcess();
 		}
 		public MutationPacket(InworldPacket rhs, MutationEvent evt) : base(rhs)
 		{
 			mutation = evt;
-			type = PacketType.MUTATION;
 		}
 		public static string LoadScene(string sceneFullName) => new MutationPacket
 		{
 			timestamp = InworldDateTime.UtcNow,
-			type = PacketType.MUTATION,
 			packetId = new PacketId(),
 			routing = new Routing("WORLD"),
 			mutation = new LoadSceneEvent
@@ -150,7 +146,6 @@ namespace Inworld.Packet
 		public static string UnloadCharacters(List<InworldCharacterData> characters) => new MutationPacket
 		{
 			timestamp = InworldDateTime.UtcNow,
-			type = PacketType.MUTATION,
 			packetId = new PacketId(),
 			routing = new Routing(),
 			mutation = new UnloadCharactersEvent
@@ -161,7 +156,6 @@ namespace Inworld.Packet
 		public static string LoadCharacters(List<string> charactersFullName) => new MutationPacket
 		{
 			timestamp = InworldDateTime.UtcNow,
-			type = PacketType.MUTATION,
 			packetId = new PacketId(),
 			routing = new Routing(),
 			mutation = new LoadCharactersEvent

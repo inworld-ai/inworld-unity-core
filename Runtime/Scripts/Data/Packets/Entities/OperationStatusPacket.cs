@@ -15,7 +15,7 @@ namespace Inworld.Packet
 
         public OperationStatusPacket()
         {
-            type = PacketType.ENTITIES;
+
         }
     }
 

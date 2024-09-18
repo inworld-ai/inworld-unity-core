@@ -408,6 +408,11 @@ namespace Inworld
             }
             return true;
         }
+        /// <summary>
+        /// Send SessionConfig, send it immediately after session started to start conversation. 
+        /// </summary>
+        /// <param name="loadHistory">check if history is loaded.</param>
+        /// <param name="gameSessionID">send the user's customized game session ID for analyze report.</param>
         public virtual void SendSessionConfig(bool loadHistory = true, string gameSessionID = "")
         {
             if (loadHistory)
@@ -423,7 +428,6 @@ namespace Inworld
             ControlPacket ctrlPacket = new ControlPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = PacketType.CONTROL,
                 packetId = new PacketId(),
                 routing = new Routing("WORLD"),
                 control = new SessionControlEvent
@@ -449,6 +453,53 @@ namespace Inworld
             }
             InworldAI.Log("Prepare Session...");
             m_Socket.SendAsync(ctrlPacket.ToJson);
+        }
+        /// <summary>
+        /// Send Perceived Latency Report to server.
+        /// </summary>
+        /// <param name="precisionToSend"></param>
+        /// <param name="latencyPerceived"></param>
+        public virtual void SendPerceivedLatencyReport(float latencyPerceived, Precision precisionToSend = Precision.FINE)
+        {
+            LatencyReportPacket latencyReport = new LatencyReportPacket
+            {
+                timestamp = InworldDateTime.UtcNow,
+                packetId = new PacketId(),
+                routing = new Routing("WORLD"),
+                latencyReport = new PerceivedLatencyEvent
+                {
+                    perceivedLatency = new PerceivedLatency
+                    {
+                        precision = precisionToSend,
+                        latency = $"{latencyPerceived}s"
+                    }
+                }
+            };
+            latencyReport.packetId.correlationId = Guid.NewGuid().ToString();
+            m_Socket.SendAsync(latencyReport.ToJson);
+        }
+        /// <summary>
+        /// Send PingPong Response for latency Test.
+        /// </summary>
+        /// <param name="packetID"></param>
+        public virtual void SendLatencyTestResponse(PacketId packetID)
+        {
+            LatencyReportPacket latencyReport = new LatencyReportPacket
+            {
+                timestamp = InworldDateTime.UtcNow,
+                packetId = new PacketId(),
+                routing = new Routing("WORLD"),
+                latencyReport = new PingPongEvent
+                {
+                    pingPong = new PingPong
+                    {
+                        type = PingPongType.PONG,
+                        pingPacketId = packetID,
+                        pingTimestamp = InworldDateTime.UtcNow
+                    }
+                }
+            };
+            m_Socket.SendAsync(latencyReport.ToJson);
         }
         /// <summary>
         /// Send Capabilities to Inworld Server.
@@ -507,7 +558,6 @@ namespace Inworld
             InworldPacket packet = new TextPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = PacketType.TEXT,
                 packetId = new PacketId(),
                 routing = new Routing(characterID),
                 text = new TextEvent(textToSend)
@@ -547,7 +597,6 @@ namespace Inworld
             InworldPacket packet = new ActionPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = PacketType.ACTION,
                 packetId = new PacketId(),
                 routing = new Routing(characterID),
                 action = new ActionEvent
@@ -606,7 +655,6 @@ namespace Inworld
             MutationPacket cancelPacket = new MutationPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = PacketType.MUTATION,
                 packetId = new PacketId(),
                 routing = new Routing(characterID),
                 mutation = new CancelResponseEvent
@@ -630,7 +678,6 @@ namespace Inworld
             MutationPacket regenPacket = new MutationPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = PacketType.MUTATION,
                 packetId = new PacketId(),
                 routing = new Routing(characterID), 
                 mutation = new RegenerateResponseEvent
@@ -658,7 +705,6 @@ namespace Inworld
             MutationPacket regenPacket = new MutationPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = PacketType.MUTATION,
                 packetId = new PacketId(),
                 routing = new Routing(characterID),
                 mutation = new ApplyResponseEvent
@@ -705,7 +751,6 @@ namespace Inworld
             InworldPacket packet = new CustomPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = PacketType.CUSTOM,
                 packetId = new PacketId(),
                 routing = new Routing(charID),
                 custom = new CustomEvent(triggerName, parameters)
@@ -766,7 +811,6 @@ namespace Inworld
             InworldPacket packet = new ControlPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = PacketType.CONTROL,
                 packetId = new PacketId(),
                 routing = new Routing(charID),
                 control = new AudioControlEvent
@@ -817,7 +861,6 @@ namespace Inworld
             InworldPacket packet = new ControlPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = PacketType.TEXT,
                 packetId = new PacketId(),
                 routing = new Routing(charID),
                 control = new ControlEvent
@@ -877,7 +920,6 @@ namespace Inworld
             InworldPacket packet = new AudioPacket
             {
                 timestamp = InworldDateTime.UtcNow,
-                type = PacketType.AUDIO,
                 packetId = new PacketId(),
                 routing = new Routing(charID),
                 dataChunk = new DataChunk
@@ -1152,43 +1194,38 @@ namespace Inworld
         /// <returns>True if need dispatch, False if error or discard.</returns>
         bool _HandleRawPackets(InworldPacket receivedPacket)
         {
-            switch (receivedPacket.type)
+            if (receivedPacket is LatencyReportPacket latencyReportPacket)
             {
-                case PacketType.UNKNOWN:
-                    InworldAI.LogWarning($"Received Unknown {receivedPacket}");
-                    return false;
-                case PacketType.SESSION_RESPONSE:
-                    // Deprecated.
-                    return false;
-                case PacketType.CONTROL:
+                if (latencyReportPacket.latencyReport is PingPongEvent)
                 {
-                    if (receivedPacket is ControlPacket controlPacket)
-                    {
-                        switch (controlPacket.Action)
-                        {
-                            case ControlType.WARNING:
-                                InworldAI.LogWarning(controlPacket.control.description);
-                                return false;
-                            case ControlType.INTERACTION_END:
-                                _FinishInteraction(controlPacket.packetId.correlationId);
-                                break;
-                            case ControlType.CURRENT_SCENE_STATUS:
-                                if (controlPacket.control is CurrentSceneStatusEvent currentSceneStatusEvent)
-                                {
-                                    _RegisterLiveSession(currentSceneStatusEvent.currentSceneStatus.agents);
-                                    UpdateConversation();
-                                    Status = InworldConnectionStatus.Connected;
-                                    m_ReconnectThreshold = m_CurrentReconnectThreshold = 1;
-                                    return true;
-                                }
-                                InworldAI.LogError($"Load Scene Error: {controlPacket.control}");
-                                break;
-                        }
-                    }
-                    break;
+                    SendLatencyTestResponse(latencyReportPacket.packetId);
                 }
-                default:
-                    return true;
+                return false;
+            }
+            if (receivedPacket is SessionResponsePacket)
+                return false;
+            if (receivedPacket is ControlPacket controlPacket)
+            {
+                switch (controlPacket.Action)
+                {
+                    case ControlType.WARNING:
+                        InworldAI.LogWarning(controlPacket.control.description);
+                        return false;
+                    case ControlType.INTERACTION_END:
+                        _FinishInteraction(controlPacket.packetId.correlationId);
+                        break;
+                    case ControlType.CURRENT_SCENE_STATUS:
+                        if (controlPacket.control is CurrentSceneStatusEvent currentSceneStatusEvent)
+                        {
+                            _RegisterLiveSession(currentSceneStatusEvent.currentSceneStatus.agents);
+                            UpdateConversation();
+                            Status = InworldConnectionStatus.Connected;
+                            m_ReconnectThreshold = m_CurrentReconnectThreshold = 1;
+                            return true;
+                        }
+                        InworldAI.LogError($"Load Scene Error: {controlPacket.control}");
+                        break;
+                }
             }
             return true;
         }

@@ -60,18 +60,15 @@ namespace Inworld.Packet
 
         public CustomPacket()
         {
-            type = PacketType.CUSTOM;
             custom = new CustomEvent();
         }
         public CustomPacket(string triggerName, Dictionary<string, string> parameters = null)
         {
-            type = PacketType.CUSTOM;
             custom = new CustomEvent(triggerName, parameters);
             PreProcess();
         }
         public CustomPacket(InworldPacket rhs, CustomEvent evt) : base(rhs)
         {
-            type = PacketType.CUSTOM;
             custom = evt;
         }
         public string TriggerName

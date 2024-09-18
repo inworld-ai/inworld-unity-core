@@ -152,7 +152,7 @@ namespace Inworld.Packet
         
         public ItemOperationPacket()
         {
-            type = PacketType.ENTITIES;
+
         }
         
         public override bool PrepareToSend()

@@ -30,12 +30,10 @@ namespace Inworld.Packet
         
         public EmotionPacket()
         {
-            type = PacketType.EMOTION;
             emotion = new EmotionEvent();
         }
         public EmotionPacket(InworldPacket rhs, EmotionEvent evt) : base(rhs)
         {
-            type = PacketType.EMOTION;
             emotion = evt;
         }
     }
