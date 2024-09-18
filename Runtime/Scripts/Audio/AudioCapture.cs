@@ -465,13 +465,20 @@ namespace Inworld
             {
                 m_CapturingTimer += 0.1f;
                 if (m_CapturingTimer > m_CaptureCheckingDuration)
+                {
+                    m_CapturingTimer = m_CaptureCheckingDuration;
                     IsCapturing = true;
+                }
             }
             else
             {
-                IsCapturing = false;
-                m_ProcessedWaveData.Clear();
-                m_CapturingTimer = 0;
+                m_CapturingTimer -= 0.1f;
+                if (m_CapturingTimer < 0)
+                {
+                    IsCapturing = false;
+                    m_ProcessedWaveData.Clear();
+                    m_CapturingTimer = 0;
+                }
             }
             if (!IsCapturing)
                 return false;
