@@ -6,6 +6,8 @@
  *************************************************************************************************/
 
 using System;
+using System.Text.RegularExpressions;
+using UnityEngine;
 namespace Inworld
 {
     [Serializable]
@@ -17,7 +19,9 @@ namespace Inworld
     public static class InworldDateTime
     {
         // YAN: In Unity we use the first format.
-        //      And server will return the last 2 types of format.
+        //      And server will return the format with 9 digits.
+        //      However, DotNet can only process 7 digits at most. 
+        //      We need to trim them first.
         static readonly string[] s_TimeFormat = 
         {
             "yyyy-MM-ddTHH:mm:ss.fffffffZ",
@@ -41,12 +45,23 @@ namespace Inworld
         /// <returns></returns>
         public static DateTime ToDateTime(string timestamp) => DateTime.TryParseExact
         (
-            timestamp, s_TimeFormat,
+            // YAN: Match .fff (\d{3}) and put them in bracket $1. 
+            Regex.Replace(timestamp, @"\.(\d{3})\d*Z", ".$1Z"), s_TimeFormat,
             System.Globalization.CultureInfo.InvariantCulture,
             System.Globalization.DateTimeStyles.RoundtripKind,
             out DateTime outTime
         ) ? outTime : DateTime.MinValue;
 
+
+        public static int ToLatency(string timeStamp)
+        {
+            DateTime receivedTime = ToDateTime(timeStamp);
+            TimeSpan delta = DateTime.UtcNow - receivedTime;
+            // YAN: Sometimes result can be even smaller than 0, due to the clock skew.
+            // < 20ms is not able to be perceived. 
+            int result = delta.Seconds * 1000 + delta.Milliseconds;
+            return result > 20 ? result : 20;
+        }
         public static Duration ToDuration(float duration) => new Duration()
         {
             seconds = (long)duration,
