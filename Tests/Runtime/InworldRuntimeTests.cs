@@ -162,7 +162,30 @@ namespace Inworld.Test
 			yield return ConversationCheck(10);
 			Assert.IsTrue(m_Conversation.Any(p => p is TextPacket textPacket && textPacket.text.text == k_VerbatimResponse));
 		}
-
+		
+		[UnityTest]
+		public IEnumerator InworldRuntimeTest_FreqSwitchAudioSession()
+		{
+			m_Conversation.Clear();
+			string agentID = InworldController.Client.LiveSessionData.Values.First().agentId;
+			for (int i = 0; i < 10; i++)
+			{
+				InworldController.Client.StartAudio(agentID); 
+				yield return new WaitForSeconds(0.1f);
+				InworldController.Audio.AutoDetectPlayerSpeaking = false;
+				InworldController.Client.StopAudio(agentID);
+				yield return new WaitForSeconds(0.1f);
+			}
+			InworldController.Client.StartAudio(agentID); 
+			yield return new WaitForSeconds(0.1f);
+			InworldController.Audio.AutoDetectPlayerSpeaking = false;
+			InworldController.Client.SendAudio(agentID, k_AudioChunk);
+			yield return new WaitForSeconds(0.1f);
+			InworldController.Client.StopAudio(agentID);
+			yield return ConversationCheck(10);
+			Assert.IsTrue(m_Conversation.Any(p => p is TextPacket));
+			Assert.IsTrue(m_Conversation.Any(p => p is AudioPacket));
+		}
 		[UnityTest]
 		public IEnumerator InworldRuntimeTest_EmotionChange()
 		{
