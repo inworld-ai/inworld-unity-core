@@ -3,22 +3,55 @@ name: RegressionTests
 on:
   workflow_dispatch:  # Allows manual triggering
 
-env:
-  UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-  UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-  UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
-
 jobs:
-  fetch_versions:
-    name: Fetch releases
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download Release
-        id: download_release
-        uses: actions/download-artifact@v3
-        with:
-          name: ${{ github.event.inputs.release_version }}  # Use the input release version
-          path: ./releases/test_${{ github.event.inputs.release_version }}  # Specify where to download the release files
-      - name: Cleanup
-        if: always()
-        run: rm -rf releases  # Clean up after running tests
+  fetch-release:
+    runs-on: ubuntu-latest   
+    outputs:
+      releases: ${{ steps.fetch-releases.outputs.releases }}  
+    steps:     
+      # Step 1: Fetch Inworld Unity Releases
+      - name: Fetch Inworld Unity Releases
+        id: fetch-releases
+        run: |
+          json=$(curl -s https://api.github.com/repos/inworld-ai/inworld-unity-core/releases | jq -c '[.[] | {tag_name, assets: .assets[] | select(.name | endswith(".tgz"))} | {tag_name, download_url: .assets.browser_download_url}]')
+          echo "Found releases:"  
+          echo $json                 
+          echo "releases=$json" >> $GITHUB_OUTPUT     
+      
+  run-tests:
+    runs-on: ubuntu-latest 
+    needs: fetch-release
+    strategy:
+      matrix:
+        releaseName: ${{ fromJson(needs.fetch-release.outputs.releases) }}
+
+    steps:     
+      - name: Print Release Names
+        run: |
+          echo "Release names: ${{ matrix.releaseName.tag_name }}"
+          echo "Release URL: ${{ matrix.releaseName.download_url }}"
+      
+      # Step 2: Loop through each release and download the .tgz file
+      - name: Download and Extract Release Files
+        id: download-releases
+        run: |
+          mkdir -p releases
+          echo "Downloading ${{ matrix.releaseName.tag_name }} from ${{ matrix.releaseName.download_url }}"
+          mkdir -p "releases/${{ matrix.releaseName.tag_name }}"
+          echo "Make Dictionary: releases/${{ matrix.releaseName.tag_name }} Completed!!"
+          wget -qO- "${{ matrix.releaseName.download_url }}" | tar xvz -C "releases/${{ matrix.releaseName.tag_name }}/"
+              
+      - name: Run Tests
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:             
+          packageMode: true
+          projectPath: releases/${{ matrix.releaseName.tag_name }}/package
+          testMode: playmode
+          unityVersion: 2022.3.34f1
+            
+       
+
