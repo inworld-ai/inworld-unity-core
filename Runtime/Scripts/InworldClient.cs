@@ -66,6 +66,7 @@ namespace Inworld
         float m_ReconnectTimer;
         int m_CurrentReconnectThreshold = 1;
         int m_ReconnectThreshold = 1;
+        int m_PingpongLatency = 20;
 
 #endregion
 
@@ -96,6 +97,10 @@ namespace Inworld
             get => m_AutoScene;
             set => m_AutoScene = value;
         }
+        /// <summary>
+        /// Gets the ping pong latency.
+        /// </summary>
+        public int Ping => m_PingpongLatency;
         /// <summary>
         /// Gets/Sets the current Inworld server this client is connecting.
         /// </summary>
@@ -1198,6 +1203,7 @@ namespace Inworld
             {
                 if (latencyReportPacket.latencyReport is PingPongEvent)
                 {
+                    m_PingpongLatency = InworldDateTime.ToLatency(receivedPacket.timestamp);
                     SendLatencyTestResponse(latencyReportPacket.packetId);
                 }
                 return false;

@@ -50,7 +50,15 @@ namespace Inworld
         // Resource id is invalid or otherwise could not be found
         RESOURCE_NOT_FOUND = 6,
         // Safety policies have been violated
-        SAFETY_VIOLATION = 7
+        SAFETY_VIOLATION = 7,
+        // The session has timed out due to inactivity
+        SESSION_EXPIRED = 8,
+        // The audio session has timed out due to exceeding the maximum duration supported by the Audio Processor.
+        AUDIO_SESSION_EXPIRED = 9,
+        // The session has been paused due to inactivity
+        SESSION_PAUSED = 10,
+        // The entity could not be updated because the client supplied a stale version
+        VERSION_CONFLICT = 11
     }
     public enum ReconnectionType
     {

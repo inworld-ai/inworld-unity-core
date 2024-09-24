@@ -24,7 +24,7 @@ namespace Inworld.Sample
             if (!InworldController.Instance)
                 return;
             InworldController.Client.OnPacketReceived += RoundTripPacketReceived;
-            InworldController.Audio.Event.onPlayerStopSpeaking.AddListener(StartSampling);
+            InworldController.Client.OnPacketSent += StartSampling;
             InworldController.CharacterHandler.Event.onCharacterListJoined.AddListener(OnCharacterJoined);
             InworldController.CharacterHandler.Event.onCharacterListLeft.AddListener(OnCharacterLeft);
         }
@@ -33,6 +33,7 @@ namespace Inworld.Sample
             if (!InworldController.Instance)
                 return;
             InworldController.Client.OnPacketReceived -= RoundTripPacketReceived;
+            InworldController.Client.OnPacketSent -= StartSampling;
             InworldController.CharacterHandler.Event.onCharacterListJoined.RemoveListener(OnCharacterJoined);
             InworldController.CharacterHandler.Event.onCharacterListLeft.RemoveListener(OnCharacterLeft);
         }
@@ -72,7 +73,7 @@ namespace Inworld.Sample
         /// <summary>
         /// Start Sampling. if AutoAttached is not toggled, you can assign this function anywhere.
         /// </summary>
-        public virtual void StartSampling()
+        public virtual void StartSampling(InworldPacket _)
         {
             m_PerceivedTimeSampler = Time.unscaledTime;
         }
