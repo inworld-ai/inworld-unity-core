@@ -48,7 +48,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_GameData: {fileID: 11400000, guid: 036696d7520eb5145b65e12fc1058448, type: 2}
-  m_SceneFullName: workspaces/unitytest/scenes/innequin_gallery
 --- !u!114 &-4074574829800160846
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -88,6 +87,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4f92db331c103a4aa88a10e82275245, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Events:
+    onCharacterSelectingModeUpdated:
+      m_PersistentCalls:
+        m_Calls: []
+    onCharacterListJoined:
+      m_PersistentCalls:
+        m_Calls: []
+    onCharacterListLeft:
+      m_PersistentCalls:
+        m_Calls: []
+    onConversationUpdated:
+      m_PersistentCalls:
+        m_Calls: []
 --- !u!114 &3989058389384028254
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -101,27 +113,30 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SamplingMode: 4
-  m_PushToTalkKey: 0
   m_PlayerVolumeThreshold: 2
+  m_CaptureCheckingDuration: 0.5
   m_BufferSeconds: 1
   m_AudioToPushCapacity: 100
   m_DeviceName: 
-  m_DetectPlayerSpeaking: 1
-  OnStartCalibrating:
-    m_PersistentCalls:
-      m_Calls: []
-  OnStopCalibrating:
-    m_PersistentCalls:
-      m_Calls: []
-  OnRecordingStart:
-    m_PersistentCalls:
-      m_Calls: []
-  OnRecordingEnd:
-    m_PersistentCalls:
-      m_Calls: []
-  OnPlayerStartSpeaking:
-    m_PersistentCalls:
-      m_Calls: []
-  OnPlayerStopSpeaking:
-    m_PersistentCalls:
-      m_Calls: []
+  m_DetectPlayerSpeaking: 0
+  m_MutePlayerMic: 0
+  m_TestMode: 0
+  m_AudioEvent:
+    onStartCalibrating:
+      m_PersistentCalls:
+        m_Calls: []
+    onStopCalibrating:
+      m_PersistentCalls:
+        m_Calls: []
+    onRecordingStart:
+      m_PersistentCalls:
+        m_Calls: []
+    onRecordingEnd:
+      m_PersistentCalls:
+        m_Calls: []
+    onPlayerStartSpeaking:
+      m_PersistentCalls:
+        m_Calls: []
+    onPlayerStopSpeaking:
+      m_PersistentCalls:
+        m_Calls: []
