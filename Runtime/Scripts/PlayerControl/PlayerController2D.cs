@@ -9,27 +9,7 @@ namespace Inworld.Sample
 {
     public class PlayerController2D : PlayerController
     {
-        protected void Start()
-        {
-            if (m_SendButton)
-                m_SendButton.interactable = false;
-            if (m_RecordButton)
-                m_RecordButton.interactable = false;
-        }
-        protected override void OnCharacterJoined(InworldCharacter newChar)
-        {
-            if (m_SendButton)
-                m_SendButton.interactable = true;
-            if (m_RecordButton)
-                m_RecordButton.interactable = true;
-        }
-        protected override void OnCharacterLeft(InworldCharacter newChar)
-        {
-            if (m_SendButton)
-                m_SendButton.interactable = InworldController.CurrentCharacter;
-            if (m_RecordButton)
-                m_RecordButton.interactable = InworldController.CurrentCharacter;
-        }
+
     }
 }
 

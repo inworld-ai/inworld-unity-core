@@ -6,6 +6,7 @@
  *************************************************************************************************/
 
 using Inworld.Entities;
+using Inworld.Sample;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -45,7 +46,8 @@ namespace Inworld
 #region Variables
         protected InputAction m_PushToTalkInputAction;
         protected float m_CharacterVolume = 1f;
-        protected MicSampleMode m_InitSampleMode;
+        protected MicSampleMode m_PrevSampleMode;
+        protected bool m_PrevDetectPlayerSpeaking;
         protected const int k_SizeofInt16 = sizeof(short);
         protected const int k_SampleRate = 16000;
         protected const int k_Channel = 1;
@@ -311,7 +313,7 @@ namespace Inworld
         }
         public virtual bool StartAudio()
         {
-            MicrophoneMode micMode = IsRecording ? MicrophoneMode.EXPECT_AUDIO_END : MicrophoneMode.OPEN_MIC;
+            MicrophoneMode micMode = SampleMode == MicSampleMode.AEC || SampleMode == MicSampleMode.PUSH_TO_TALK ? MicrophoneMode.EXPECT_AUDIO_END : MicrophoneMode.OPEN_MIC;
             UnderstandingMode understandingMode = m_TestMode ? UnderstandingMode.SPEECH_RECOGNITION_ONLY : UnderstandingMode.FULL;
             InworldCharacter character = InworldController.CharacterHandler.CurrentCharacter;
             return InworldController.Client.StartAudioTo(character ? character.BrainName : null, micMode, understandingMode);
@@ -356,9 +358,15 @@ namespace Inworld
         
         protected virtual void OnEnable()
         {
+            if (PlayerController.Instance)
+            {
+                PlayerController.Instance.onCanvasOpen.AddListener(OnPlayerCanvasOpen);
+                PlayerController.Instance.onCanvasClosed.AddListener(OnPlayerCanvasClosed);
+            }
             m_AudioCoroutine = AudioCoroutine();
             StartCoroutine(m_AudioCoroutine);
         }
+
         protected virtual void OnDisable()
         {
             if (m_AudioCoroutine != null)
@@ -383,14 +391,25 @@ namespace Inworld
 #endregion
 
 #region Protected Functions
-        
+        protected virtual void OnPlayerCanvasOpen()
+        {
+            m_PrevSampleMode = m_SamplingMode;
+            m_SamplingMode = MicSampleMode.PUSH_TO_TALK;
+            m_PrevDetectPlayerSpeaking = m_DetectPlayerSpeaking;
+            m_DetectPlayerSpeaking = false;
+        }
+        protected virtual void OnPlayerCanvasClosed()
+        {
+            m_SamplingMode = m_PrevSampleMode;
+            m_DetectPlayerSpeaking = m_PrevDetectPlayerSpeaking;
+        }
         protected virtual void Init()
         {
             AudioConfiguration audioSetting = AudioSettings.GetConfiguration();
             m_OutputSampleRate = audioSetting.sampleRate;
             m_OutputChannels = audioSetting.speakerMode == AudioSpeakerMode.Stereo ? 2 : 1;
             m_BufferSize = m_BufferSeconds * k_SampleRate;
-            m_InitSampleMode = m_SamplingMode;
+            m_PrevSampleMode = m_SamplingMode;
 #if UNITY_WEBGL && !UNITY_EDITOR
             s_WebGLBuffer = new float[m_BufferSize * k_Channel];
             WebGLInit(OnWebGLInitialized);
