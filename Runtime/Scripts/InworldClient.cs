@@ -82,9 +82,12 @@ namespace Inworld
         public Dictionary<string, InworldCharacterData> LiveSessionData => m_LiveSessionData;
         /// <summary>
         /// Gets if group chat is enabled.
-        /// This feature is still under development, and will be coming soon.
         /// </summary>
-        public bool EnableGroupChat => m_EnableGroupChat;
+        public bool EnableGroupChat
+        {
+            get => m_EnableGroupChat;
+            set => m_EnableGroupChat = value;
+        }
         /// <summary>
         /// Get/Set the session history.
         /// </summary>
