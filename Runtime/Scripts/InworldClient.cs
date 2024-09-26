@@ -1094,10 +1094,6 @@ namespace Inworld
                     }
                     if (Status == InworldConnectionStatus.Idle)
                     {
-                        foreach (InworldPacket pkt in m_Sent)
-                        {
-                            m_Prepared.Enqueue(pkt);
-                        }
                         Reconnect();
                     }
                     if (Status == InworldConnectionStatus.Initialized)
@@ -1236,6 +1232,10 @@ namespace Inworld
                             _RegisterLiveSession(currentSceneStatusEvent.currentSceneStatus.agents);
                             UpdateConversation();
                             Status = InworldConnectionStatus.Connected;
+                            foreach (InworldPacket pkt in m_Sent)
+                            {
+                                m_Prepared.Enqueue(pkt);
+                            }
                             m_ReconnectThreshold = m_CurrentReconnectThreshold = 1;
                             return true;
                         }
