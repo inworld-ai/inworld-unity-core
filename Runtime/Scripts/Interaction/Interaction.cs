@@ -59,10 +59,14 @@ namespace Inworld.Interactions
         public Utterance Dequeue()
         {
             Utterance nextUtterance = m_Prepared.Dequeue(true);
-            if (nextUtterance == null)
-                return null;
-            m_Processed.Enqueue(nextUtterance);
             return nextUtterance;
+        }
+        public void Processed()
+        {
+            if (CurrentUtterance == null)
+                return;
+            m_Processed.Enqueue(CurrentUtterance);
+            CurrentUtterance = null;
         }
 
         public bool Contains(InworldPacket packet) => packet?.packetId?.interactionId == ID;
@@ -71,8 +75,8 @@ namespace Inworld.Interactions
         {
             if (isHardCancelling && CurrentUtterance != null)
             {
-                CurrentUtterance.Cancel();
                 m_Cancelled.Enqueue(CurrentUtterance);
+                CurrentUtterance = null;
             }
             m_Prepared.PourTo(m_Cancelled);
         }

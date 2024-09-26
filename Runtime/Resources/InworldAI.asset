@@ -17,7 +17,7 @@ MonoBehaviour:
     audio: 1
     emotions: 1
     interruptions: 1
-    narratedActions: 0
+    narratedActions: 1
     regenerateResponse: 1
     text: 1
     triggers: 1

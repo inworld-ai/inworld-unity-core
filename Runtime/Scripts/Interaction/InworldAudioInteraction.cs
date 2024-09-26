@@ -7,6 +7,7 @@
 
 using UnityEngine;
 using System.Collections;
+using System.Linq;
 
 
 namespace Inworld.Interactions
@@ -15,10 +16,7 @@ namespace Inworld.Interactions
     public class InworldAudioInteraction : InworldInteraction
     {
         [Range (0, 1)][SerializeField] protected float m_VolumeOnPlayerSpeaking = 1f;
-
-        float m_WaitTimer;
         const string k_NoAudioCapabilities = "Audio Capabilities have been disabled in the Inworld AI object. Audio is required to be enabled when using the InworldAudioInteraction component.";
-        const float k_WaitTime = 2f;
         public override float AnimFactor => m_PlaybackSource ? m_PlaybackSource.time : base.AnimFactor;
         
         /// <summary>
@@ -77,13 +75,8 @@ namespace Inworld.Interactions
         {
             if (!base.CancelResponse(isHardCancelling))
                 return false;
-            if (m_Interruptable)
-            {
-                m_PlaybackSource.clip = null;
-                m_PlaybackSource.Stop();
-            }
-                
-            m_WaitTimer = 0;
+            m_PlaybackSource.clip = null;
+            m_PlaybackSource.Stop();
             return true;
         }
         protected override void Awake()
@@ -102,25 +95,13 @@ namespace Inworld.Interactions
             while (true)
             {
                 yield return RemoveExceedItems();
-                yield return HandleNextUtterance();
+                yield return HandleUtterances();
                 yield return null;
             }
         }
-        protected override IEnumerator PlayNextUtterance()
+        protected override IEnumerator PlayCurrentUtterance()
         {
-            if (!m_CurrentInteraction.CurrentUtterance.IsPlayable())
-            {
-                m_Character.OnInteractionChanged(m_CurrentInteraction.CurrentUtterance.Packets);
-                m_CurrentInteraction.CurrentUtterance = null;
-                m_WaitTimer = 0;
-                yield break;
-            }
-            if (!m_CurrentInteraction.CurrentUtterance.ContainsTextAndAudio() && !m_CurrentInteraction.ReceivedInteractionEnd && m_WaitTimer < k_WaitTime)
-            {
-                m_WaitTimer += Time.unscaledDeltaTime;
-                yield break;
-            }
-            AudioClip audioClip = m_CurrentInteraction.CurrentUtterance.GetAudioClip();
+            AudioClip audioClip = m_CurrentInteraction.CurrentUtterance.AudioClip;
             if (audioClip == null)
             {
                 m_Character.OnInteractionChanged(m_CurrentInteraction.CurrentUtterance.Packets);
@@ -138,15 +119,12 @@ namespace Inworld.Interactions
                 yield return new WaitUntil(() => m_PlaybackSource.clip == null || m_PlaybackSource.time >= m_PlaybackSource.clip.length - Time.fixedUnscaledDeltaTime);
                 m_PlaybackSource.clip = null;
             }
-            if(m_CurrentInteraction != null)
-                m_CurrentInteraction.CurrentUtterance = null;
-            m_WaitTimer = 0;
+            m_CurrentInteraction?.Processed();
         }
         protected override void SkipCurrentUtterance()
         {
             base.SkipCurrentUtterance();
             m_PlaybackSource.Stop();
-            m_WaitTimer = 0;
         }
     }
 }

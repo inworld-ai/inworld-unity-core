@@ -16,7 +16,6 @@ namespace Inworld.Interactions
     public class InworldInteraction : MonoBehaviour
     {
         [SerializeField] GameObject m_ContinueButton;
-        [SerializeField] protected bool m_Interruptable = true;
         [SerializeField] protected bool m_AutoProceed = true;
         [SerializeField] protected int m_MaxItemCount = 100;
         [SerializeField] protected float m_TextSpeedMultipler = 0.02f;
@@ -47,6 +46,10 @@ namespace Inworld.Interactions
         /// <param name="packet">the target packet.</param>
         public bool IsRelated(InworldPacket packet) => packet.IsRelated(m_Character.ID);
 
+        /// <summary>
+        /// Gradually cancel the current response.
+        /// </summary>
+        /// <returns></returns>
         public virtual IEnumerator CancelResponseAsync()
         {
             yield return new WaitForSecondsRealtime(1f);
@@ -60,12 +63,12 @@ namespace Inworld.Interactions
         /// <param name="isHardCancelling">If it's hard cancelling. By default it's true.</param>
         public virtual bool CancelResponse(bool isHardCancelling = true)
         {
-            if (string.IsNullOrEmpty(m_Character.ID) || !m_Interruptable)
+            if (string.IsNullOrEmpty(m_Character.ID))
                 return false;
-            if (isHardCancelling && m_CurrentInteraction != null)
+            if (m_CurrentInteraction != null)
             {
-                InworldController.Client.SendCancelEvent(m_Character.ID, m_CurrentInteraction.ID, m_CurrentInteraction.CurrentUtterance?.ID);
-                m_CurrentInteraction.Cancel();
+                InworldController.Client.SendCancelEventTo(m_CurrentInteraction.ID, m_CurrentInteraction.CurrentUtterance?.ID, m_Character.BrainName, isHardCancelling);
+                m_CurrentInteraction.Cancel(isHardCancelling);
             }
             m_Prepared.PourTo(m_Cancelled);
             m_CurrentInteraction = null;
@@ -157,11 +160,11 @@ namespace Inworld.Interactions
             while (true)
             {
                 yield return RemoveExceedItems();
-                yield return HandleNextUtterance();
+                yield return HandleUtterances();
                 yield return null;
             }
         }
-        protected IEnumerator HandleNextUtterance()
+        protected IEnumerator HandleUtterances()
         {
             if (m_Proceed)
             {
@@ -176,7 +179,7 @@ namespace Inworld.Interactions
                 }
                 if (m_CurrentInteraction != null && m_CurrentInteraction.CurrentUtterance != null)
                 {
-                    yield return PlayNextUtterance();
+                    yield return PlayCurrentUtterance();
                 }
                 else if (m_Character)
                     m_Character.IsSpeaking = false;
@@ -253,12 +256,11 @@ namespace Inworld.Interactions
             m_CurrentInteraction = null; 
             return null;
         }
-        protected virtual IEnumerator PlayNextUtterance()
+        protected virtual IEnumerator PlayCurrentUtterance()
         {
             m_Character.OnInteractionChanged(m_CurrentInteraction.CurrentUtterance.Packets);
             yield return new WaitForSeconds(m_CurrentInteraction.CurrentUtterance.GetTextSpeed() * m_TextSpeedMultipler);
-            if (m_CurrentInteraction != null)
-                m_CurrentInteraction.CurrentUtterance = null; // YAN: Processed.
+            m_CurrentInteraction?.Processed();
         }
     }
 }

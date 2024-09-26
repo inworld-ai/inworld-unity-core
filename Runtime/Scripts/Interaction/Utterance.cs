@@ -41,34 +41,6 @@ namespace Inworld.Interactions
             RecentTime = packetTime > RecentTime ? packetTime : RecentTime;
             m_Packets[packet.packetId.packetId] = packet;
         }
-        public bool IsPlayable()
-        {
-            foreach (InworldPacket p in m_Packets.Values)
-            {
-                if (p.Source == SourceType.PLAYER)
-                    return false;
-                if (p is TextPacket || p is AudioPacket)
-                    return true;
-            }
-            return false;
-        }
-        public bool ContainsTextAndAudio()
-        {
-            bool foundAudio = false, foundText = false;
-            foreach (InworldPacket p in m_Packets.Values)
-            {
-                switch (p)
-                {
-                    case TextPacket textPacket:
-                        foundText = true;
-                        break;
-                    case AudioPacket audioPacket:
-                        foundAudio = true;
-                        break;
-                }
-            }
-            return foundAudio && foundText;
-        }
         public float GetTextSpeed()
         {
             foreach (InworldPacket p in m_Packets.Values)
@@ -80,15 +52,8 @@ namespace Inworld.Interactions
             }
             return 0;
         }
-        public AudioClip GetAudioClip()
-        {
-            foreach (InworldPacket p in m_Packets.Values)
-            {
-                if (p is AudioPacket audioPacket)
-                    return audioPacket.Clip;
-            }
-            return null;
-        }
+        public AudioClip AudioClip => (m_Packets.Values.FirstOrDefault(p => p is AudioPacket) as AudioPacket)?.Clip;
+        
         public void Cancel(bool isHardCancelling = true)
         {
             m_Packets.Clear();
