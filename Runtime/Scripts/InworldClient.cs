@@ -591,6 +591,7 @@ namespace Inworld
             if (!Current.UpdateLiveInfo(brainName))
                 return false;
             InworldPacket rawPkt = new ActionPacket(narrativeAction);
+            rawPkt.packetId.correlationId = InworldAuth.Guid();
             PreparePacketToSend(rawPkt, immediate);
             return true;
         }
@@ -744,6 +745,7 @@ namespace Inworld
             if (!Current.UpdateLiveInfo(brainName))
                 return false;
             InworldPacket rawPkt = new CustomPacket(triggerName, parameters);
+            rawPkt.packetId.correlationId = InworldAuth.Guid();
             PreparePacketToSend(rawPkt, immediate);
             return true;
         }
@@ -798,7 +800,6 @@ namespace Inworld
             };
             InworldPacket rawPkt = new ControlPacket(control);
             Current.StartAudioSession(rawPkt.packetId.packetId);
-            rawPkt.packetId.correlationId = InworldAuth.Guid(Current.AudioSession.Target);
             PreparePacketToSend(rawPkt, immediate);
             InworldAI.Log($"Start talking to {Current.Name}");
             return true;
@@ -853,7 +854,6 @@ namespace Inworld
                 action = ControlType.AUDIO_SESSION_END,
             };
             InworldPacket rawPkt = new ControlPacket(control);
-            rawPkt.packetId.correlationId = InworldAuth.Guid(Current.AudioSession.Target);
             PreparePacketToSend(rawPkt, immediate);
             Current.StopAudioSession();
             InworldAI.Log($"Stop talking to {Current.Name}");
@@ -903,7 +903,6 @@ namespace Inworld
                 chunk = base64
             };
             InworldPacket output = new AudioPacket(dataChunk);
-            output.packetId.correlationId = InworldAuth.Guid(Current.AudioSession.Target);
             if (!immediate)
                 m_Prepared.Enqueue(output);
             else if (Status == InworldConnectionStatus.Connected)
@@ -1095,6 +1094,10 @@ namespace Inworld
                     }
                     if (Status == InworldConnectionStatus.Idle)
                     {
+                        foreach (InworldPacket pkt in m_Sent)
+                        {
+                            m_Prepared.Enqueue(pkt);
+                        }
                         Reconnect();
                     }
                     if (Status == InworldConnectionStatus.Initialized)
