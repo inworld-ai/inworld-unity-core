@@ -105,9 +105,7 @@ namespace Inworld.Sample
                 response = cancelEvt.cancelResponses;
             if (string.IsNullOrEmpty(response.interactionId))
                 return false;
-            if (m_ChatOptions.longBubbleMode)
-                RemoveBubble(response.interactionId);
-            else
+            if (!m_ChatOptions.longBubbleMode)
                 response.utteranceId?.ForEach(RemoveBubble);
             return true;
         }
