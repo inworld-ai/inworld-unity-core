@@ -194,8 +194,9 @@ namespace Inworld
         /// <summary>
         /// Interrupt the current character's speaking.
         /// Ignore all the current incoming messages from the character.
+        /// <param name="isHardCancelling">mark if the current playing utterance would be cancelled.</param>
         /// </summary>
-        public virtual bool CancelResponse() => m_Interaction.CancelResponse();
+        public virtual bool CancelResponse(bool isHardCancelling = true) => m_Interaction.CancelResponse(isHardCancelling);
 
         /// <summary>
         /// Gradually lower the volume and call cancelresponse.

@@ -25,8 +25,6 @@ namespace Inworld.Interactions
  
 		void PreparePacket()
 		{
-			// ReSharper disable Unity.PerformanceCriticalCodeInvocation
-			// because InworldController.Client's GetComponent would not be called mostly.
 			ID = Guid.NewGuid().ToString();
 			LiveInfo liveInfo = InworldController.Client.Current;
 			if (liveInfo.Character == null)

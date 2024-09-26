@@ -70,9 +70,9 @@ namespace Inworld.Packet
 		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
 		public string correlationId; // Used in callback for server packets.
 		
-		public string interactionId = Guid.NewGuid().ToString(); // Lot of sentences included in one interaction.
-		public string packetId = Guid.NewGuid().ToString(); // Unique.
-		public string utteranceId = Guid.NewGuid().ToString(); // Each sentence is an utterance. But can be interpreted as multiple behavior (Text, EmotionChange, Audio, etc)
+		public string interactionId = InworldAuth.Guid(); // Lot of sentences included in one interaction.
+		public string packetId = InworldAuth.Guid(); // Unique.
+		public string utteranceId = InworldAuth.Guid(); // Each sentence is an utterance. But can be interpreted as multiple behavior (Text, EmotionChange, Audio, etc)
 
 		public override string ToString()
 		{
@@ -125,9 +125,6 @@ namespace Inworld.Packet
 		
 		protected virtual void PreProcess()
 		{
-			// ReSharper disable Unity.PerformanceCriticalCodeInvocation
-			// because InworldController.Client's GetComponent would not be called mostly.
-			packetId.correlationId = Guid.NewGuid().ToString();
 			LiveInfo liveInfo = InworldController.Client.Current;
 			if (liveInfo.Character == null)
 				packetId.conversationId = liveInfo.Conversation.ID;
@@ -144,7 +141,6 @@ namespace Inworld.Packet
 		//		Usually for conversation packets, do not need to call this.
 		protected virtual void PreProcess(Dictionary<string, string> targets)
 		{
-			packetId.correlationId = Guid.NewGuid().ToString();
 			LiveInfo liveInfo = InworldController.Client.Current;
 			packetId.conversationId = liveInfo.Conversation.ID;
 			OutgoingTargets = targets;

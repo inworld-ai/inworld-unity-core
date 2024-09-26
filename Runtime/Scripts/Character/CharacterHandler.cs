@@ -95,7 +95,7 @@ namespace Inworld
         /// To do so, save those conversation ID and use them correspondingly.
         /// </summary>
         public virtual void StartNewConversation(string conversationID = null) 
-            => m_ConversationID = string.IsNullOrEmpty(conversationID) ? Guid.NewGuid().ToString() : conversationID;
+            => m_ConversationID = string.IsNullOrEmpty(conversationID) ? InworldAuth.Guid() : conversationID;
         
         /// <summary>
         ///     Change the method of how to select character.

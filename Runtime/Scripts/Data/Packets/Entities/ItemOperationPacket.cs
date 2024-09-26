@@ -21,14 +21,14 @@ namespace Inworld.Packet
         
         public EntityItem(string displayName, string description)
         {
-            id = Guid.NewGuid().ToString();
+            id = InworldAuth.Guid();
             this.displayName = displayName;
             this.description = description;
         }
 
         public EntityItem(string displayName, string description, Dictionary<string, string> properties)
         {
-            id = Guid.NewGuid().ToString();
+            id = InworldAuth.Guid();
             this.displayName = displayName;
             this.description = description;
             this.properties = properties;

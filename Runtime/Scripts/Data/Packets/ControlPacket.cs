@@ -132,7 +132,7 @@ namespace Inworld.Packet
         protected override void UpdateRouting()
         {
             base.UpdateRouting();
-            if (control is not ConversationControlEvent convoEvt)
+            if (!(control is ConversationControlEvent convoEvt))
                 return;
             routing = new Routing();
             convoEvt.conversationUpdate.participants = OutgoingTargets.Values.Where(agentID => !string.IsNullOrEmpty(agentID)).Select(agentID => new Source(agentID)).ToList();

@@ -325,8 +325,11 @@ namespace Inworld
                 return false;
             if (!pkt.PrepareToSend())
                 return false;
+            if (string.IsNullOrEmpty(pkt.packetId.correlationId))
+                pkt.packetId.correlationId = InworldAuth.Guid();
+            else
+                m_Sent.Add(pkt);
             m_Socket.SendAsync(pkt.ToJson);
-            m_Sent.Add(pkt);
             return true;
         }
         /// <summary>
@@ -480,7 +483,7 @@ namespace Inworld
                     }
                 }
             };
-            latencyReport.packetId.correlationId = Guid.NewGuid().ToString();
+            latencyReport.packetId.correlationId = InworldAuth.Guid();
             m_Socket.SendAsync(latencyReport.ToJson);
         }
         /// <summary>
@@ -548,6 +551,7 @@ namespace Inworld
             if (!Current.UpdateLiveInfo(brainName))
                 return false;
             InworldPacket rawPkt = new TextPacket(textToSend);
+            rawPkt.packetId.correlationId = InworldAuth.Guid();
             PreparePacketToSend(rawPkt, immediate);
             return true;
         }
@@ -793,8 +797,9 @@ namespace Inworld
                 }
             };
             InworldPacket rawPkt = new ControlPacket(control);
-            PreparePacketToSend(rawPkt, immediate);
             Current.StartAudioSession(rawPkt.packetId.packetId);
+            rawPkt.packetId.correlationId = InworldAuth.Guid(Current.AudioSession.Target);
+            PreparePacketToSend(rawPkt, immediate);
             InworldAI.Log($"Start talking to {Current.Name}");
             return true;
         }
@@ -848,6 +853,7 @@ namespace Inworld
                 action = ControlType.AUDIO_SESSION_END,
             };
             InworldPacket rawPkt = new ControlPacket(control);
+            rawPkt.packetId.correlationId = InworldAuth.Guid(Current.AudioSession.Target);
             PreparePacketToSend(rawPkt, immediate);
             Current.StopAudioSession();
             InworldAI.Log($"Stop talking to {Current.Name}");
@@ -897,6 +903,7 @@ namespace Inworld
                 chunk = base64
             };
             InworldPacket output = new AudioPacket(dataChunk);
+            output.packetId.correlationId = InworldAuth.Guid(Current.AudioSession.Target);
             if (!immediate)
                 m_Prepared.Enqueue(output);
             else if (Status == InworldConnectionStatus.Connected)
