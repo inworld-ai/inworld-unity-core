@@ -49,7 +49,6 @@ namespace Inworld
 #endregion
 
 #region Private variables
-        const string k_NotImplemented = "No InworldClient found. Need at least one connection protocol";
         // These data will always be updated once session is refreshed and character ID is fetched. 
         // key by character's brain ID. Value contains its live session ID.
         protected readonly Dictionary<string, InworldCharacterData> m_LiveSessionData = new Dictionary<string, InworldCharacterData>();

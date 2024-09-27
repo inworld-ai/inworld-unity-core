@@ -65,11 +65,10 @@ namespace Inworld.Interactions
         {
             if (string.IsNullOrEmpty(m_Character.ID))
                 return false;
-            if (m_CurrentInteraction != null)
-            {
-                InworldController.Client.SendCancelEventTo(m_CurrentInteraction.ID, m_CurrentInteraction.CurrentUtterance?.ID, m_Character.BrainName, isHardCancelling);
-                m_CurrentInteraction.Cancel(isHardCancelling);
-            }
+            if (m_CurrentInteraction == null || !m_CurrentInteraction.Interruptible)
+                return true;
+            InworldController.Client.SendCancelEventTo(m_CurrentInteraction.ID, m_CurrentInteraction.CurrentUtterance?.ID, m_Character.BrainName, isHardCancelling);
+            m_CurrentInteraction.Cancel(isHardCancelling);
             m_Prepared.PourTo(m_Cancelled);
             m_CurrentInteraction = null;
             return true;
