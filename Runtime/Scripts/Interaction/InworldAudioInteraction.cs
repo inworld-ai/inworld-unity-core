@@ -47,13 +47,13 @@ namespace Inworld.Interactions
 
         protected override void OnPlayerStartSpeaking()
         {
-            if (!m_PlaybackSource || !InworldController.Audio || !InworldController.Audio.EnableVAD)
+            if (!m_PlaybackSource || !InworldController.Audio)
                 return;
             m_PlaybackSource.volume = m_VolumeOnPlayerSpeaking;
         }
         protected override void OnPlayerStopSpeaking()
         {
-            if (!m_PlaybackSource || !InworldController.Audio || !InworldController.Audio.EnableVAD)
+            if (!m_PlaybackSource || !InworldController.Audio)
                 return;
             m_PlaybackSource.volume = 1;
         }
