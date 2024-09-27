@@ -88,6 +88,10 @@ namespace Inworld
             set => m_EnableGroupChat = value;
         }
         /// <summary>
+        /// Gets if it's sampling audio latency.
+        /// </summary>
+        public bool EnableAudioLatencyReport { get; set; } = false;
+        /// <summary>
         /// Get/Set the session history.
         /// </summary>
         public string SessionHistory { get; set; }
@@ -331,6 +335,8 @@ namespace Inworld
                 pkt.packetId.correlationId = InworldAuth.Guid();
             else
                 m_Sent.Add(pkt);
+            if (EnableAudioLatencyReport && pkt is AudioPacket)
+                OnPacketSent?.Invoke(pkt); 
             m_Socket.SendAsync(pkt.ToJson);
             return true;
         }
