@@ -87,7 +87,7 @@ namespace Inworld.Packet
     {
         public SessionConfiguration sessionConfiguration;
         public UserRequest userConfiguration;
-        public Client clientConfiguration;
+        public ClientInfo clientConfiguration;
         public Capabilities capabilitiesConfiguration;
         [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public Continuation continuation;

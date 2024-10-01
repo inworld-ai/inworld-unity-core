@@ -21,28 +21,20 @@ using UnityEngine.Networking;
 
 namespace Inworld
 {
-    public class InworldClient : MonoBehaviour
+    public class InworldClient : Client
     {
 #region Inspector Variables
-        [SerializeField] protected InworldServerConfig m_ServerConfig;
+        [Space(10)]
         [SerializeField] protected string m_SceneFullName;
-        [SerializeField] protected string m_APIKey;
-        [SerializeField] protected string m_APISecret;
         [Tooltip("If checked, we'll automatically find the first scene belonged to the characters.")] 
         [SerializeField] protected bool m_AutoScene = false;
         [SerializeField] protected int m_MaxWaitingListSize = 100;
+        [SerializeField] protected bool m_EnableGroupChat = true;
         [Space(10)]
         [SerializeField] protected Continuation m_Continuation;
-        [Space(10)][Header("Advanced:")]
-        [SerializeField] protected bool m_EnableGroupChat = true;
-        [SerializeField] protected string m_CustomToken;
-        [SerializeField] protected string m_PublicWorkspace;
-        [SerializeField] protected string m_GameSessionID;
 #endregion
 
 #region Events
-        public event Action<InworldConnectionStatus> OnStatusChanged;
-        public event Action<InworldError> OnErrorReceived;
         public event Action<InworldPacket> OnPacketSent;
         public event Action<InworldPacket> OnGlobalPacketReceived;
         public event Action<InworldPacket> OnPacketReceived;
@@ -58,15 +50,10 @@ namespace Inworld
         protected WebSocket m_Socket;
         protected LiveInfo m_LiveInfo = new LiveInfo();
         protected const string k_DisconnectMsg = "The remote party closed the WebSocket connection without completing the close handshake.";
-        protected Token m_Token;
-        protected IEnumerator m_OutgoingCoroutine;
-        protected InworldConnectionStatus m_Status;
-        protected InworldError m_Error;
         float m_ReconnectTimer;
         int m_CurrentReconnectThreshold = 1;
         int m_ReconnectThreshold = 1;
         int m_PingpongLatency = 20;
-
 #endregion
 
 #region Properties
@@ -90,7 +77,7 @@ namespace Inworld
         /// <summary>
         /// Gets if it's sampling audio latency.
         /// </summary>
-        public bool EnableAudioLatencyReport { get; set; } = false;
+        public bool EnableAudioLatencyReport { get; set; }
         /// <summary>
         /// Get/Set the session history.
         /// </summary>
@@ -107,22 +94,7 @@ namespace Inworld
         /// Gets the ping pong latency.
         /// </summary>
         public int Ping => m_PingpongLatency;
-        /// <summary>
-        /// Gets/Sets the current Inworld server this client is connecting.
-        /// </summary>
-        public InworldServerConfig Server
-        {
-            get => m_ServerConfig;
-            internal set => m_ServerConfig = value;
-        }
-        /// <summary>
-        /// Gets/Sets the token used to login Runtime server of Inworld.
-        /// </summary>
-        public Token Token
-        {
-            get => m_Token;
-            set => m_Token = value;
-        }
+
         /// <summary>
         /// Gets/Sets the current full name of the Inworld scene.
         /// </summary>
@@ -132,80 +104,27 @@ namespace Inworld
             set => m_SceneFullName = value;
         }
         /// <summary>
-        /// Gets if the current token is valid.
-        /// </summary>
-        public virtual bool IsTokenValid => m_Token != null && m_Token.IsValid;
-        /// <summary>
-        /// Gets/Sets the current status of Inworld client.
-        /// If set, it'll invoke OnStatusChanged events.
-        /// </summary>
-        public virtual InworldConnectionStatus Status
-        {
-            get => m_Status;
-            set
-            {
-                if (m_Status == value)
-                    return;
-                m_Status = value;
-                OnStatusChanged?.Invoke(value);
-            }
-        }
-        /// <summary>
-        /// Gets/Sets the error message.
-        /// </summary>
-        public virtual string ErrorMessage
-        {
-            get => m_Error?.message ?? "";
-            protected set
-            {
-                if (string.IsNullOrEmpty(value))
-                {
-                    m_Error = null;
-                    return;
-                }
-                Error = new InworldError(value);
-            }
-        }
-        /// <summary>
         /// Gets/Sets the error.
         /// If the error is no retry, it'll also set the status of this client to be error.
         /// </summary>
-        public virtual InworldError Error
+        public override InworldError Error
         {
             get => m_Error;
             set
             {
-                m_Error = value;
+                base.Error = value;
                 if (m_Error == null || !m_Error.IsValid)
                 {
                     return;
                 }
-                InworldAI.LogError(m_Error.message);
-                OnErrorReceived?.Invoke(m_Error);
                 m_CurrentReconnectThreshold *= 2;
                 m_ReconnectTimer = m_CurrentReconnectThreshold;
-                Status = InworldConnectionStatus.Error; 
             }
         }
-        internal string APIKey
-        {
-            get => m_APIKey;
-            set => m_APIKey = value;
-        }
-        internal string APISecret
-        {
-            get => m_APISecret;
-            set => m_APISecret = value;
-        }
-        internal string SceneFullName
+        public string SceneFullName
         {
             get => m_SceneFullName;
             set => m_SceneFullName = value;
-        }
-        internal string CustomToken
-        {
-            get => m_CustomToken;
-            set => m_CustomToken = value;
         }
 #endregion
 
@@ -229,7 +148,7 @@ namespace Inworld
         void OnDestroy()
         {
 #if !UNITY_WEBGL || UNITY_EDITOR
-            var webSocketManager = FindObjectOfType<WebSocketManager>();
+            WebSocketManager webSocketManager = FindObjectOfType<WebSocketManager>();
             if(webSocketManager)
                 Destroy(webSocketManager.gameObject);
 #endif
@@ -340,10 +259,7 @@ namespace Inworld
             m_Socket.SendAsync(pkt.ToJson);
             return true;
         }
-        /// <summary>
-        /// Gets the access token. Would be implemented by child class.
-        /// </summary>
-        public virtual void GetAccessToken() => StartCoroutine(_GetAccessToken(m_PublicWorkspace));
+
         /// <summary>
         /// Reconnect session or start a new session if the current session is invalid.
         /// </summary>
@@ -354,22 +270,7 @@ namespace Inworld
             else
                 GetAccessToken();
         }
-        /// <summary>
-        /// Use the input json string of token instead of API key/secret to load scene.
-        /// This token can be fetched by other applications such as InworldWebSDK.
-        /// </summary>
-        /// <param name="token">the custom token to init.</param>
-        public virtual bool InitWithCustomToken(string token)
-        {
-            m_Token = JsonUtility.FromJson<Token>(token);
-            if (!IsTokenValid)
-            {
-                ErrorMessage = "Get Token Failed";
-                return false;
-            }
-            Status = InworldConnectionStatus.Initialized;
-            return true;
-        }
+
         /// <summary>
         /// Start the session by the session ID.
         /// </summary>
@@ -439,8 +340,7 @@ namespace Inworld
                     m_Continuation.externallySavedState = SessionHistory;
                 }
             }
-            m_GameSessionID = string.IsNullOrEmpty(gameSessionID) ? Token.sessionId : gameSessionID;
-
+            GameSessionID = gameSessionID;
             ControlPacket ctrlPacket = new ControlPacket
             {
                 timestamp = InworldDateTime.UtcNow,
@@ -451,7 +351,7 @@ namespace Inworld
                     sessionConfiguration = new SessionConfigurationPayload
                     {
                         capabilitiesConfiguration = InworldAI.Capabilities,
-                        sessionConfiguration = new SessionConfiguration(m_GameSessionID),
+                        sessionConfiguration = new SessionConfiguration(GameSessionID),
                         clientConfiguration = InworldAI.UnitySDK,
                         userConfiguration = InworldAI.User.Request,
                         continuation = loadHistory ? m_Continuation : null
@@ -461,7 +361,7 @@ namespace Inworld
             if (InworldAI.IsDebugMode)
             {
                 InworldAI.Log($"Sending Capabilities: {InworldAI.Capabilities}");
-                InworldAI.Log($"Sending Session Info. {m_GameSessionID}"); 
+                InworldAI.Log($"Sending Session Info. {GameSessionID}"); 
                 InworldAI.Log($"Sending Client Config: {InworldAI.UnitySDK}");
                 InworldAI.Log($"Sending User Config: {InworldAI.User.Request}");
                 if (loadHistory)
@@ -524,7 +424,7 @@ namespace Inworld
         [Obsolete]
         public virtual void SendCapabilities()
         {
-            SendSessionConfig(false, m_GameSessionID);
+            SendSessionConfig(false, GameSessionID);
         }
         /// <summary>
         /// Send User Config to Inworld Server.
@@ -533,7 +433,7 @@ namespace Inworld
         [Obsolete]
         public virtual void SendUserConfig()
         {
-            SendSessionConfig(false, m_GameSessionID);
+            SendSessionConfig(false, GameSessionID);
         }
         /// <summary>
         /// Send the previous dialog (New version) to specific scene.
@@ -543,7 +443,7 @@ namespace Inworld
         [Obsolete]
         public virtual void SendHistory()
         {
-            SendSessionConfig(true, m_GameSessionID);
+            SendSessionConfig(true, GameSessionID);
         }
         /// <summary>
         /// New Send messages to an InworldCharacter in this current scene.
@@ -560,18 +460,28 @@ namespace Inworld
                 return false;
             InworldPacket rawPkt = new TextPacket(textToSend);
             rawPkt.packetId.correlationId = InworldAuth.Guid();
-            PreparePacketToSend(rawPkt, immediate);
-            return true;
+            return PreparePacketToSend(rawPkt, immediate);
         }
         /// <summary>
         /// Legacy Send messages to an InworldCharacter in this current scene.
         /// </summary>
-        /// <param name="characterID">the live session ID of the single character to send</param>
+        /// <param name="characterID">
+        ///     The characterID can be either character's brainName, or current liveSession's agentID.
+        ///     If it's agentID, it has to be connected already.
+        /// </param>
         /// <param name="textToSend">the message to send.</param>
-        public virtual bool SendText(string characterID, string textToSend)
+        /// <param name="immediate">
+        ///     If this packet needs to send immediately without order (Need to make sure client is connected first).
+        ///     If characterID is agentID, this parameter is not related.
+        /// </param>
+        public override bool SendText(string textToSend, string characterID = null, bool immediate = false)
         {
             if (string.IsNullOrEmpty(characterID) || string.IsNullOrEmpty(textToSend))
-                return false; 
+                return false;
+            if (characterID.Contains('/'))
+                return SendTextTo(textToSend, characterID, immediate);
+            if (Status != InworldConnectionStatus.Connected)
+                return false;
             InworldPacket packet = new TextPacket
             {
                 timestamp = InworldDateTime.UtcNow,
@@ -579,6 +489,7 @@ namespace Inworld
                 routing = new Routing(characterID),
                 text = new TextEvent(textToSend)
             };
+            packet.packetId.correlationId = InworldAuth.Guid();
             OnPacketSent?.Invoke(packet);
             m_Socket.SendAsync(packet.ToJson);
             return true;
@@ -1090,6 +1001,16 @@ namespace Inworld
 #endregion
 
 #region Private Functions
+
+        protected virtual void LoadGameData(InworldGameData gameData)
+        {
+            if (!string.IsNullOrEmpty(gameData.apiKey))
+                APIKey = gameData.apiKey;
+            if (!string.IsNullOrEmpty(gameData.apiSecret))
+                APISecret = gameData.apiSecret;
+            if (!string.IsNullOrEmpty(gameData.sceneFullName))
+                SceneFullName = gameData.sceneFullName;
+        }
         protected virtual IEnumerator OutgoingCoroutine()
         {
             while (true)
@@ -1134,55 +1055,7 @@ namespace Inworld
         {
             return $"{sessionFullName}/interactions/{interactionID}/groups/{correlationID}";
         }
-        protected IEnumerator _GetAccessToken(string workspaceFullName = "")
-        {
-            Status = InworldConnectionStatus.Initializing;
-            string responseJson = m_CustomToken;
-            if (string.IsNullOrEmpty(responseJson))
-            {
-                if (string.IsNullOrEmpty(m_APIKey))
-                {
-                    ErrorMessage = "Please fill API Key!";
-                    yield break;
-                }
-                if (string.IsNullOrEmpty(m_APISecret))
-                {
-                    ErrorMessage = "Please fill API Secret!";
-                    yield break;
-                }
-                string header = InworldAuth.GetHeader(m_ServerConfig.runtime, m_APIKey, m_APISecret);
-                UnityWebRequest uwr = new UnityWebRequest(m_ServerConfig.TokenServer, "POST");
-                Status = InworldConnectionStatus.Initializing;
 
-                uwr.SetRequestHeader("Authorization", header);
-                uwr.SetRequestHeader("Content-Type", "application/json");
-
-                AccessTokenRequest req = new AccessTokenRequest
-                {
-                    api_key = m_APIKey,
-                    resource_id = workspaceFullName
-                };
-                string json = JsonUtility.ToJson(req);
-                byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
-                uwr.uploadHandler = new UploadHandlerRaw(bodyRaw);
-                uwr.downloadHandler = new DownloadHandlerBuffer();
-                yield return uwr.SendWebRequest();
-
-                if (uwr.result != UnityWebRequest.Result.Success)
-                {
-                    ErrorMessage = $"Error Get Token: {uwr.error}";
-                }
-                uwr.uploadHandler.Dispose();
-                responseJson = uwr.downloadHandler.text;
-            }
-            m_Token = JsonUtility.FromJson<Token>(responseJson);
-            if (!IsTokenValid)
-            {
-                ErrorMessage = "Get Token Failed";
-                yield break;
-            }
-            Status = InworldConnectionStatus.Initialized;
-        }
         protected IEnumerator _StartSession()
         {
             if (Status == InworldConnectionStatus.Connected)
@@ -1293,8 +1166,6 @@ namespace Inworld
             m_Socket?.CloseAsync();
             yield return new WaitForEndOfFrame();
         }
-        
-        
         protected bool PreparePacketToSend(InworldPacket rawPkt, bool immediate = false, bool needCallback = true)
         {
             if (!immediate)

@@ -81,7 +81,7 @@ namespace Inworld
         /// <summary>
         /// Get the default Client Request that are sending to the server.
         /// </summary>
-        public static Client UnitySDK => new Client
+        public static ClientInfo UnitySDK => new ClientInfo
         {
             id = "unity",
             version = Version,

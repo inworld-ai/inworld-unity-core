@@ -6,6 +6,7 @@
  *************************************************************************************************/
 
 using System;
+using UnityEngine;
 
 namespace Inworld.LLM.ModelServing
 {
@@ -13,11 +14,22 @@ namespace Inworld.LLM.ModelServing
 	[Serializable]
 	public class ModelID 
 	{
-		// The name of the model being served.
+		[Tooltip("The name of the model being served.")]
 		public string model;
-		
-		// Service provider hosting llm and handling completion requests.
+
+		[Tooltip("Service provider hosting llm and handling completion requests")]
 		public ServiceProvider service_provider;
+		
+		public ModelID(string model = "inworld-dragon")
+		{
+			this.model = model;
+			if (model.StartsWith("inworld"))
+				service_provider = ServiceProvider.SERVICE_PROVIDER_INWORLD;
+			else if (model == "gpt-3.5-turbo-instruct" || model == "gpt-3.5-turbo-0613")
+				service_provider = ServiceProvider.SERVICE_PROVIDER_AZURE;
+			else
+				service_provider = ServiceProvider.SERVICE_PROVIDER_OPENAI;
+		}
 	}
 		
 	[Serializable]
@@ -31,5 +43,11 @@ namespace Inworld.LLM.ModelServing
 		
 		// Unique identifier of the session with multiple completion requests.
 		public string session_id;
+		
+		public ServingID(string modelName = "inworld-dragon", string userID = "user-test")
+		{
+			user_id = userID;
+			model_id = new ModelID(modelName);
+		}
 	}
 }

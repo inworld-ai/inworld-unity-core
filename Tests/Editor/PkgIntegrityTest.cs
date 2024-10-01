@@ -30,7 +30,7 @@ namespace Inworld.Test
         [Test]
         public void InworldSDKDescriptionTest()
         {
-            Client sdk = InworldAI.UnitySDK;
+            ClientInfo sdk = InworldAI.UnitySDK;
             Assert.NotNull(sdk);
             Assert.AreEqual("unity", sdk.id);
             string description = sdk.description;

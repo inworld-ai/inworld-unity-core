@@ -5,10 +5,13 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
+using Inworld.LLM;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEngine.Events;
+using UnityEngine.UIElements;
 
 
 namespace Inworld
@@ -22,10 +25,14 @@ namespace Inworld
     public class InworldController : SingletonBehavior<InworldController>
     {
         [SerializeField] protected InworldGameData m_GameData;
+        [SerializeField] GameMode m_GameMode;
         
         protected InworldClient m_Client;
         protected AudioCapture m_AudioCapture;
         protected CharacterHandler m_CharacterHandler;
+        protected LLMRuntime m_LLMRuntime;
+
+        [Space(10)] public UnityEvent OnGameModeChanged;
         
         public static bool HasError => Client.Error?.IsValid ?? false;
         /// <summary>
@@ -61,6 +68,33 @@ namespace Inworld
             }
         }
         /// <summary>
+        /// Gets/Sets this InworldController's LLM Runtime Service.
+        /// </summary>
+        public static LLMRuntime LLM
+        {
+            get
+            {
+                if (!Instance) 
+                    return null;
+
+                if (Instance.m_LLMRuntime)
+                    return Instance.m_LLMRuntime;
+
+                Instance.m_LLMRuntime = Instance.GetComponentInChildren<LLMRuntime>();
+                return Instance.m_LLMRuntime;
+            }
+            set
+            {
+                if (!Instance)
+                    return;
+                Instance.m_LLMRuntime = value;
+#if UNITY_EDITOR
+                EditorUtility.SetDirty(Instance);
+                AssetDatabase.SaveAssets();
+#endif
+            }
+        }
+        /// <summary>
         /// Gets/Sets this InworldController's protocol client.
         /// </summary>
         public static InworldClient Client
@@ -87,10 +121,21 @@ namespace Inworld
 #endif
             }
         }
+        public static GameMode CurrentGameMode
+        {
+            get => Instance ? Instance.m_GameMode : GameMode.CharacterInteraction;
+            set
+            {
+                if (!Instance || Instance.m_GameMode == value)
+                    return;
+                Instance.m_GameMode = value;
+                Instance.OnGameModeChanged?.Invoke();
+            }
+        }
         /// <summary>
         /// Gets the current connection status.
         /// </summary>
-        public static InworldConnectionStatus Status => Client.Status;
+        public static InworldConnectionStatus Status => CurrentGameMode == GameMode.CharacterInteraction ? Client.Status : LLM.Status;
 
         /// <summary>
         /// Gets the current InworldScene's full name.

@@ -36,6 +36,19 @@ namespace Inworld.LLM.Service
 		// Format that the model must output. Used to enable JSON mode.
 		[JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
 		public ResponseFormat response_format;
+		
+		public CompleteChatRequest()
+		{
+			
+		}
+		public CompleteChatRequest(ServingID serving, List<Message> messages, TextGenerationConfig config = null)
+		{
+			serving_id = serving;
+			this.messages = messages;
+			text_generation_config = config;
+		}
+		[JsonIgnore]
+		public string ToJson => JsonConvert.SerializeObject(this);
 	}
 
 	public class CompleteChatResponse

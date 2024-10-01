@@ -7,6 +7,11 @@
 
 namespace Inworld
 {
+    public enum GameMode
+    {
+        CharacterInteraction, // Our traditional Mode.
+        LLMService // Directly using LLM. Used for non-character related.
+    }
     public enum InworldConnectionStatus
     {
         Idle, // Initial state
