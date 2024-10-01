@@ -113,10 +113,8 @@ namespace Inworld
             set
             {
                 base.Error = value;
-                if (m_Error == null || !m_Error.IsValid)
-                {
+                if (m_Error == null || !m_Error.IsValid || m_Error.RetryType == ReconnectionType.NO_RETRY)
                     return;
-                }
                 m_CurrentReconnectThreshold *= 2;
                 m_ReconnectTimer = m_CurrentReconnectThreshold;
             }
