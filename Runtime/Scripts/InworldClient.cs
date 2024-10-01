@@ -270,7 +270,14 @@ namespace Inworld
             else
                 GetAccessToken();
         }
-
+        public override bool LoadData(InworldGameData gameData)
+        {
+            if (!base.LoadData(gameData))
+                return false;
+            if (!string.IsNullOrEmpty(gameData.sceneFullName))
+                SceneFullName = gameData.sceneFullName;
+            return true;
+        }
         /// <summary>
         /// Start the session by the session ID.
         /// </summary>

@@ -220,6 +220,22 @@ namespace Inworld
 #endregion
 
 		/// <summary>
+		/// Load InworldGameData. Set client's related data if game data is not null.
+		/// </summary>
+		/// <param name="gameData">the InworldGameData to load</param>
+		public virtual bool LoadData(InworldGameData gameData)
+		{
+			if (gameData == null)
+				return false;
+			if (!string.IsNullOrEmpty(gameData.apiKey))
+				APIKey = gameData.apiKey;
+			if (!string.IsNullOrEmpty(gameData.apiSecret))
+				APISecret = gameData.apiSecret;
+			if (gameData.capabilities != null)
+				InworldAI.Capabilities = gameData.capabilities;
+			return true;
+		}
+		/// <summary>
 		/// Use the input json string of token instead of API key/secret to load scene.
 		/// This token can be fetched by other applications such as InworldWebSDK.
 		/// </summary>

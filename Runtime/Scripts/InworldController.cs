@@ -177,25 +177,7 @@ namespace Inworld
                 #endif
             }
         }
-        
-        /// <summary>
-        /// Load InworldGameData. Set client's related data if game data is not null.
-        /// </summary>
-        /// <param name="gameData">the InworldGameData to load</param>
-        public bool LoadData(InworldGameData gameData)
-        {
-            if (gameData == null)
-                return false;
-            if (!string.IsNullOrEmpty(gameData.apiKey))
-                m_Client.APIKey = gameData.apiKey;
-            if (!string.IsNullOrEmpty(gameData.apiSecret))
-                m_Client.APISecret = gameData.apiSecret;
-            if (!string.IsNullOrEmpty(gameData.sceneFullName))
-                m_Client.SceneFullName = gameData.sceneFullName;
-            if (gameData.capabilities != null)
-                InworldAI.Capabilities = gameData.capabilities;
-            return true;
-        }
+
 #region Client 
 #region Connection Management
         /// <summary>
@@ -375,7 +357,7 @@ namespace Inworld
         {
             InworldAI.InputActions.Disable();
         }
-        protected virtual void Start() => LoadData(m_GameData);
+        protected virtual void Start() => Client.LoadData(m_GameData);
 
         protected void _Setup()
         {
