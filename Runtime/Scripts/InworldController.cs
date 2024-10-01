@@ -345,28 +345,16 @@ namespace Inworld
 
         protected virtual void Awake()
         {
-            _Setup();
             DontDestroyOnLoad(gameObject);
         }
         protected virtual void OnEnable()
         {
             InworldAI.InputActions.Enable();
-            _Setup();
         }
         protected virtual void OnDisable()
         {
             InworldAI.InputActions.Disable();
         }
         protected virtual void Start() => Client.LoadData(m_GameData);
-
-        protected void _Setup()
-        {
-            if (!m_Client)
-                m_Client = GetComponent<InworldClient>();
-            if (!m_AudioCapture)
-                m_AudioCapture = GetComponent<AudioCapture>();
-            if (!m_CharacterHandler)
-                m_CharacterHandler = GetComponent<CharacterHandler>();
-        }
     }
 }
