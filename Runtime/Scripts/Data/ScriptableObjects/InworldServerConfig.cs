@@ -38,7 +38,7 @@ namespace Inworld
         ///     the full name of the scene you want to load。
         ///     Format should be workspaces/{workspaceName}/sessions/{sessionID}
         /// </param>
-        public string LoadSessionURL(string sessionFullName) => $"https://{web}/v1/{sessionFullName}/state?name={sessionFullName}";
+        public string LoadSessionStateURL(string sessionFullName) => $"https://{web}/v1/{sessionFullName}/state?name={sessionFullName}";
         /// <summary>
         /// Get the URL for the sending feedback request.
         /// </summary>

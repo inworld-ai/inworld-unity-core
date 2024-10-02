@@ -5,11 +5,14 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
+using Inworld.Entities;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using UnityEditor;
-
+using UnityEngine.Networking;
 
 namespace Inworld
 {
@@ -21,8 +24,16 @@ namespace Inworld
 
     public class InworldController : SingletonBehavior<InworldController>
     {
+        [Header("NOTE: Using game data will overwrite manual input API key/secrets.")][Space(10)]
         [SerializeField] protected InworldGameData m_GameData;
-        
+        [SerializeField] protected string m_APIKey;
+        [SerializeField] protected string m_APISecret;
+        [SerializeField] protected InworldServerConfig m_ServerConfig;
+        [Space(10)][Header("Advanced:")]
+        [SerializeField] protected string m_CustomToken;
+        [SerializeField] protected string m_PublicWorkspace;
+        [SerializeField] protected string m_GameSessionID;
+        protected Token m_Token;
         protected InworldClient m_Client;
         protected AudioCapture m_AudioCapture;
         protected CharacterHandler m_CharacterHandler;
@@ -88,9 +99,77 @@ namespace Inworld
             }
         }
         /// <summary>
+        /// Gets/Sets the current GameSessionID used for dialog continuation.
+        /// </summary>
+        public static string GameSessionID
+        {
+            get
+            {
+                return !Instance ? null : Instance.GetGameSessionID();
+            }
+            internal set
+            {
+                if (!Instance)
+                    return;
+                Instance.m_GameSessionID = value;
+#if UNITY_EDITOR
+                EditorUtility.SetDirty(Instance);
+                AssetDatabase.SaveAssets();
+#endif
+            }
+        }
+
+        
+        /// <summary>
+        /// Gets/Sets the current Inworld server this client is connecting.
+        /// </summary>
+        public static InworldServerConfig Server
+        {
+            get
+            {
+                if (Instance)
+                    return Instance.m_ServerConfig;
+                return null;
+            }
+            internal set
+            {
+                if (!Instance)
+                    return;
+                Instance.m_ServerConfig = value;
+#if UNITY_EDITOR
+                EditorUtility.SetDirty(Instance);
+                AssetDatabase.SaveAssets();
+#endif
+            }
+        }
+        /// <summary>
+        /// Gets/Sets the token used to login Runtime server of Inworld.
+        /// </summary>
+        public static string Token
+        {
+            get
+            {
+                if (Instance && Instance.m_Token != null)
+                    return Instance.m_Token.token;
+                return null;
+            }
+        }
+        /// <summary>
+        /// Gets if the current token is valid.
+        /// </summary>
+        public static bool IsTokenValid
+        {
+            get
+            {
+                if (Instance)
+                    return Instance.m_Token != null && Instance.m_Token.IsValid;
+                return false;
+            }
+        }
+        /// <summary>
         /// Gets the current connection status.
         /// </summary>
-        public static InworldConnectionStatus Status => Client.Status;
+        public static InworldConnectionStatus Status => Client ? Client.Status : IsTokenValid ? InworldConnectionStatus.Initialized : InworldConnectionStatus.Idle;
 
         /// <summary>
         /// Gets the current InworldScene's full name.
@@ -132,7 +211,57 @@ namespace Inworld
                 #endif
             }
         }
-        
+        internal string APIKey
+        {
+            get => m_APIKey;
+            set => m_APIKey = value;
+        }
+        internal string APISecret
+        {
+            get => m_APISecret;
+            set => m_APISecret = value;
+        }
+        internal string CustomToken
+        {
+            get => m_CustomToken;
+            set => m_CustomToken = value;
+        }
+        public static string WebsocketSessionURL
+        {
+            get
+            {
+                if (!Server || !IsTokenValid)
+                    return null;
+                return Server.SessionURL(SessionID);
+            }
+        }
+        public static string SessionID
+        {
+            get
+            {
+                if (!IsTokenValid)
+                    return null;
+                return Instance.m_Token.sessionId;
+            }
+        }
+        public static string TokenType
+        {
+            get
+            {
+                if (!IsTokenValid)
+                    return null;
+                return Instance.m_Token.type;
+            }
+        }
+        public string LoadSessionURL(string sceneFullName)
+        {
+            return m_ServerConfig.LoadSessionStateURL(GetSessionFullName(sceneFullName));
+        }
+        public string GetSessionFullName(string sceneFullName)
+        {
+            string[] data = sceneFullName.Split('/');
+            return data.Length != 4 ? "" : $"workspaces/{data[1]}/sessions/{m_Token.sessionId}";
+        }
         /// <summary>
         /// Load InworldGameData. Set client's related data if game data is not null.
         /// </summary>
@@ -142,10 +271,10 @@ namespace Inworld
             if (gameData == null)
                 return false;
             if (!string.IsNullOrEmpty(gameData.apiKey))
-                m_Client.APIKey = gameData.apiKey;
+                APIKey = gameData.apiKey;
             if (!string.IsNullOrEmpty(gameData.apiSecret))
-                m_Client.APISecret = gameData.apiSecret;
-            if (!string.IsNullOrEmpty(gameData.sceneFullName))
+                APISecret = gameData.apiSecret;
+            if (!string.IsNullOrEmpty(gameData.sceneFullName) && m_Client)
                 m_Client.SceneFullName = gameData.sceneFullName;
             if (gameData.capabilities != null)
                 InworldAI.Capabilities = gameData.capabilities;
@@ -154,11 +283,9 @@ namespace Inworld
 #region Client 
 #region Connection Management
         /// <summary>
-        /// Use the input json string of token instead of API key/secret to load scene.
-        /// This token can be fetched by other applications such as InworldWebSDK.
+        /// Gets the access token. Would be implemented by child class.
         /// </summary>
-        /// <param name="token">the custom token to init.</param>
-        public bool InitWithCustomToken(string token) => m_Client.InitWithCustomToken(token);
+        public virtual void GetAccessToken() => StartCoroutine(_GetAccessToken(m_PublicWorkspace));
         /// <summary>
         /// Reconnect session or start a new session if the current session is invalid.
         /// </summary>
@@ -166,7 +293,7 @@ namespace Inworld
         /// <summary>
         /// Initializes the SDK.
         /// </summary>
-        public void Init() => m_Client.GetAccessToken();
+        public void Init() => GetAccessToken();
         /// <summary>
         /// Send LoadScene request to Inworld Server.
         /// In ver 3.3 or further, the session must be connected first.
@@ -177,6 +304,25 @@ namespace Inworld
             InworldAI.LogEvent("Login_Runtime");
             string sceneToLoad = string.IsNullOrEmpty(sceneFullName) ? m_Client.CurrentScene : sceneFullName;
             return m_Client.LoadScene(sceneToLoad);
+        }
+        /// <summary>
+        /// Use the input json string of token instead of API key/secret to load scene.
+        /// This token can be fetched by other applications such as InworldWebSDK.
+        /// </summary>
+        /// <param name="token">the custom token to init.</param>
+        public virtual bool InitWithCustomToken(string token)
+        {
+            m_Token = JsonUtility.FromJson<Token>(token);
+            if (!Client)
+                return true;
+            if (!IsTokenValid)
+            {
+                Client.ErrorMessage = "Get Token Failed";
+                return false;
+            }
+            Client.Status = InworldConnectionStatus.Initialized;
+
+            return true;
         }
         /// <summary>
         /// Sent after the ClientStatus is set to Connected.
@@ -340,6 +486,64 @@ namespace Inworld
                 m_AudioCapture = GetComponent<AudioCapture>();
             if (!m_CharacterHandler)
                 m_CharacterHandler = GetComponent<CharacterHandler>();
+        }
+        protected string GetGameSessionID()
+        {
+            if (string.IsNullOrEmpty(m_GameSessionID) && m_Token != null && !string.IsNullOrEmpty(m_Token.sessionId))
+                m_GameSessionID = m_Token.sessionId;
+            return m_GameSessionID;
+        }
+        protected IEnumerator _GetAccessToken(string workspaceFullName = "")
+        {
+            if (Client)
+                Client.Status = InworldConnectionStatus.Initializing;
+            string responseJson = m_CustomToken;
+            if (string.IsNullOrEmpty(responseJson))
+            {
+                if (string.IsNullOrEmpty(APIKey) && Client)
+                {
+                    Client.ErrorMessage = "Please fill API Key!";
+                    yield break;
+                }
+                if (string.IsNullOrEmpty(m_APISecret) && Client)
+                {
+                    Client.ErrorMessage = "Please fill API Secret!";
+                    yield break;
+                }
+                string header = InworldAuth.GetHeader(m_ServerConfig.runtime, m_APIKey, m_APISecret);
+                UnityWebRequest uwr = new UnityWebRequest(m_ServerConfig.TokenServer, "POST");
+                if (Client)
+                    Client.Status = InworldConnectionStatus.Initializing;
+
+                uwr.SetRequestHeader("Authorization", header);
+                uwr.SetRequestHeader("Content-Type", "application/json");
+
+                AccessTokenRequest req = new AccessTokenRequest
+                {
+                    api_key = m_APIKey,
+                    resource_id = workspaceFullName
+                };
+                string json = JsonUtility.ToJson(req);
+                byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
+                uwr.uploadHandler = new UploadHandlerRaw(bodyRaw);
+                uwr.downloadHandler = new DownloadHandlerBuffer();
+                yield return uwr.SendWebRequest();
+
+                if (uwr.result != UnityWebRequest.Result.Success && Client)
+                {
+                    Client.ErrorMessage = $"Error Get Token: {uwr.error}";
+                }
+                uwr.uploadHandler.Dispose();
+                responseJson = uwr.downloadHandler.text;
+            }
+            m_Token = JsonUtility.FromJson<Token>(responseJson);
+            if (!IsTokenValid && Client)
+            {
+                Client.ErrorMessage = "Get Token Failed";
+                yield break;
+            }
+            if (Client)
+                Client.Status = InworldConnectionStatus.Initialized;
         }
     }
 }
