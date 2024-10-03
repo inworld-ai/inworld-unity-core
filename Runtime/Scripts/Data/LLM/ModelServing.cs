@@ -22,15 +22,45 @@ namespace Inworld.LLM.ModelServing
 		[JsonConverter(typeof(StringEnumConverter))]
 		public ServiceProvider service_provider;
 		
-		public ModelID(string model = "inworld-dragon")
+		public ModelID(ModelName modelName = ModelName.Inworld_Dragon)
 		{
-			this.model = model;
-			if (model.StartsWith("inworld"))
-				service_provider = ServiceProvider.SERVICE_PROVIDER_INWORLD;
-			else if (model == "gpt-3.5-turbo-instruct" || model == "gpt-3.5-turbo-0613")
-				service_provider = ServiceProvider.SERVICE_PROVIDER_AZURE;
-			else
-				service_provider = ServiceProvider.SERVICE_PROVIDER_OPENAI;
+			switch (modelName)
+			{
+				case ModelName.Llama3_1_Druid_70B:
+					model = "llama-3.1-druid-70b";
+					service_provider = ServiceProvider.SERVICE_PROVIDER_INWORLD;
+					break;
+				case ModelName.Inworld_Dragon2:
+					model = "inworld-dragon-2";
+					service_provider = ServiceProvider.SERVICE_PROVIDER_INWORLD;
+					break;
+				case ModelName.Inworld_Mage:
+					model = "inworld-mage";
+					service_provider = ServiceProvider.SERVICE_PROVIDER_INWORLD;
+					break;
+				case ModelName.GPT3_5_Turbo_Instruct:
+					model = "gpt-3.5-turbo-instruct";
+					service_provider = ServiceProvider.SERVICE_PROVIDER_AZURE;
+					break;
+				case ModelName.GPT3_5_Turbo_0613:
+					model = "gpt-3.5-turbo-0613";
+					service_provider = ServiceProvider.SERVICE_PROVIDER_AZURE;
+					break;
+				case ModelName.GPT3_5:
+					model = "gpt-3.5";
+					service_provider = ServiceProvider.SERVICE_PROVIDER_OPENAI;
+					break;
+				case ModelName.GPT4o:
+					model = "gpt-4o";
+					service_provider = ServiceProvider.SERVICE_PROVIDER_OPENAI;
+					break;
+				case ModelName.Undefined:
+				case ModelName.Inworld_Dragon:
+				default:
+					model = "inworld-dragon";
+					service_provider = ServiceProvider.SERVICE_PROVIDER_INWORLD;
+					break;
+			}
 		}
 	}
 		
@@ -46,7 +76,7 @@ namespace Inworld.LLM.ModelServing
 		// Unique identifier of the session with multiple completion requests.
 		public string session_id;
 
-		public ServingID(string modelName = "inworld-dragon")
+		public ServingID(ModelName modelName = ModelName.Inworld_Dragon)
 		{
 			user_id = InworldAI.User.ID;
 			model_id = new ModelID(modelName);

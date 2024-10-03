@@ -21,18 +21,18 @@ namespace Inworld.LLM
 {
 	public class LLMRuntime : MonoBehaviour
 	{
-
+		[SerializeField] ModelName m_ModelName;
+		[SerializeField] TextGenerationConfig m_TextGenerationConfig;
+		[Tooltip("How many chat history items displayed.\n\nNote: All these items will be sent as input to the LLM Service. " +
+		         "Too many items will confuse the service.")]
 		[SerializeField] protected int m_MaxChatHistorySize = 100;
+		
 		protected ServingID m_ServingID;
-		protected TextGenerationConfig m_TextGenerationConfig;
 		
 		public List<Message> ChatHistory { get; }  = new List<Message>();
+		[Space(10)]
 		public UnityEvent onChatHistoryUpdated;
 
-		void Awake()
-		{
-
-		}
 		protected void OnEnable()
 		{
 			if (!InworldController.Instance)
@@ -54,9 +54,8 @@ namespace Inworld.LLM
 		{
 			if (status != InworldConnectionStatus.Initialized)
 				return;
-			// TODO(Yan): Replace servingID and textCfg with user's personal data. 
 			if (m_ServingID == null)
-				m_ServingID = new ServingID();
+				m_ServingID = new ServingID(m_ModelName);
 			if (m_TextGenerationConfig == null)
 				m_TextGenerationConfig = new TextGenerationConfig();
 		}
