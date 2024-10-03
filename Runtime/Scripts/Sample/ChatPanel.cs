@@ -6,6 +6,8 @@
  *************************************************************************************************/
 
 using Inworld.Entities;
+using Inworld.LLM;
+using Inworld.LLM.Service;
 using Inworld.Packet;
 using Inworld.UI;
 using System;
@@ -37,7 +39,10 @@ namespace Inworld.Sample
         
         void OnEnable()
         {
+            if (!InworldController.Instance)
+                return;
             InworldController.Client.OnPacketSent += OnInteraction;
+            InworldController.LLM.onChatHistoryUpdated.AddListener(OnChatUpdated);
             InworldController.CharacterHandler.Event.onCharacterListJoined.AddListener(OnCharacterJoined);
             InworldController.CharacterHandler.Event.onCharacterListLeft.AddListener(OnCharacterLeft);
         }
@@ -47,6 +52,7 @@ namespace Inworld.Sample
             if (!InworldController.Instance)
                 return;
             InworldController.Client.OnPacketSent -= OnInteraction;
+            InworldController.LLM.onChatHistoryUpdated.RemoveListener(OnChatUpdated);
             InworldController.CharacterHandler.Event.onCharacterListJoined.RemoveListener(OnCharacterJoined);
             InworldController.CharacterHandler.Event.onCharacterListLeft.RemoveListener(OnCharacterLeft);
         }
@@ -62,7 +68,17 @@ namespace Inworld.Sample
         {
             character.Event.onPacketReceived.RemoveListener(OnInteraction); 
         }
-        
+        protected virtual void OnChatUpdated()
+        {
+            List<Message> chatHistories = InworldController.LLM.ChatHistory;
+            foreach (Message history in chatHistories)
+            {
+                string hash = history.ToHash;
+                ChatBubble bubble = history.role == MessageRole.MESSAGE_ROLE_USER ? m_BubbleRight : m_BubbleLeft;
+                Texture2D thumbnail = history.role == MessageRole.MESSAGE_ROLE_USER ? InworldAI.User.Thumbnail : InworldAI.Logo;
+                InsertBubble(hash, bubble, history.Role, false, history.ToMessage, thumbnail);
+            }
+        }
         protected virtual void OnInteraction(InworldPacket incomingPacket)
         {
             switch (incomingPacket)

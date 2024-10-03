@@ -114,7 +114,7 @@ namespace Inworld
                 if (!Instance) 
                     return null;
 
-                if (Instance.m_Client)
+                if (Instance.m_LLMRuntime)
                     return Instance.m_LLMRuntime;
 
                 Instance.m_LLMRuntime = Instance.GetComponentInChildren<LLMRuntime>();
