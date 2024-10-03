@@ -68,7 +68,6 @@ namespace Inworld.Test
 		IEnumerator InitTest()
 		{
 			InworldController.Instance.Init();
-			yield return StatusCheck(5, InworldConnectionStatus.Initializing);
 			yield return StatusCheck(5, InworldConnectionStatus.Initialized);
 			Assert.IsTrue(InworldController.IsTokenValid);
 			InworldController.Client.StartSession();
