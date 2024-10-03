@@ -33,6 +33,30 @@ namespace Inworld.LLM
 		[Space(10)]
 		public UnityEvent onChatHistoryUpdated;
 
+		/// <summary>
+		/// Get/Set the using model
+		/// </summary>
+		public ModelName Model
+		{
+			get => m_ModelName;
+			set => m_ModelName = value;
+		}
+		/// <summary>
+		/// Get/Set the config.
+		/// </summary>
+		public TextGenerationConfig Config
+		{
+			get => m_TextGenerationConfig;
+			set => m_TextGenerationConfig = value;
+		}
+		/// <summary>
+		/// Get/Set the history size.
+		/// </summary>
+		public int HistorySize
+		{
+			get => m_MaxChatHistorySize;
+			set => m_MaxChatHistorySize = value;
+		}
 		protected void OnEnable()
 		{
 			if (!InworldController.Instance)

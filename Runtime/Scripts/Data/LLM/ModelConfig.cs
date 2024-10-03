@@ -118,7 +118,7 @@ namespace Inworld.LLM.ModelConfig
 	           "results of the tokens with top_p probability mass. \n\nSo 0.1 means only the tokens comprising the top 10% probability " +
 	           "mass are considered. \n\nDefaults to 1.")]
 	  [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-	  [Range(0,1)] float top_p = 1;
+	  [Range(0,1)] public float top_p = 1;
 
 	  [Tooltip("Float that penalizes new tokens based on whether they appear in the prompt and the " +
 	           "generated text so far. Values > 1 encourage the model to use new tokens, while " +
