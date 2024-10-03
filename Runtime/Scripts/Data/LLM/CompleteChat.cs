@@ -8,6 +8,7 @@
 using Inworld.LLM.ModelServing;
 using Inworld.LLM.ModelConfig;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System.Collections.Generic;
 
 namespace Inworld.LLM.Service
@@ -35,7 +36,17 @@ namespace Inworld.LLM.Service
 
 		// Format that the model must output. Used to enable JSON mode.
 		[JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-		public ResponseFormat response_format;
+		[JsonConverter(typeof(StringEnumConverter))]
+		public ResponseFormat response_format = ResponseFormat.RESPONSE_FORMAT_JSON;
+		
+		public CompleteChatRequest(ServingID serving, List<Message> messages, TextGenerationConfig config = null)
+		{
+			serving_id = serving;
+			this.messages = messages;
+			text_generation_config = config;
+		}
+		[JsonIgnore]
+		public string ToJson => JsonConvert.SerializeObject(this);
 	}
 
 	public class CompleteChatResponse
@@ -54,5 +65,9 @@ namespace Inworld.LLM.Service
 		
 		// Usage statistics for the chat completion.
 		public Usage usage;
+	}
+	public class NetworkCompleteChatResponse
+	{
+		public CompleteChatResponse result;
 	}
 }

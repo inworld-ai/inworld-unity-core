@@ -112,23 +112,23 @@ namespace Inworld.LLM.ModelConfig
 	  // What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more
 	  // random, while lower values like 0.2 will make it more focused and deterministic. Defaults to 1.
 	  [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-	  [Range(0,2)] public float temperature;
+	  [Range(0,2)] public float temperature = 1;
 
 	  // An alternative to sampling with temperature, called nucleus sampling, where the model considers the
 	  // results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability
 	  // mass are considered. Defaults to 1.
 	  [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-	  [Range(0,1)] float top_p;
+	  [Range(0,1)] float top_p = 1;
 
 	  // Float that penalizes new tokens based on whether they appear in the prompt and the
 	  // generated text so far. Values > 1 encourage the model to use new tokens, while
 	  // values < 1 encourage the model to repeat tokens. The value must be strictly
 	  // positive. Defaults to 1 (no penalty).
 	  [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-	  public float repetition_penalty;
+	  public float repetition_penalty = 1;
 
 	  // Random seed for decoding.
-	  [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-	  public int seed;
+	  // [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+	  // public int seed;
 	}
 }

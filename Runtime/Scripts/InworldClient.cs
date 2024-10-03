@@ -174,9 +174,16 @@ namespace Inworld
 #region Unity LifeCycle
         protected virtual void OnEnable()
         {
+            if (InworldController.Instance)
+                InworldController.Instance.OnControllerStatusChanged += OnTokenStatusChanged;
             m_OutgoingCoroutine = OutgoingCoroutine();
             m_CurrentReconnectThreshold = m_ReconnectThreshold;
             StartCoroutine(m_OutgoingCoroutine);
+        }
+        protected virtual void OnDisable()
+        {
+            if (InworldController.Instance)
+                InworldController.Instance.OnControllerStatusChanged -= OnTokenStatusChanged;
         }
         void Update()
         {
@@ -1040,7 +1047,13 @@ namespace Inworld
                 StartCoroutine(agent.UpdateThumbnail(character ? character.Data.thumbnail : null));
             }
         }
-
+        protected virtual void OnTokenStatusChanged(InworldConnectionStatus status, string detail)
+        {
+            if (status == InworldConnectionStatus.Error)
+                ErrorMessage = detail;
+            else
+                Status = status;
+        }
         protected string _GetCallbackReference(string sessionFullName, string interactionID, string correlationID)
         {
             return $"{sessionFullName}/interactions/{interactionID}/groups/{correlationID}";

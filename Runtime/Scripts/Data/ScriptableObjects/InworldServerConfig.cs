@@ -45,5 +45,13 @@ namespace Inworld
         /// <param name="callbackReference">the full name of the callback that is based on sessionID, interactionID, and correlationID.</param>
         /// <returns></returns>
         public string FeedbackURL(string callbackReference) => $"https://{web}/v1/feedback/{callbackReference}/feedbacks";
+        /// <summary>
+        /// Gets the URL for complete Chat.
+        /// </summary>
+        public string CompleteChatURL => $"https://{web}/llm/v1alpha/completions:completeChat";
+        /// <summary>
+        /// Gets the URL for complete Text.
+        /// </summary>
+        public string CompleteTextURL => $"https://{web}/llm/v1alpha/completions:completeText";
     }
 }
