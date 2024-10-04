@@ -393,20 +393,24 @@ namespace Inworld
         /// otherwise, it'll be sent as broadcast.
         /// </summary>
         /// <param name="text">the message to send.</param>
-        public bool SendText(string text)
+        /// <param name="interruptible">If checked, it'll try to interrupt the character first. </param>
+        public bool SendText(string text, bool interruptible = true)
         {
-            CancelResponses();
-            return m_Client.SendTextTo(text, CharacterHandler.CurrentCharacter? CharacterHandler.CurrentCharacter.BrainName : "");
+            if (interruptible)
+                CancelResponses();
+            return m_Client.SendText(text, CharacterHandler.CurrentCharacter? CharacterHandler.CurrentCharacter.BrainName : "");
         }
         /// <summary>
         /// Send a narrative action to an InworldCharacter in this current scene.
         /// </summary>
         /// <param name="charID">the live session ID of the character to send</param>
         /// <param name="narrativeAction">the narrative action to send.</param>
-        public bool SendNarrativeAction(string narrativeAction)
+        /// <param name="interruptible">If checked, it'll try to interrupt the character first. </param>
+        public bool SendNarrativeAction(string narrativeAction, bool interruptible = true)
         {
-            CancelResponses();
-            return m_Client.SendNarrativeActionTo(narrativeAction, CharacterHandler.CurrentCharacter? CharacterHandler.CurrentCharacter.BrainName : "");
+            if (interruptible)
+                CancelResponses();
+            return m_Client.SendNarrativeAction(narrativeAction, CharacterHandler.CurrentCharacter? CharacterHandler.CurrentCharacter.BrainName : "");
         }
         /// <summary>
         /// Cancel all the current character's generating responses.
@@ -425,7 +429,7 @@ namespace Inworld
         /// <param name="utteranceID">the handle of the current utterance that needs to be cancelled.</param>
         public bool SendCancelEvent(string interactionID, string utteranceID = "")
         {
-            return m_Client.SendCancelEventTo(interactionID, utteranceID, SourceType.WORLD.ToString());
+            return m_Client.SendCancelEvent(interactionID, utteranceID, SourceType.WORLD.ToString());
         } 
         /// <summary>
         /// Send the trigger to the whole session.
@@ -434,7 +438,7 @@ namespace Inworld
         public bool SendWorldTrigger(string triggerName)
         {
             if (Client && Client.Status == InworldConnectionStatus.Connected)
-                return m_Client.SendTriggerTo(triggerName, null,SourceType.WORLD.ToString());
+                return m_Client.SendTrigger(triggerName, null,SourceType.WORLD.ToString());
             return false;
         }
         /// <summary>
@@ -451,17 +455,16 @@ namespace Inworld
                 return false;
             }
             if (!string.IsNullOrEmpty(charID))
-                return m_Client.SendTrigger(charID, triggerName, parameters);
+                return m_Client.SendTrigger(triggerName, parameters, charID);
             return CurrentCharacter 
-                ? m_Client.SendTriggerTo(triggerName, parameters, CurrentCharacter.BrainName) 
-                : m_Client.SendTriggerTo(triggerName, parameters);
+                ? m_Client.SendTrigger(triggerName, parameters, CurrentCharacter.BrainName) 
+                : m_Client.SendTrigger(triggerName, parameters);
         }
         /// <summary>
         /// Send AUDIO_SESSION_START control events to server.
         /// Without sending this message, all the audio data would be discarded by server.
         /// However, if you send this event twice in a row, without sending `StopAudio()`, Inworld server will also through exceptions and terminate the session.
         /// </summary>
-        /// <exception cref="ArgumentException">If the charID is not legal, this function will throw exception.</exception>
         public virtual bool StartAudio()
         {
             if (!Client || Client.Status != InworldConnectionStatus.Connected)
@@ -495,7 +498,7 @@ namespace Inworld
                 return false;
             if (CurrentCharacter && !string.IsNullOrEmpty(CurrentCharacter.ID))
                 return m_Client.SendAudio(CurrentCharacter.ID, base64);
-            return m_Client.SendAudioTo(base64);
+            return m_Client.SendAudio(base64);
         }
         /// <summary>
         /// Manually push the audio wave data to server.
