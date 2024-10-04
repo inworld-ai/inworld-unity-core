@@ -159,7 +159,8 @@ namespace Inworld
                 OnErrorReceived?.Invoke(m_Error);
                 m_CurrentReconnectThreshold *= 2;
                 m_ReconnectTimer = m_CurrentReconnectThreshold;
-                Status = InworldConnectionStatus.Error; 
+                if (m_Error.RetryType == ReconnectionType.UNDEFINED || m_Error.RetryType == ReconnectionType.NO_RETRY)
+                    Status = InworldConnectionStatus.Error; 
             }
         }
 
@@ -1132,7 +1133,7 @@ namespace Inworld
         void OnMessageReceived(object sender, MessageEventArgs e)
         {
             NetworkPacketResponse response = JsonConvert.DeserializeObject<NetworkPacketResponse>(e.Data);
-            if (response == null || response.result == null)
+            if (response == null)
             {
                 ErrorMessage = e.Data;
                 return;
@@ -1140,6 +1141,11 @@ namespace Inworld
             if (response.error != null && !string.IsNullOrEmpty(response.error.message))
             {
                 Error = response.error;
+                return;
+            }
+            if (response.result == null)
+            {
+                ErrorMessage = e.Data;
                 return;
             }
             InworldPacket packetReceived = response.result;
@@ -1169,8 +1175,6 @@ namespace Inworld
             m_Socket?.CloseAsync();
             yield return new WaitForEndOfFrame();
         }
-        
-        
         protected bool PreparePacketToSend(InworldPacket rawPkt, bool immediate = false, bool needCallback = true)
         {
             if (!immediate)

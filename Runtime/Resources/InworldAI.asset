@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 209222c347cb7fd4a8238dd0db261e25, type: 3}
   m_Name: InworldAI
   m_EditorClassIdentifier: 
-  m_UserSetting: {fileID: 11400000, guid: 09c47dd169ccbb2479667722275ec889, type: 2}
+  m_UserSetting: {fileID: 11400000, guid: a6359f8b74585554bbc702cc0f12f384, type: 2}
   m_Capabilities:
     audio: 1
     emotions: 1
@@ -34,7 +34,7 @@ MonoBehaviour:
   m_ControllerPrefab: {fileID: 2395919966041133306, guid: 3a0885e96397c414f80c73ab7dc0c72d, type: 3}
   m_InputActions: {fileID: -944628639613478452, guid: abe0a4de8c40e60499a52c6fd7a641c7, type: 3}
   m_Initialized: 1
-  m_Version: 3.5.0
+  m_Version: 3.6.0
   m_MicrophoneWebGLModule: {fileID: 4900000, guid: 2aaf0101853173b4c84d37154c65efd9, type: 3}
   m_MicrophoneWebGLResampler: {fileID: 4900000, guid: 5efd0869c491b514ab95d9f34080993b, type: 3}
   m_DebugMode: 1
