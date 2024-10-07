@@ -6,11 +6,13 @@
  *************************************************************************************************/
 
 using Inworld.Entities;
+using Inworld.Sample;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
 
@@ -45,7 +47,8 @@ namespace Inworld
 #region Variables
         protected InputAction m_PushToTalkInputAction;
         protected float m_CharacterVolume = 1f;
-        protected MicSampleMode m_InitSampleMode;
+        protected MicSampleMode m_PrevSampleMode;
+        protected bool m_PrevDetectPlayerSpeaking;
         protected const int k_SizeofInt16 = sizeof(short);
         protected const int k_SampleRate = 16000;
         protected const int k_Channel = 1;
@@ -64,6 +67,7 @@ namespace Inworld
         protected int m_BufferSize;
         protected readonly ConcurrentQueue<AudioChunk> m_AudioToPush = new ConcurrentQueue<AudioChunk>();
         protected List<AudioDevice> m_Devices = new List<AudioDevice>();
+        protected List<short> m_PlayerVolumeCheckBuffer = new List<short>();
         protected List<short> m_InputBuffer = new List<short>();
         protected float[] m_RawInput;
         protected List<short> m_ProcessedWaveData = new List<short>();
@@ -279,7 +283,7 @@ namespace Inworld
             m_DeviceName = deviceName;
             if (!StartMicrophone(m_DeviceName))
                 return false;
-            Calibrate();
+            Recalibrate();
             return true;
         }
         /// <summary>
@@ -311,7 +315,7 @@ namespace Inworld
         }
         public virtual bool StartAudio()
         {
-            MicrophoneMode micMode = IsRecording ? MicrophoneMode.EXPECT_AUDIO_END : MicrophoneMode.OPEN_MIC;
+            MicrophoneMode micMode = (SampleMode == MicSampleMode.AEC && EnableVAD) || SampleMode == MicSampleMode.PUSH_TO_TALK ? MicrophoneMode.EXPECT_AUDIO_END : MicrophoneMode.OPEN_MIC;
             UnderstandingMode understandingMode = m_TestMode ? UnderstandingMode.SPEECH_RECOGNITION_ONLY : UnderstandingMode.FULL;
             InworldCharacter character = InworldController.CharacterHandler.CurrentCharacter;
             return InworldController.Client.StartAudioTo(character ? character.BrainName : null, micMode, understandingMode);
@@ -339,7 +343,7 @@ namespace Inworld
         ///     Recalculate the background noise (including bg music, etc)
         ///     Please call it whenever audio environment changed in your game.
         /// </summary>
-        public virtual void Calibrate()
+        public virtual void Recalibrate()
         {
             m_BackgroundNoise = 0;
             m_CalibratingTime = 0;
@@ -356,9 +360,15 @@ namespace Inworld
         
         protected virtual void OnEnable()
         {
+            if (PlayerController.Instance)
+            {
+                PlayerController.Instance.onCanvasOpen.AddListener(OnPlayerCanvasOpen);
+                PlayerController.Instance.onCanvasClosed.AddListener(OnPlayerCanvasClosed);
+            }
             m_AudioCoroutine = AudioCoroutine();
             StartCoroutine(m_AudioCoroutine);
         }
+
         protected virtual void OnDisable()
         {
             if (m_AudioCoroutine != null)
@@ -383,56 +393,61 @@ namespace Inworld
 #endregion
 
 #region Protected Functions
-        
+        protected virtual void OnPlayerCanvasOpen()
+        {
+            m_PrevSampleMode = m_SamplingMode;
+            m_SamplingMode = MicSampleMode.PUSH_TO_TALK;
+            m_PrevDetectPlayerSpeaking = m_DetectPlayerSpeaking;
+            m_DetectPlayerSpeaking = false;
+        }
+        protected virtual void OnPlayerCanvasClosed()
+        {
+            m_SamplingMode = m_PrevSampleMode;
+            m_DetectPlayerSpeaking = m_PrevDetectPlayerSpeaking;
+        }
         protected virtual void Init()
         {
             AudioConfiguration audioSetting = AudioSettings.GetConfiguration();
             m_OutputSampleRate = audioSetting.sampleRate;
             m_OutputChannels = audioSetting.speakerMode == AudioSpeakerMode.Stereo ? 2 : 1;
             m_BufferSize = m_BufferSeconds * k_SampleRate;
-            m_InitSampleMode = m_SamplingMode;
+            m_PrevSampleMode = m_SamplingMode;
 #if UNITY_WEBGL && !UNITY_EDITOR
             s_WebGLBuffer = new float[m_BufferSize * k_Channel];
             WebGLInit(OnWebGLInitialized);
 #endif
         }
-        protected virtual IEnumerator _Calibrate()
+        protected virtual void Calibrate()
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
-            if (WebGLIsRecording() == 0)
-                StartMicrophone(m_DeviceName);
-            m_BackgroundNoise = 0.0001f;
-            yield break;
-#else
-            if (!Microphone.IsRecording(m_DeviceName))
-                StartMicrophone(m_DeviceName);
+            // YAN: Due to the time sequence and permission issue, skip calibrating.
+            m_BackgroundNoise = 0.0001f; 
+            return;
 #endif
-            Event.onStartCalibrating?.Invoke();
-            if (!EnableVAD) // Use local method to calculate SNR.
-            {
-                Recording.volume = 0.5f;
-                while (m_BackgroundNoise == 0 || m_CalibratingTime < m_BufferSeconds)
-                {
-                    int nSize = GetAudioData();
-                    m_CalibratingTime += 0.1f;
-                    yield return new WaitForSecondsRealtime(0.1f);
-                    float rms = CalculateRMS();
-                    if (rms > m_BackgroundNoise)
-                        m_BackgroundNoise = rms;
-                }
-                Recording.volume = 1f;
-            }
-            Event.onStopCalibrating?.Invoke();
+            if (m_CalibratingTime >= m_BufferSeconds)
+                return;
+            if (m_CalibratingTime == 0 && m_BackgroundNoise == 0)
+                Event.onStartCalibrating?.Invoke();
+            float rms = CalculateRMS();
+            if (rms > m_BackgroundNoise)
+                m_BackgroundNoise = rms;
+            m_CalibratingTime += 0.1f;
+            if (m_CalibratingTime >= m_BufferSeconds && m_BackgroundNoise != 0)
+                Event.onStopCalibrating?.Invoke();
         }
         
         protected virtual IEnumerator AudioCoroutine()
         {
             while (true)
             {
-                yield return _Calibrate();
-                ProcessAudio();
-                Collect();
-                yield return OutputData();
+                int nSize = GetAudioData();
+                if (nSize > 0)
+                {
+                    ProcessAudio();
+                    Calibrate();
+                    Collect();
+                    yield return OutputData();
+                }
                 yield return new WaitForSecondsRealtime(0.1f);
             }
         }
@@ -448,6 +463,8 @@ namespace Inworld
         protected virtual void ProcessAudio()
         {
             m_ProcessedWaveData.AddRange(m_InputBuffer);
+            m_PlayerVolumeCheckBuffer.Clear();
+            m_PlayerVolumeCheckBuffer.AddRange(m_InputBuffer);
             m_InputBuffer.Clear();
             RemoveOverDueData(ref m_ProcessedWaveData);
         }
@@ -457,17 +474,19 @@ namespace Inworld
                 return false;
             if (!IsRecording && !EnableVAD && m_BackgroundNoise == 0)
                 return false;
-            int nSize = GetAudioData();
-            if (nSize <= 0)
-                return false;
             IsPlayerSpeaking = DetectPlayerSpeaking();
             if (IsRecording || IsPlayerSpeaking)
             {
-                m_CapturingTimer += 0.1f;
-                if (m_CapturingTimer > m_CaptureCheckingDuration)
-                {
-                    m_CapturingTimer = m_CaptureCheckingDuration;
+                if (!EnableAEC)
                     IsCapturing = true;
+                else
+                {
+                    m_CapturingTimer += 0.1f;
+                    if (m_CapturingTimer > m_CaptureCheckingDuration)
+                    {
+                        m_CapturingTimer = m_CaptureCheckingDuration;
+                        IsCapturing = true;
+                    }
                 }
             }
             else
@@ -493,7 +512,7 @@ namespace Inworld
             });
             return true;
         }
-        protected virtual bool DetectPlayerSpeaking() => !IsMute && AutoDetectPlayerSpeaking;
+        protected virtual bool DetectPlayerSpeaking() => !IsMute && AutoDetectPlayerSpeaking && CalculateSNR() > m_PlayerVolumeThreshold;
 
         protected virtual IEnumerator OutputData()
         {
@@ -507,8 +526,14 @@ namespace Inworld
         protected int GetAudioData()
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
+            if (WebGLIsRecording() == 0)
+                StartMicrophone(m_DeviceName);
             m_nPosition = WebGLGetPosition();
 #else
+            if (!Microphone.IsRecording(m_DeviceName))
+            {
+                StartMicrophone(m_DeviceName);
+            }
             m_nPosition = Microphone.GetPosition(m_DeviceName);
 #endif
             if (m_nPosition < m_LastPosition)
@@ -608,15 +633,10 @@ namespace Inworld
         // Root Mean Square, used to measure the variation of the noise.
         protected float CalculateRMS()
         {
-            if (m_RawInput == null || m_RawInput.Length == 0)
+            if (m_PlayerVolumeCheckBuffer == null || m_PlayerVolumeCheckBuffer.Count == 0)
                 return 0;
-            int nCount = m_RawInput.Length > 0 ? m_RawInput.Length : 1;
-            double nMaxSample = 0;
-            foreach (float sample in m_RawInput)
-            {
-                nMaxSample += (sample * sample);
-            }
-            return Mathf.Sqrt((float)nMaxSample / nCount);
+            double nMaxSample = m_PlayerVolumeCheckBuffer.Aggregate<short, double>(0, (current, sample) => current + (float)sample / short.MaxValue * sample / short.MaxValue);
+            return Mathf.Sqrt((float)nMaxSample / m_PlayerVolumeCheckBuffer.Count);
         }
         // Sound Noise Ratio (dB). Used to check how loud the input voice is.
         protected float CalculateSNR()

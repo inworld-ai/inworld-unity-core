@@ -48,8 +48,8 @@ namespace Inworld.Entities
 	{
 		bool m_IsConversation;
 		public InworldCharacterData Character { get; set; } = new InworldCharacterData();
-		public Conversation Conversation { get; set; } = new Conversation();
-		public AudioSession AudioSession { get; set; } = new AudioSession();
+		public Conversation Conversation { get; } = new Conversation();
+		public AudioSession AudioSession { get; } = new AudioSession();
 		public bool UpdateLiveInfo(string brainName)
 		{
 			return string.IsNullOrEmpty(brainName) ? UpdateMultiTargets() : UpdateSingleTarget(brainName);

@@ -15,6 +15,7 @@ namespace Inworld.Interactions
     {
         public string ID { get; set; }
         public DateTime RecentTime { get; set; }
+        public bool Interruptible { get; set; } = true;
         public bool ReceivedInteractionEnd { get; set; }
         internal Utterance CurrentUtterance { get; set; }
         public bool IsEmpty => (m_Prepared == null || m_Prepared.IsEmpty) && (CurrentUtterance == null || CurrentUtterance.IsEmpty);
@@ -44,6 +45,8 @@ namespace Inworld.Interactions
         {
             if (packet is ControlPacket controlPacket && controlPacket.Action == ControlType.INTERACTION_END)
                 ReceivedInteractionEnd = true;
+            if (packet is CustomPacket customPacket && customPacket.Message == InworldMessage.Uninterruptible)
+                Interruptible = false;
             if (m_Processed.IsOverDue(packet) || m_Processed.Contains(packet))
             {
                 m_Processed.Add(packet);
@@ -59,10 +62,14 @@ namespace Inworld.Interactions
         public Utterance Dequeue()
         {
             Utterance nextUtterance = m_Prepared.Dequeue(true);
-            if (nextUtterance == null)
-                return null;
-            m_Processed.Enqueue(nextUtterance);
             return nextUtterance;
+        }
+        public void Processed()
+        {
+            if (CurrentUtterance == null)
+                return;
+            m_Processed.Enqueue(CurrentUtterance);
+            CurrentUtterance = null;
         }
 
         public bool Contains(InworldPacket packet) => packet?.packetId?.interactionId == ID;
@@ -71,8 +78,8 @@ namespace Inworld.Interactions
         {
             if (isHardCancelling && CurrentUtterance != null)
             {
-                CurrentUtterance.Cancel();
                 m_Cancelled.Enqueue(CurrentUtterance);
+                CurrentUtterance = null;
             }
             m_Prepared.PourTo(m_Cancelled);
         }

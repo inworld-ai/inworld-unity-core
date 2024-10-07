@@ -49,7 +49,6 @@ namespace Inworld
 #endregion
 
 #region Private variables
-        const string k_NotImplemented = "No InworldClient found. Need at least one connection protocol";
         // These data will always be updated once session is refreshed and character ID is fetched. 
         // key by character's brain ID. Value contains its live session ID.
         protected readonly Dictionary<string, InworldCharacterData> m_LiveSessionData = new Dictionary<string, InworldCharacterData>();
@@ -82,9 +81,12 @@ namespace Inworld
         public Dictionary<string, InworldCharacterData> LiveSessionData => m_LiveSessionData;
         /// <summary>
         /// Gets if group chat is enabled.
-        /// This feature is still under development, and will be coming soon.
         /// </summary>
-        public bool EnableGroupChat => m_EnableGroupChat;
+        public bool EnableGroupChat
+        {
+            get => m_EnableGroupChat;
+            set => m_EnableGroupChat = value;
+        }
         /// <summary>
         /// Get/Set the session history.
         /// </summary>
@@ -325,8 +327,11 @@ namespace Inworld
                 return false;
             if (!pkt.PrepareToSend())
                 return false;
+            if (string.IsNullOrEmpty(pkt.packetId.correlationId))
+                pkt.packetId.correlationId = InworldAuth.Guid();
+            else
+                m_Sent.Add(pkt);
             m_Socket.SendAsync(pkt.ToJson);
-            m_Sent.Add(pkt);
             return true;
         }
         /// <summary>
@@ -480,7 +485,7 @@ namespace Inworld
                     }
                 }
             };
-            latencyReport.packetId.correlationId = Guid.NewGuid().ToString();
+            latencyReport.packetId.correlationId = InworldAuth.Guid();
             m_Socket.SendAsync(latencyReport.ToJson);
         }
         /// <summary>
@@ -548,6 +553,7 @@ namespace Inworld
             if (!Current.UpdateLiveInfo(brainName))
                 return false;
             InworldPacket rawPkt = new TextPacket(textToSend);
+            rawPkt.packetId.correlationId = InworldAuth.Guid();
             PreparePacketToSend(rawPkt, immediate);
             return true;
         }
@@ -587,6 +593,7 @@ namespace Inworld
             if (!Current.UpdateLiveInfo(brainName))
                 return false;
             InworldPacket rawPkt = new ActionPacket(narrativeAction);
+            rawPkt.packetId.correlationId = InworldAuth.Guid();
             PreparePacketToSend(rawPkt, immediate);
             return true;
         }
@@ -740,6 +747,7 @@ namespace Inworld
             if (!Current.UpdateLiveInfo(brainName))
                 return false;
             InworldPacket rawPkt = new CustomPacket(triggerName, parameters);
+            rawPkt.packetId.correlationId = InworldAuth.Guid();
             PreparePacketToSend(rawPkt, immediate);
             return true;
         }
@@ -793,8 +801,8 @@ namespace Inworld
                 }
             };
             InworldPacket rawPkt = new ControlPacket(control);
-            PreparePacketToSend(rawPkt, immediate);
             Current.StartAudioSession(rawPkt.packetId.packetId);
+            PreparePacketToSend(rawPkt, immediate);
             InworldAI.Log($"Start talking to {Current.Name}");
             return true;
         }
@@ -1226,6 +1234,10 @@ namespace Inworld
                             _RegisterLiveSession(currentSceneStatusEvent.currentSceneStatus.agents);
                             UpdateConversation();
                             Status = InworldConnectionStatus.Connected;
+                            foreach (InworldPacket pkt in m_Sent)
+                            {
+                                m_Prepared.Enqueue(pkt);
+                            }
                             m_ReconnectThreshold = m_CurrentReconnectThreshold = 1;
                             return true;
                         }

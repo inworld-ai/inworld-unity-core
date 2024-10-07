@@ -64,7 +64,7 @@ namespace Inworld
             get
             {
                 if (string.IsNullOrEmpty(m_BillingAccount))
-                    m_BillingAccount = Guid.NewGuid().ToString(); // YAN: Only for default demo workspace.
+                    m_BillingAccount = InworldAuth.Guid(); // YAN: Only for default demo workspace.
                 return m_BillingAccount;
             }
             set => m_BillingAccount = value;
@@ -82,7 +82,7 @@ namespace Inworld
             get
             {
                 if (string.IsNullOrEmpty(m_UserID))
-                    m_UserID = Guid.NewGuid().ToString();
+                    m_UserID = InworldAuth.Guid();
                 return m_UserID;
             }
             set => m_UserID = value;

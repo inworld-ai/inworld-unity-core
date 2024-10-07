@@ -26,6 +26,7 @@ namespace Inworld
         GoalComplete,
         RelationUpdate,
         ConversationNextTurn,
+        Uninterruptible,
         Error,
         Critical,
         GoAway,

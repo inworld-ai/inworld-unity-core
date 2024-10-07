@@ -21,59 +21,26 @@ namespace Inworld.Sample
     /// </summary>
     public class PlayerController : SingletonBehavior<PlayerController>
     {
-        [Header("References")]
-        [SerializeField] protected TMP_InputField m_InputField;
-        [SerializeField] protected TMP_Dropdown m_Dropdown;
-        [SerializeField] protected Button m_SendButton;
-        [SerializeField] protected Button m_RecordButton;
-
-        protected InputAction m_SubmitInputAction;
-        
+        //protected InputAction m_SubmitInputAction;
+        protected int m_CurrentUILayers;
         public UnityEvent<string> onPlayerSpeaks;
-        /// <summary>
-        /// Get if any canvas is open.
-        /// </summary>
-        public virtual bool IsAnyCanvasOpen => true;
-        /// <summary>
-        /// Send target message in the input field.
-        /// </summary>
-        public bool SendText()
+        public UnityEvent onCanvasOpen; 
+        public UnityEvent onCanvasClosed;
+
+        public int UILayer
         {
-            if (!m_InputField || string.IsNullOrEmpty(m_InputField.text))
-                return false;
-            string text = m_InputField.text;
-            if (text.StartsWith("*"))
-                InworldController.Instance.SendNarrativeAction(text.Remove(0, 1));
-            else
-                InworldController.Instance.SendText(text);
-            m_InputField.text = "";
-            return true;
-        }
-        /// <summary>
-        /// Select the character by the default dropdown component.
-        /// </summary>
-        /// <param name="nIndex">the index in the drop down</param>
-        public virtual void SelectCharacterByDropDown(Int32 nIndex)
-        {
-            if (!m_Dropdown)
-                return;
-            if (nIndex < 0 || nIndex > m_Dropdown.options.Count)
-                return;
-            if (nIndex == 0) // NONE
+            get => m_CurrentUILayers;
+            set
             {
-                InworldController.CharacterHandler.CurrentCharacter = null;
-                return;
+                m_CurrentUILayers = value;
+                if (m_CurrentUILayers > 0)
+                    onCanvasOpen?.Invoke();
+                else
+                    onCanvasClosed?.Invoke();
             }
-            InworldCharacter character = InworldController.CharacterHandler.GetCharacterByGivenName(m_Dropdown.options[nIndex].text);
-            if (!character || character == InworldController.CharacterHandler.CurrentCharacter)
-                return;
-            InworldController.CharacterHandler.CurrentCharacter = character;
         }
 
-        protected virtual void Awake()
-        {
-            m_SubmitInputAction = InworldAI.InputActions["Submit"];
-        }
+
 
         protected virtual void OnEnable()
         {
@@ -92,47 +59,25 @@ namespace Inworld.Sample
         protected virtual void OnCharacterJoined(InworldCharacter newChar)
         {
             InworldAI.Log($"{newChar.Name} joined.");
-            if (m_Dropdown)
-            {
-                m_Dropdown.options.Add(new TMP_Dropdown.OptionData
-                {
-                    text = newChar.Name
-                });
-                if (m_Dropdown.options.Count > 0)
-                    m_Dropdown.gameObject.SetActive(true);
-            }
         }
         
         protected virtual void OnCharacterLeft(InworldCharacter newChar)
         {
             InworldAI.Log($"{newChar.Name} left.");
-            if (m_Dropdown)
-            {
-                TMP_Dropdown.OptionData option = m_Dropdown.options.FirstOrDefault(o => o.text == newChar.Name);
-                if (option != null)
-                    m_Dropdown.options.Remove(option);
-                if (m_Dropdown.options.Count <= 0)
-                    m_Dropdown.gameObject.SetActive(false);
-            }
         }
         
         protected virtual void Update()
         {
-            HandleCanvas();
             HandleInput();
         }
         public virtual void OpenFeedback(string interactionID, string correlationID)
         {
             
         }
-        protected virtual void HandleCanvas()
-        {
-            
-        }
+
         protected virtual void HandleInput()
         {
-            if (m_SubmitInputAction != null && m_SubmitInputAction.WasReleasedThisFrame())
-                SendText();
+
         }
     }
 }

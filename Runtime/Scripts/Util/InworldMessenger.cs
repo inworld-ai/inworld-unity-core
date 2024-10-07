@@ -21,6 +21,7 @@ namespace Inworld.Entities
 		const string k_GoalComplete = "inworld.goal.complete";
 		const string k_RelationUpdate = "inworld.relation.update";
 		const string k_ConversationNextTurn = "inworld.conversation.next_turn";
+		const string k_Uninterruptible = "inworld.uninterruptible";
 		const string k_Error = "inworld.debug.error";
 		const string k_Critical = "inworld.debug.critical-error";
 		const string k_GoAway = "inworld.debug.goaway";
@@ -40,6 +41,7 @@ namespace Inworld.Entities
 				[k_GoalComplete] = InworldMessage.GoalComplete,
 				[k_RelationUpdate] = InworldMessage.RelationUpdate,
 				[k_ConversationNextTurn] = InworldMessage.ConversationNextTurn,
+				[k_Uninterruptible] = InworldMessage.Uninterruptible,
 				[k_Error] = InworldMessage.Error,
 				[k_Critical] = InworldMessage.Critical,
 				[k_GoAway] = InworldMessage.GoAway,

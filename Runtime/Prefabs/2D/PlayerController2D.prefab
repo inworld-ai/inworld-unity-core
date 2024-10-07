@@ -145,6 +145,7 @@ GameObject:
   - component: {fileID: 7365399474975551922}
   - component: {fileID: 7545006411749747112}
   - component: {fileID: 730931118121735442}
+  - component: {fileID: 2635969852955930620}
   m_Layer: 0
   m_Name: PlayerController2D
   m_TagString: MainCamera
@@ -239,12 +240,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce9dce1e431f53e4db0037f46907bc2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_PushToTalk: 0
-  m_PushToTalkKey: 99
-  m_InputField: {fileID: 2831028762704786429}
-  m_SendButton: {fileID: 3677230524082073424}
-  m_RecordButton: {fileID: 5952658405422641008}
-  m_DisplaySplash: 1
+  onPlayerSpeaks:
+    m_PersistentCalls:
+      m_Calls: []
+  onCanvasOpen:
+    m_PersistentCalls:
+      m_Calls: []
+  onCanvasClosed:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &2635969852955930620
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 401423953070606001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: defb3eacefba4da4a71bb5e81ce13cd7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_ActionName: 
+  m_CanvasObj: {fileID: 0}
+  m_InputField: {fileID: 0}
+  m_Dropdown: {fileID: 0}
+  m_SendButton: {fileID: 0}
+  m_RecordButton: {fileID: 0}
+  m_BubblePanel: {fileID: 0}
+  m_SubmitName: 
 --- !u!1 &884715058101280083
 GameObject:
   m_ObjectHideFlags: 0
@@ -2400,7 +2424,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -595.9403}
+  m_AnchoredPosition: {x: 0, y: -655.32153}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &746336673031193634
@@ -2746,3 +2770,4 @@ MonoBehaviour:
     relation: 1
     trigger: 1
     longBubbleMode: 1
+    task: 0
