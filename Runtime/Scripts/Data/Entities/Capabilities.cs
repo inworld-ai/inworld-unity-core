@@ -23,7 +23,6 @@ namespace Inworld.Entities
         public bool relations;
         public bool debugInfo;
         public bool multiAgent;
-
         public Capabilities() {}
         public Capabilities(Capabilities rhs)
         {

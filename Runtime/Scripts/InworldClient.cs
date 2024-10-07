@@ -204,6 +204,39 @@ namespace Inworld
             m_OutgoingCoroutine = OutgoingCoroutine();
             m_CurrentReconnectThreshold = m_ReconnectThreshold;
             StartCoroutine(m_OutgoingCoroutine);
+            TestMessageReceived(@"{
+  ""result"": {
+  ""timestamp"": ""2024-08-09T17:23:31.697504235Z"",
+  ""routing"": {
+    ""source"": {
+      ""type"": ""AGENT"",
+      ""name"": ""e06c603a-7a6b-444c-a361-422af494fb2f""
+    },
+    ""target"": {
+      ""type"": ""PLAYER"",
+      ""name"": ""DEFAULT""
+    },
+    ""targets"": [
+      {
+        ""type"": ""PLAYER"",
+        ""name"": ""DEFAULT""
+      }
+    ]
+  },
+  ""packetId"": {
+    ""packetId"": ""46a51fb6-9bb8-4086-9fd9-d36728893495"",
+    ""utteranceId"": ""9cb2c62d-2e12-4c9d-ba63-7e8c5d7e44f1"",
+    ""interactionId"": ""697c4155-4f78-43e5-93f5-12dc20f5ceb0"",
+    ""correlationId"": ""4705ed25-2714-4fe9-b2fd-f1d185dbb984"",
+    ""conversationId"": """"
+  },
+  ""dataChunk"": {
+    ""chunk"": ""CpsCeyJwYWNrZXRJZCI6eyJwYWNrZXRJZCI6Ijc2YjFjODUyLTZkMDAtNDIzNS05YWY2LTM3ZDU1YTU3OTQwNSIsInV0dGVyYW5jZUlkIjoiNDAxZjJjY2ItOWJkYS00MGNjLWI1MTMtODZhYWU0ODhlZjRmIiwiaW50ZXJhY3Rpb25JZCI6IjY5N2M0MTU1LTRmNzgtNDNlNS05M2Y1LTEyZGMyMGY1Y2ViMCIsImNvcnJlbGF0aW9uSWQiOiI0NzA1ZWQyNS0yNzE0LTRmZTktYjJmZC1mMWQxODVkYmI5ODQiLCJjb252ZXJzYXRpb25JZCI6IiJ9LCJlbW90aW9uIjp7InNwYWZmQ29kZSI6IkFGRkVDVElPTiJ9fRAH"",
+    ""type"": ""INSPECT"",
+    ""additionalPhonemeInfo"": [],
+    ""audioFormat"": ""UNSPECIFIED_AUDIO_FORMAT""
+  }
+}}");
         }
         void Update()
         {
@@ -1079,6 +1112,21 @@ namespace Inworld
                     return true;
             }
             return true;
+        }
+        public void TestMessageReceived(string test)
+        {
+            NetworkPacketResponse response = JsonConvert.DeserializeObject<NetworkPacketResponse>(test);
+            if (response == null)
+            {
+                ErrorMessage = test;
+                return;
+            }
+            InworldPacket packetReceived = response.result;
+            if (!_HandleRawPackets(packetReceived))
+                return;
+            if (packetReceived.Source == SourceType.WORLD)
+                OnGlobalPacketReceived?.Invoke(packetReceived);
+            OnPacketReceived?.Invoke(packetReceived);
         }
         void OnMessageReceived(object sender, MessageEventArgs e)
         {
