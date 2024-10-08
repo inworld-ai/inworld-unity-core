@@ -316,17 +316,12 @@ namespace Inworld
                 if (PlayerController.Instance)
                     PlayerController.Instance.onPlayerSpeaks.Invoke(packet.text.text);
             }
-            if (packet.Source == SourceType.AGENT && packet.IsSource(ID))
-            {
-                IsSpeaking = true;
-                if (m_VerboseLog)
-                    InworldAI.Log($"{Name}: {packet.text.text}");
-                Event.onCharacterSpeaks.Invoke(BrainName, packet.text.text);
-            }
-            else
-            {
-                IsSpeaking = false;
-            }
+            if (packet.Source != SourceType.AGENT || !packet.IsSource(ID)) 
+                return false;
+            IsSpeaking = true;
+            if (m_VerboseLog)
+                InworldAI.Log($"{Name}: {packet.text.text}");
+            Event.onCharacterSpeaks.Invoke(BrainName, packet.text.text);
             return true;
         }
         protected virtual void HandleTask(CustomPacket taskPacket)
