@@ -21,7 +21,6 @@ namespace Inworld.Sample
     /// </summary>
     public class PlayerController : SingletonBehavior<PlayerController>
     {
-        //protected InputAction m_SubmitInputAction;
         protected int m_CurrentUILayers;
         public UnityEvent<string> onPlayerSpeaks;
         public UnityEvent onCanvasOpen; 
