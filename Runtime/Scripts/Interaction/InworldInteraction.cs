@@ -66,7 +66,7 @@ namespace Inworld.Interactions
             if (string.IsNullOrEmpty(m_Character.ID))
                 return false;
             if (m_CurrentInteraction == null || !m_CurrentInteraction.Interruptible)
-                return true;
+                return false;
             InworldController.Client.SendCancelEventTo(m_CurrentInteraction.ID, m_CurrentInteraction.CurrentUtterance?.ID, m_Character.BrainName, isHardCancelling);
             m_CurrentInteraction.Cancel(isHardCancelling);
             m_Prepared.PourTo(m_Cancelled);
