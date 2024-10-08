@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
+
 using Inworld.Packet;
 using UnityEngine;
 
@@ -25,6 +26,7 @@ namespace Inworld.Sample
                 return;
             InworldController.Client.OnPacketReceived += RoundTripPacketReceived;
             InworldController.Client.OnPacketSent += StartSampling;
+            InworldController.Client.EnableAudioLatencyReport = true;
             InworldController.CharacterHandler.Event.onCharacterListJoined.AddListener(OnCharacterJoined);
             InworldController.CharacterHandler.Event.onCharacterListLeft.AddListener(OnCharacterLeft);
         }
@@ -53,28 +55,19 @@ namespace Inworld.Sample
         }
         protected virtual void RoundTripPacketReceived(InworldPacket packet)
         {
-            switch (packet.Source)
-            {
-                case SourceType.PLAYER:
-                    m_IsFromPlayer = true;
-                    m_RoundTripTimeSampler = Time.unscaledTime;
-                    break;
-                case SourceType.AGENT:
-                {
-                    if (m_IsFromPlayer)
-                    {
-                        InworldAI.Log($"RoundTrip Latency: {Time.unscaledTime - m_RoundTripTimeSampler}s.");
-                        m_IsFromPlayer = false;
-                    }
-                    break;
-                }
-            }
+            if (packet is TextPacket textPacket 
+                && textPacket.Source == SourceType.PLAYER 
+                && !textPacket.text.sourceType.ToUpper().Contains("TYPE") 
+                && textPacket.text.final)
+                InworldAI.Log($"ASR Latency: {Time.unscaledTime - m_RoundTripTimeSampler}s.");
         }
         /// <summary>
         /// Start Sampling. if AutoAttached is not toggled, you can assign this function anywhere.
         /// </summary>
-        public virtual void StartSampling(InworldPacket _)
+        public virtual void StartSampling(InworldPacket pkt)
         {
+            if (pkt is AudioPacket)
+                m_RoundTripTimeSampler = Time.unscaledTime;
             m_PerceivedTimeSampler = Time.unscaledTime;
         }
         /// <summary>

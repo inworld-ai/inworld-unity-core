@@ -28,6 +28,7 @@ namespace Inworld
         [Header("Default Assets")]
         [SerializeField] Capabilities m_Capabilities;
         [SerializeField] Texture2D m_DefaultThumbnail;
+        [SerializeField] Texture2D m_InworldLogo;
         [SerializeField] InworldUserSetting m_DefaultUserSetting;
         [SerializeField] InworldController m_ControllerPrefab;
         [SerializeField] InputActionAsset m_InputActions;
@@ -114,6 +115,11 @@ namespace Inworld
         /// This thumbnail is used in the demo chat panel. 
         /// </summary>
         public static Texture2D DefaultThumbnail => Instance.m_DefaultThumbnail;
+        /// <summary>
+        /// Get the Inworld logo.
+        /// This thumbnail is used in the demo LLM panel. 
+        /// </summary>
+        public static Texture2D Logo => Instance.m_InworldLogo;
         /// <summary>
         /// Get the path for all the Inworld assets.
         /// </summary>

@@ -23,9 +23,12 @@ namespace Inworld.Sample
         [SerializeField] protected Button m_RecordButton;
         [SerializeField] protected BubblePanel m_BubblePanel;
         [SerializeField] protected string m_SubmitName;
+        [SerializeField] protected bool m_IsCharacterInteraction = true;
 
         protected InputAction m_SubmitAction;
         protected CharSelectingMethod m_PrevSelectingMethod;
+        const string k_LLMService = "LLMService";
+        const string k_BroadCast = "Broadcasting";
         protected override void Awake()
         {
             base.Awake();
@@ -35,6 +38,8 @@ namespace Inworld.Sample
         }
         protected virtual void OnEnable()
         {
+            if (!InworldController.Instance)
+                return;
             InworldController.CharacterHandler.Event.onCharacterListJoined.AddListener(OnCharacterJoined);
             InworldController.CharacterHandler.Event.onCharacterListLeft.AddListener(OnCharacterLeft);
         }
@@ -75,7 +80,6 @@ namespace Inworld.Sample
                 if (m_Dropdown.options.Count <= 0)
                     m_Dropdown.gameObject.SetActive(false);
             }
-
         }
         
         protected virtual void OnCharSelected(string newCharBrainName)
@@ -136,17 +140,38 @@ namespace Inworld.Sample
                 return;
             if (nIndex < 0 || nIndex > m_Dropdown.options.Count)
                 return;
-            if (nIndex == 0) // NONE
+            string characterToSelect = m_Dropdown.options[nIndex].text;
+            if (characterToSelect == k_LLMService)
+            {
+                m_IsCharacterInteraction = false;
+                return;
+            }
+            if (characterToSelect == k_BroadCast) // NONE
             {
                 InworldController.CharacterHandler.CurrentCharacter = null;
+                m_IsCharacterInteraction = true;
                 return;
             }
             InworldCharacter character = InworldController.CharacterHandler.GetCharacterByGivenName(m_Dropdown.options[nIndex].text);
             if (!character || character == InworldController.CharacterHandler.CurrentCharacter)
                 return;
+            m_IsCharacterInteraction = true;
             InworldController.CharacterHandler.CurrentCharacter = character;
         }
         public void Submit()
+        {
+            if (m_IsCharacterInteraction)
+                InteractionSubmit();
+            else
+                LLMSubmit();
+        }
+        protected override void HandleInput()
+        {
+            base.HandleInput();
+            if (m_SubmitAction != null && m_SubmitAction.WasReleasedThisFrame())
+                Submit();
+        }
+        protected void InteractionSubmit()
         {
             if (!m_InputField || string.IsNullOrEmpty(m_InputField.text))
                 return;
@@ -157,11 +182,13 @@ namespace Inworld.Sample
                 InworldController.Instance.SendText(text);
             m_InputField.text = "";
         }
-        protected override void HandleInput()
+        protected void LLMSubmit()
         {
-            base.HandleInput();
-            if (m_SubmitAction != null && m_SubmitAction.WasReleasedThisFrame())
-                Submit();
+            if (!m_InputField || string.IsNullOrEmpty(m_InputField.text))
+                return;
+            string text = m_InputField.text;
+            InworldController.LLM.SendText(text);
+            m_InputField.text = "";
         }
     }
 }

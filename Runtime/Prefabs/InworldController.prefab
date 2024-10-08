@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: -4074574829800160846}
   - component: {fileID: 4769464275635075730}
   - component: {fileID: 3989058389384028254}
+  - component: {fileID: -6356468976297926320}
   m_Layer: 0
   m_Name: InworldController
   m_TagString: Untagged
@@ -48,6 +49,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_GameData: {fileID: 11400000, guid: 036696d7520eb5145b65e12fc1058448, type: 2}
+  m_APIKey: 2og83K3KNs8ImVaoL93pVNPc0XzKk9XV
+  m_APISecret: 5aRjDzBGPf5PTzd25rHFiazxIyqZ88n1qLjJlQV2ZQA31nmx62QcQta9q24R8GT7
+  m_ServerConfig: {fileID: 11400000, guid: 5d4b4994cd4c627409e9c619e5e369e5, type: 2}
+  m_CustomToken: 
+  m_PublicWorkspace: 
+  m_GameSessionID: 
 --- !u!114 &-4074574829800160846
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -60,10 +67,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a83291b474642d697cd7963c55a608e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_ServerConfig: {fileID: 11400000, guid: 5d4b4994cd4c627409e9c619e5e369e5, type: 2}
   m_SceneFullName: 
-  m_APIKey: 2og83K3KNs8ImVaoL93pVNPc0XzKk9XV
-  m_APISecret: 5aRjDzBGPf5PTzd25rHFiazxIyqZ88n1qLjJlQV2ZQA31nmx62QcQta9q24R8GT7
   m_AutoScene: 0
   m_MaxWaitingListSize: 100
   m_Continuation:
@@ -72,9 +76,6 @@ MonoBehaviour:
       history: []
     externallySavedState: 
   m_EnableGroupChat: 1
-  m_CustomToken: 
-  m_PublicWorkspace: 
-  m_GameSessionID: 
 --- !u!114 &4769464275635075730
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -140,3 +141,19 @@ MonoBehaviour:
     onPlayerStopSpeaking:
       m_PersistentCalls:
         m_Calls: []
+--- !u!114 &-6356468976297926320
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5556377780116934527}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4b6f91b2e7f4dda9f33fd704df850b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_MaxChatHistorySize: 100
+  onChatHistoryUpdated:
+    m_PersistentCalls:
+      m_Calls: []

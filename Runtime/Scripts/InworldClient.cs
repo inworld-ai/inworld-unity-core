@@ -24,20 +24,13 @@ namespace Inworld
     public class InworldClient : MonoBehaviour
     {
 #region Inspector Variables
-        [SerializeField] protected InworldServerConfig m_ServerConfig;
         [SerializeField] protected string m_SceneFullName;
-        [SerializeField] protected string m_APIKey;
-        [SerializeField] protected string m_APISecret;
         [Tooltip("If checked, we'll automatically find the first scene belonged to the characters.")] 
         [SerializeField] protected bool m_AutoScene = false;
         [SerializeField] protected int m_MaxWaitingListSize = 100;
         [Space(10)]
         [SerializeField] protected Continuation m_Continuation;
-        [Space(10)][Header("Advanced:")]
         [SerializeField] protected bool m_EnableGroupChat = true;
-        [SerializeField] protected string m_CustomToken;
-        [SerializeField] protected string m_PublicWorkspace;
-        [SerializeField] protected string m_GameSessionID;
 #endregion
 
 #region Events
@@ -58,7 +51,7 @@ namespace Inworld
         protected WebSocket m_Socket;
         protected LiveInfo m_LiveInfo = new LiveInfo();
         protected const string k_DisconnectMsg = "The remote party closed the WebSocket connection without completing the close handshake.";
-        protected Token m_Token;
+
         protected IEnumerator m_OutgoingCoroutine;
         protected InworldConnectionStatus m_Status;
         protected InworldError m_Error;
@@ -88,6 +81,10 @@ namespace Inworld
             set => m_EnableGroupChat = value;
         }
         /// <summary>
+        /// Gets if it's sampling audio latency.
+        /// </summary>
+        public bool EnableAudioLatencyReport { get; set; } = false;
+        /// <summary>
         /// Get/Set the session history.
         /// </summary>
         public string SessionHistory { get; set; }
@@ -103,22 +100,7 @@ namespace Inworld
         /// Gets the ping pong latency.
         /// </summary>
         public int Ping => m_PingpongLatency;
-        /// <summary>
-        /// Gets/Sets the current Inworld server this client is connecting.
-        /// </summary>
-        public InworldServerConfig Server
-        {
-            get => m_ServerConfig;
-            internal set => m_ServerConfig = value;
-        }
-        /// <summary>
-        /// Gets/Sets the token used to login Runtime server of Inworld.
-        /// </summary>
-        public Token Token
-        {
-            get => m_Token;
-            set => m_Token = value;
-        }
+        
         /// <summary>
         /// Gets/Sets the current full name of the Inworld scene.
         /// </summary>
@@ -127,10 +109,7 @@ namespace Inworld
             get => m_SceneFullName;
             set => m_SceneFullName = value;
         }
-        /// <summary>
-        /// Gets if the current token is valid.
-        /// </summary>
-        public virtual bool IsTokenValid => m_Token != null && m_Token.IsValid;
+
         /// <summary>
         /// Gets/Sets the current status of Inworld client.
         /// If set, it'll invoke OnStatusChanged events.
@@ -152,7 +131,7 @@ namespace Inworld
         public virtual string ErrorMessage
         {
             get => m_Error?.message ?? "";
-            protected set
+            set
             {
                 if (string.IsNullOrEmpty(value))
                 {
@@ -180,37 +159,32 @@ namespace Inworld
                 OnErrorReceived?.Invoke(m_Error);
                 m_CurrentReconnectThreshold *= 2;
                 m_ReconnectTimer = m_CurrentReconnectThreshold;
-                Status = InworldConnectionStatus.Error; 
+                if (m_Error.RetryType == ReconnectionType.UNDEFINED || m_Error.RetryType == ReconnectionType.NO_RETRY)
+                    Status = InworldConnectionStatus.Error; 
             }
         }
-        internal string APIKey
-        {
-            get => m_APIKey;
-            set => m_APIKey = value;
-        }
-        internal string APISecret
-        {
-            get => m_APISecret;
-            set => m_APISecret = value;
-        }
+
         internal string SceneFullName
         {
             get => m_SceneFullName;
             set => m_SceneFullName = value;
         }
-        internal string CustomToken
-        {
-            get => m_CustomToken;
-            set => m_CustomToken = value;
-        }
+
 #endregion
 
 #region Unity LifeCycle
         protected virtual void OnEnable()
         {
+            if (InworldController.Instance)
+                InworldController.Instance.OnControllerStatusChanged += OnTokenStatusChanged;
             m_OutgoingCoroutine = OutgoingCoroutine();
             m_CurrentReconnectThreshold = m_ReconnectThreshold;
             StartCoroutine(m_OutgoingCoroutine);
+        }
+        protected virtual void OnDisable()
+        {
+            if (InworldController.Instance)
+                InworldController.Instance.OnControllerStatusChanged -= OnTokenStatusChanged;
         }
         void Update()
         {
@@ -331,39 +305,23 @@ namespace Inworld
                 pkt.packetId.correlationId = InworldAuth.Guid();
             else
                 m_Sent.Add(pkt);
+            if (EnableAudioLatencyReport && pkt is AudioPacket)
+                OnPacketSent?.Invoke(pkt); 
             m_Socket.SendAsync(pkt.ToJson);
             return true;
         }
-        /// <summary>
-        /// Gets the access token. Would be implemented by child class.
-        /// </summary>
-        public virtual void GetAccessToken() => StartCoroutine(_GetAccessToken(m_PublicWorkspace));
+
         /// <summary>
         /// Reconnect session or start a new session if the current session is invalid.
         /// </summary>
         public void Reconnect() 
         {
-            if (IsTokenValid)
+            if (InworldController.IsTokenValid)
                 StartSession();
             else
-                GetAccessToken();
+                InworldController.Instance.GetAccessToken();
         }
-        /// <summary>
-        /// Use the input json string of token instead of API key/secret to load scene.
-        /// This token can be fetched by other applications such as InworldWebSDK.
-        /// </summary>
-        /// <param name="token">the custom token to init.</param>
-        public virtual bool InitWithCustomToken(string token)
-        {
-            m_Token = JsonUtility.FromJson<Token>(token);
-            if (!IsTokenValid)
-            {
-                ErrorMessage = "Get Token Failed";
-                return false;
-            }
-            Status = InworldConnectionStatus.Initialized;
-            return true;
-        }
+
         /// <summary>
         /// Start the session by the session ID.
         /// </summary>
@@ -433,8 +391,7 @@ namespace Inworld
                     m_Continuation.externallySavedState = SessionHistory;
                 }
             }
-            m_GameSessionID = string.IsNullOrEmpty(gameSessionID) ? Token.sessionId : gameSessionID;
-
+            InworldController.GameSessionID = gameSessionID;
             ControlPacket ctrlPacket = new ControlPacket
             {
                 timestamp = InworldDateTime.UtcNow,
@@ -445,7 +402,7 @@ namespace Inworld
                     sessionConfiguration = new SessionConfigurationPayload
                     {
                         capabilitiesConfiguration = InworldAI.Capabilities,
-                        sessionConfiguration = new SessionConfiguration(m_GameSessionID),
+                        sessionConfiguration = new SessionConfiguration(InworldController.GameSessionID),
                         clientConfiguration = InworldAI.UnitySDK,
                         userConfiguration = InworldAI.User.Request,
                         continuation = loadHistory ? m_Continuation : null
@@ -455,7 +412,7 @@ namespace Inworld
             if (InworldAI.IsDebugMode)
             {
                 InworldAI.Log($"Sending Capabilities: {InworldAI.Capabilities}");
-                InworldAI.Log($"Sending Session Info. {m_GameSessionID}"); 
+                InworldAI.Log($"Sending Session Info. {InworldController.GameSessionID}"); 
                 InworldAI.Log($"Sending Client Config: {InworldAI.UnitySDK}");
                 InworldAI.Log($"Sending User Config: {InworldAI.User.Request}");
                 if (loadHistory)
@@ -510,34 +467,6 @@ namespace Inworld
                 }
             };
             m_Socket.SendAsync(latencyReport.ToJson);
-        }
-        /// <summary>
-        /// Send Capabilities to Inworld Server.
-        /// Deprecated. Use SendSessionConfig instead.
-        /// </summary>
-        [Obsolete]
-        public virtual void SendCapabilities()
-        {
-            SendSessionConfig(false, m_GameSessionID);
-        }
-        /// <summary>
-        /// Send User Config to Inworld Server.
-        /// Deprecated. Use SendSessionConfig instead.
-        /// </summary>
-        [Obsolete]
-        public virtual void SendUserConfig()
-        {
-            SendSessionConfig(false, m_GameSessionID);
-        }
-        /// <summary>
-        /// Send the previous dialog (New version) to specific scene.
-        /// Can be supported by either previous state (base64) or previous dialog (actor: text)
-        /// Deprecated. Use SendSessionConfig instead.
-        /// </summary>
-        [Obsolete]
-        public virtual void SendHistory()
-        {
-            SendSessionConfig(true, m_GameSessionID);
         }
         /// <summary>
         /// New Send messages to an InworldCharacter in this current scene.
@@ -1119,72 +1048,26 @@ namespace Inworld
                 StartCoroutine(agent.UpdateThumbnail(character ? character.Data.thumbnail : null));
             }
         }
-        protected string _GetSessionFullName(string sceneFullName)
+        protected virtual void OnTokenStatusChanged(InworldConnectionStatus status, string detail)
         {
-            string[] data = sceneFullName.Split('/');
-            return data.Length != 4 ? "" : $"workspaces/{data[1]}/sessions/{m_Token.sessionId}";
+            if (status == InworldConnectionStatus.Error)
+                ErrorMessage = detail;
+            else
+                Status = status;
         }
         protected string _GetCallbackReference(string sessionFullName, string interactionID, string correlationID)
         {
             return $"{sessionFullName}/interactions/{interactionID}/groups/{correlationID}";
         }
-        protected IEnumerator _GetAccessToken(string workspaceFullName = "")
-        {
-            Status = InworldConnectionStatus.Initializing;
-            string responseJson = m_CustomToken;
-            if (string.IsNullOrEmpty(responseJson))
-            {
-                if (string.IsNullOrEmpty(m_APIKey))
-                {
-                    ErrorMessage = "Please fill API Key!";
-                    yield break;
-                }
-                if (string.IsNullOrEmpty(m_APISecret))
-                {
-                    ErrorMessage = "Please fill API Secret!";
-                    yield break;
-                }
-                string header = InworldAuth.GetHeader(m_ServerConfig.runtime, m_APIKey, m_APISecret);
-                UnityWebRequest uwr = new UnityWebRequest(m_ServerConfig.TokenServer, "POST");
-                Status = InworldConnectionStatus.Initializing;
 
-                uwr.SetRequestHeader("Authorization", header);
-                uwr.SetRequestHeader("Content-Type", "application/json");
-
-                AccessTokenRequest req = new AccessTokenRequest
-                {
-                    api_key = m_APIKey,
-                    resource_id = workspaceFullName
-                };
-                string json = JsonUtility.ToJson(req);
-                byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
-                uwr.uploadHandler = new UploadHandlerRaw(bodyRaw);
-                uwr.downloadHandler = new DownloadHandlerBuffer();
-                yield return uwr.SendWebRequest();
-
-                if (uwr.result != UnityWebRequest.Result.Success)
-                {
-                    ErrorMessage = $"Error Get Token: {uwr.error}";
-                }
-                uwr.uploadHandler.Dispose();
-                responseJson = uwr.downloadHandler.text;
-            }
-            m_Token = JsonUtility.FromJson<Token>(responseJson);
-            if (!IsTokenValid)
-            {
-                ErrorMessage = "Get Token Failed";
-                yield break;
-            }
-            Status = InworldConnectionStatus.Initialized;
-        }
         protected IEnumerator _StartSession()
         {
             if (Status == InworldConnectionStatus.Connected)
                 yield break;
-            string url = m_ServerConfig.SessionURL(m_Token.sessionId);
-            if (!IsTokenValid)
+            string url = InworldController.WebsocketSessionURL;
+            if (string.IsNullOrEmpty(url))
                 yield break;
-            string[] param = {m_Token.type, m_Token.token};
+            string[] param = {InworldController.TokenType, InworldController.Token};
             m_Socket = WebSocketManager.GetWebSocket(url);
             if (m_Socket == null)
                 m_Socket = new WebSocket(url, param);
@@ -1197,7 +1080,7 @@ namespace Inworld
         }
         void OnSocketOpen(object sender, OpenEventArgs e)
         {
-            InworldAI.Log($"Connect {m_Token.sessionId}");
+            InworldAI.Log($"Connect {InworldController.SessionID}");
             StartCoroutine(PrepareSession());
         }
         /// <summary>
@@ -1250,7 +1133,7 @@ namespace Inworld
         void OnMessageReceived(object sender, MessageEventArgs e)
         {
             NetworkPacketResponse response = JsonConvert.DeserializeObject<NetworkPacketResponse>(e.Data);
-            if (response == null || response.result == null)
+            if (response == null)
             {
                 ErrorMessage = e.Data;
                 return;
@@ -1258,6 +1141,11 @@ namespace Inworld
             if (response.error != null && !string.IsNullOrEmpty(response.error.message))
             {
                 Error = response.error;
+                return;
+            }
+            if (response.result == null)
+            {
+                ErrorMessage = e.Data;
                 return;
             }
             InworldPacket packetReceived = response.result;
@@ -1287,8 +1175,6 @@ namespace Inworld
             m_Socket?.CloseAsync();
             yield return new WaitForEndOfFrame();
         }
-        
-        
         protected bool PreparePacketToSend(InworldPacket rawPkt, bool immediate = false, bool needCallback = true)
         {
             if (!immediate)
@@ -1306,16 +1192,15 @@ namespace Inworld
         }
         protected IEnumerator _GetHistoryAsync(string sceneFullName)
         {
-            string sessionFullName = _GetSessionFullName(sceneFullName);
-            UnityWebRequest uwr = new UnityWebRequest(m_ServerConfig.LoadSessionURL(sessionFullName), "GET");
-            uwr.SetRequestHeader("Grpc-Metadata-session-id", m_Token.sessionId);
-            uwr.SetRequestHeader("Authorization", $"Bearer {m_Token.token}");
+            UnityWebRequest uwr = new UnityWebRequest(InworldController.Instance.LoadSessionURL(sceneFullName), "GET");
+            uwr.SetRequestHeader("Grpc-Metadata-session-id", InworldController.SessionID);
+            uwr.SetRequestHeader("Authorization", $"Bearer {InworldController.Token}");
             uwr.SetRequestHeader("Content-Type", "application/json");
             uwr.downloadHandler = new DownloadHandlerBuffer();
             yield return uwr.SendWebRequest();
             if (uwr.result != UnityWebRequest.Result.Success)
             {
-                ErrorMessage = $"Error loading scene {m_Token.sessionId}: {uwr.error} {uwr.downloadHandler.text}";
+                ErrorMessage = $"Error loading scene {InworldController.SessionID}: {uwr.error} {uwr.downloadHandler.text}";
                 uwr.uploadHandler.Dispose();
                 yield break;
             }
@@ -1338,11 +1223,11 @@ namespace Inworld
         }
         IEnumerator _PostFeedback(string interactionID, string correlationID, Feedback feedback)
         {
-            string sessionFullName = _GetSessionFullName(m_SceneFullName);
+            string sessionFullName = InworldController.Instance.GetSessionFullName(m_SceneFullName);
             string callbackRef = _GetCallbackReference(sessionFullName, interactionID, correlationID);
-            UnityWebRequest uwr = new UnityWebRequest(m_ServerConfig.FeedbackURL(callbackRef), "POST");
-            uwr.SetRequestHeader("Grpc-Metadata-session-id", m_Token.sessionId);
-            uwr.SetRequestHeader("Authorization", $"Bearer {m_Token.token}");
+            UnityWebRequest uwr = new UnityWebRequest(InworldController.Server.FeedbackURL(callbackRef), "POST");
+            uwr.SetRequestHeader("Grpc-Metadata-session-id", InworldController.SessionID);
+            uwr.SetRequestHeader("Authorization", $"Bearer {InworldController.Token}");
             uwr.SetRequestHeader("Content-Type", "application/json");
             string json = JsonUtility.ToJson(feedback);
             Debug.Log($"SEND: {json}");

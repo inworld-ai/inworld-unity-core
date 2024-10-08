@@ -13,14 +13,14 @@ namespace Inworld.UI
 {
     public class ConnectButton : MonoBehaviour
     {
-        [SerializeField] TMP_Text m_Status;
-        [SerializeField] Button m_ConnectButton;
+        [SerializeField] protected TMP_Text m_Status;
+        [SerializeField] protected Button m_ConnectButton;
         [SerializeField] TMP_Text m_ButtonText;
 
         /// <summary>
         /// Control the InworldController to connect inworld server.
         /// </summary>
-        public void ConnectInworld()
+        public virtual void ConnectInworld()
         {
             switch (InworldController.Status)
             {
@@ -69,11 +69,9 @@ namespace Inworld.UI
             }
             if (!m_Status)
                 return;
-            m_Status.text = newStatus == InworldConnectionStatus.Connected && InworldController.CurrentCharacter
-                ?  $"Current: {InworldController.CurrentCharacter.Name}" 
-                : newStatus.ToString();
+            m_Status.text = newStatus.ToString();
         }
-        void _SetButtonStatus(bool interactable, string buttonText = "")
+        protected void _SetButtonStatus(bool interactable, string buttonText = "")
         {
             if (m_ConnectButton)
                 m_ConnectButton.interactable = interactable;
