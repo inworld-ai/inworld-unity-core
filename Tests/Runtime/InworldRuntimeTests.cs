@@ -5,16 +5,16 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
-using Inworld.Entities;
 using Inworld.Packet;
 using NUnit.Framework;
-using System;
+
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
+
 namespace Inworld.Test
 {
 	public class InworldRuntimeTests
@@ -132,7 +132,7 @@ namespace Inworld.Test
 		public IEnumerator InworldRuntimeTest_SendText()
 		{
 			m_Conversation.Clear();
-			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Hello");
+			InworldController.Client.SendText("Hello", InworldController.Client.LiveSessionData.Values.First().agentId);
 			yield return ConversationCheck(10);
 			Assert.IsTrue(m_Conversation.Any(p => p is TextPacket));
 			Assert.IsTrue(m_Conversation.Any(p => p is AudioPacket));
@@ -146,7 +146,7 @@ namespace Inworld.Test
 			InworldController.Client.StartAudio(agentID); ;
 			yield return new WaitForSeconds(0.1f);
 			InworldController.Audio.AutoDetectPlayerSpeaking = false;
-			InworldController.Client.SendAudio(agentID, k_AudioChunk);
+			InworldController.Client.SendAudio(k_AudioChunk, agentID);
 			yield return new WaitForSeconds(0.1f);
 			InworldController.Client.StopAudio(agentID);
 			yield return ConversationCheck(10);
@@ -157,7 +157,7 @@ namespace Inworld.Test
 		public IEnumerator InworldRuntimeTest_SayVerbatim()
 		{
 			m_Conversation.Clear();
-			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "How are you?");
+			InworldController.Client.SendText("How are you?", InworldController.Client.LiveSessionData.Values.First().agentId);
 			yield return ConversationCheck(10);
 			Assert.IsTrue(m_Conversation.Any(p => p is TextPacket textPacket && textPacket.text.text == k_VerbatimResponse));
 		}
@@ -178,7 +178,7 @@ namespace Inworld.Test
 			InworldController.Client.StartAudio(agentID); 
 			yield return new WaitForSeconds(0.1f);
 			InworldController.Audio.AutoDetectPlayerSpeaking = false;
-			InworldController.Client.SendAudio(agentID, k_AudioChunk);
+			InworldController.Client.SendAudio(k_AudioChunk, agentID);
 			yield return new WaitForSeconds(0.1f);
 			InworldController.Client.StopAudio(agentID);
 			yield return ConversationCheck(10);
@@ -189,7 +189,7 @@ namespace Inworld.Test
 		public IEnumerator InworldRuntimeTest_EmotionChange()
 		{
 			m_Conversation.Clear();
-			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "You're feeling sad");
+			InworldController.Client.SendText("You're feeling sad", InworldController.Client.LiveSessionData.Values.First().agentId);
 			yield return ConversationCheck(10);
 			Assert.IsTrue(m_Conversation.Any(p => p is EmotionPacket emoPacket 
 			                                      && emoPacket.emotion.behavior == SpaffCode.SADNESS 
@@ -200,18 +200,18 @@ namespace Inworld.Test
 		public IEnumerator InworldRuntimeTest_ReconnectionTest()
 		{
 			m_Conversation.Clear();
-			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Hello");
+			InworldController.Client.SendText("Hello", InworldController.Client.LiveSessionData.Values.First().agentId);
 			yield return ConversationCheck(10);
 			Assert.IsTrue(m_Conversation.Any(p => p is TextPacket));
 			Assert.IsTrue(m_Conversation.Any(p => p is AudioPacket));
 			InworldController.Client.Disconnect();
 			m_Conversation.Clear();
-			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Hello");
+			InworldController.Client.SendText("Hello", InworldController.Client.LiveSessionData.Values.First().agentId);
 			Assert.IsFalse(m_Conversation.Any(p => p is TextPacket));
 			Assert.IsFalse(m_Conversation.Any(p => p is AudioPacket));
 			yield return InitTest();
 			m_Conversation.Clear();
-			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Hello");
+			InworldController.Client.SendText("Hello", InworldController.Client.LiveSessionData.Values.First().agentId);
 			yield return ConversationCheck(10);
 			Assert.IsTrue(m_Conversation.Any(p => p is TextPacket));
 			Assert.IsTrue(m_Conversation.Any(p => p is AudioPacket));		
@@ -220,7 +220,7 @@ namespace Inworld.Test
 		public IEnumerator InworldRuntimeTest_InterleaveTextAudio()
 		{
 			m_Conversation.Clear();
-			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Hello");
+			InworldController.Client.SendText("Hello", InworldController.Client.LiveSessionData.Values.First().agentId);
 			yield return ConversationCheck(10);
 			Assert.IsTrue(m_Conversation.Any(p => p is TextPacket));
 			Assert.IsTrue(m_Conversation.Any(p => p is AudioPacket));
@@ -229,7 +229,7 @@ namespace Inworld.Test
 			string agentID = InworldController.Client.LiveSessionData.Values.First().agentId;
 			InworldController.Client.StartAudio(agentID); ;
 			yield return new WaitForSeconds(0.1f);
-			InworldController.Client.SendAudio(agentID, k_AudioChunk);
+			InworldController.Client.SendAudio(k_AudioChunk, agentID);
 			yield return new WaitForSeconds(0.1f);
 			InworldController.Client.StopAudio(agentID);
 			yield return ConversationCheck(10);
@@ -241,11 +241,11 @@ namespace Inworld.Test
 		public IEnumerator InworldRuntimeTest_GoalsRepeatable()
 		{
 			m_Conversation.Clear();
-			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Repeatable");
+			InworldController.Client.SendText("Repeatable", InworldController.Client.LiveSessionData.Values.First().agentId);
 			yield return ConversationCheck(10);
 			Assert.IsTrue(m_Conversation.Any(p => p is CustomPacket customPacket && customPacket.Trigger == k_RepeatableGoal));
 			m_Conversation.Clear();
-			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Repeatable");
+			InworldController.Client.SendText("Repeatable", InworldController.Client.LiveSessionData.Values.First().agentId);
 			yield return ConversationCheck(10);
 			Assert.IsTrue(m_Conversation.Any(p => p is CustomPacket customPacket && customPacket.Trigger == k_RepeatableGoal));
 		}
@@ -254,11 +254,11 @@ namespace Inworld.Test
 		public IEnumerator InworldRuntimeTest_GoalsUnrepeatable()
 		{
 			m_Conversation.Clear();
-			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Unrepeatable");
+			InworldController.Client.SendText("Unrepeatable", InworldController.Client.LiveSessionData.Values.First().agentId);
 			yield return ConversationCheck(10);
 			Assert.IsTrue(m_Conversation.Any(p => p is CustomPacket customPacket && customPacket.Trigger == k_UnrepeatableGoal));
 			m_Conversation.Clear();
-			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Unrepeatable");
+			InworldController.Client.SendText("Unrepeatable", InworldController.Client.LiveSessionData.Values.First().agentId);
 			yield return ConversationCheck(10);
 			Assert.IsFalse(m_Conversation.Any(p => p is CustomPacket customPacket && customPacket.Trigger == k_UnrepeatableGoal));
 		}
@@ -267,7 +267,7 @@ namespace Inworld.Test
 		public IEnumerator InworldRuntimeTest_GoalsTrigger()
 		{
 			m_Conversation.Clear();
-			InworldController.Client.SendTrigger(InworldController.Client.LiveSessionData.Values.First().agentId, "hit_trigger");
+			InworldController.Client.SendTrigger("hit_trigger", null, InworldController.Client.LiveSessionData.Values.First().agentId);
 			yield return ConversationCheck(10);
 			Assert.IsTrue(m_Conversation.Any(p => p is CustomPacket customPacket && customPacket.Trigger == k_TriggerGoal));
 			Assert.IsTrue(m_Conversation.Any(p => p is TextPacket textPacket && textPacket.text.text == k_TriggerResponse));

@@ -67,11 +67,11 @@ namespace Inworld.Entities
 		public static InworldMessage ProcessPacket(CustomPacket packet) => 
 			(from data in s_Message where packet.custom.name.StartsWith(data.Key) select data.Value).FirstOrDefault();
 
-		public static bool EnableGoal(string goalName, string brainName) => InworldController.Client.SendTriggerTo($"{k_GoalEnable}.{goalName}", null, brainName);
+		public static bool EnableGoal(string goalName, string brainName) => InworldController.Client.SendTrigger($"{k_GoalEnable}.{goalName}", null, brainName);
 		
-		public static bool DisableGoal(string goalName, string brainName) => InworldController.Client.SendTriggerTo($"{k_GoalDisable}.{goalName}", null, brainName);
+		public static bool DisableGoal(string goalName, string brainName) => InworldController.Client.SendTrigger($"{k_GoalDisable}.{goalName}", null, brainName);
 		
-		public static bool SendTaskSucceeded(string taskID, string brainName) => InworldController.Client.SendTriggerTo(k_TaskSucceeded, new Dictionary<string, string>()
+		public static bool SendTaskSucceeded(string taskID, string brainName) => InworldController.Client.SendTrigger(k_TaskSucceeded, new Dictionary<string, string>()
 			{ { "task_id", taskID } }, brainName);
 
 		public static bool SendTaskFailed(string taskID, string reason, string brainName)
@@ -82,7 +82,7 @@ namespace Inworld.Entities
 				return false;
 			}
 			
-			return InworldController.Client.SendTriggerTo(k_TaskFailed, new Dictionary<string, string>()
+			return InworldController.Client.SendTrigger(k_TaskFailed, new Dictionary<string, string>()
 				{ { "task_id", taskID }, { "reason", reason } }, brainName);
 		}
 

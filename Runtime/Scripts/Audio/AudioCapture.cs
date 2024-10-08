@@ -311,14 +311,14 @@ namespace Inworld
         public virtual bool StopAudio()
         {
             m_AudioToPush.Clear();
-            return InworldController.Client.StopAudioTo();
+            return InworldController.Client.StopAudio();
         }
         public virtual bool StartAudio()
         {
             MicrophoneMode micMode = (SampleMode == MicSampleMode.AEC && EnableVAD) || SampleMode == MicSampleMode.PUSH_TO_TALK ? MicrophoneMode.EXPECT_AUDIO_END : MicrophoneMode.OPEN_MIC;
             UnderstandingMode understandingMode = m_TestMode ? UnderstandingMode.SPEECH_RECOGNITION_ONLY : UnderstandingMode.FULL;
             InworldCharacter character = InworldController.CharacterHandler.CurrentCharacter;
-            return InworldController.Client.StartAudioTo(character ? character.BrainName : null, micMode, understandingMode);
+            return InworldController.Client.StartAudio(character ? character.BrainName : null, micMode, understandingMode);
         }
         public virtual bool SendAudio(AudioChunk chunk)
         {
@@ -328,7 +328,7 @@ namespace Inworld
             {
                 InworldController.Client.Current.Character = InworldController.CharacterHandler[chunk.targetName]?.Data;
             }
-            return InworldController.Client.SendAudioTo(chunk.chunk);
+            return InworldController.Client.SendAudio(chunk.chunk);
         }
         /// <summary>
         /// Get the audio data from the AudioListener.
