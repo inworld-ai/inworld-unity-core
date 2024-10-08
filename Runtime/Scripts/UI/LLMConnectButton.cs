@@ -11,15 +11,7 @@ namespace Inworld.UI
 	{
 		public override void ConnectInworld()
 		{
-			switch (InworldController.Status)
-			{
-				case InworldConnectionStatus.Idle:
-					InworldController.Instance.GetAccessToken();
-					break;
-				case InworldConnectionStatus.Initialized:
-					InworldController.Client.StartSession();
-					break;
-			}
+			InworldController.Instance.GetAccessToken();
 		}
 		void OnEnable()
 		{
@@ -41,10 +33,8 @@ namespace Inworld.UI
 			switch (newStatus)
 			{
 				case InworldConnectionStatus.Idle:
-					_SetButtonStatus(true, "CONNECT");
-					break;
 				case InworldConnectionStatus.Initialized:
-					_SetButtonStatus(true, "DISCONNECT");
+					_SetButtonStatus(true, "CONNECT");
 					break;
 				default:
 					_SetButtonStatus(false);
@@ -52,9 +42,7 @@ namespace Inworld.UI
 			}
 			if (!m_Status)
 				return;
-			m_Status.text = newStatus == InworldConnectionStatus.Connected && InworldController.CurrentCharacter
-				?  $"Current: {InworldController.CurrentCharacter.Name}" 
-				: newStatus.ToString();
+			m_Status.text = newStatus.ToString();
 		}
 	}
 }
