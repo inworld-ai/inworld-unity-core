@@ -55,6 +55,7 @@ namespace Inworld.Test
 		public IEnumerator CleanupEnv()
 		{
 			m_Conversation.Clear();
+			InworldController.Instance.Disconnect();
 			if (InworldController.Instance)
 			{
 				InworldController.Client.OnStatusChanged -= OnClientStatusChanged;
@@ -137,7 +138,16 @@ namespace Inworld.Test
 			Assert.IsTrue(m_Conversation.Any(p => p is TextPacket));
 			Assert.IsTrue(m_Conversation.Any(p => p is AudioPacket));
 		}
-		
+		[UnityTest]
+		public IEnumerator InworldRuntimeTest_SendTextAfterUnknownPacket()
+		{
+			m_Conversation.Clear();
+			OnPacketReceived(new InworldPacket());
+			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Hello");
+			yield return ConversationCheck(10);
+			Assert.IsTrue(m_Conversation.Any(p => p is TextPacket));
+			Assert.IsTrue(m_Conversation.Any(p => p is AudioPacket));
+		}
 		[UnityTest]
 		public IEnumerator InworldRuntimeTest_SendAudio()
 		{
