@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
+using System;
 using UnityEngine;
 using System.Collections;
 using System.Linq;
@@ -18,7 +19,8 @@ namespace Inworld.Interactions
         [Range (0, 1)][SerializeField] protected float m_VolumeOnPlayerSpeaking = 1f;
         const string k_NoAudioCapabilities = "Audio Capabilities have been disabled in the Inworld AI object. Audio is required to be enabled when using the InworldAudioInteraction component.";
         public override float AnimFactor => m_PlaybackSource ? m_PlaybackSource.time : base.AnimFactor;
-        
+        protected float m_AudioReducer;
+        protected bool m_IsPlayerSpeaking;
         /// <summary>
         /// Gets this character's audio source
         /// </summary>
@@ -42,27 +44,23 @@ namespace Inworld.Interactions
             if (brainName != m_Character.BrainName)
                 return;
             base.OnCharacterSelected(brainName);
-            m_PlaybackSource.volume = 1;
+            m_AudioReducer = 0;
         }
 
         protected override void OnPlayerStartSpeaking()
         {
-            if (!m_PlaybackSource || !InworldController.Audio)
-                return;
-            m_PlaybackSource.volume = m_VolumeOnPlayerSpeaking;
+            m_IsPlayerSpeaking = true;
         }
         protected override void OnPlayerStopSpeaking()
         {
-            if (!m_PlaybackSource || !InworldController.Audio)
-                return;
-            m_PlaybackSource.volume = 1;
+            m_IsPlayerSpeaking = false;
         }
 
         public override IEnumerator CancelResponseAsync()
         {
             while (m_PlaybackSource && m_PlaybackSource.volume > 0.1f)
             {
-                m_PlaybackSource.volume -= Time.fixedUnscaledDeltaTime;
+                m_AudioReducer += Time.fixedUnscaledDeltaTime;
                 yield return new WaitForFixedUpdate();
             }
             CancelResponse();
@@ -89,6 +87,12 @@ namespace Inworld.Interactions
             m_PlaybackSource.Stop();
             if (!InworldAI.Capabilities.audio)
                 InworldAI.LogWarning(k_NoAudioCapabilities);
+        }
+        void LateUpdate()
+        {
+            if (!m_PlaybackSource || !m_Character)
+                    return;
+            m_PlaybackSource.volume = (1 - 2 * MathF.Max(0, m_Character.Priority)) * (m_IsPlayerSpeaking ? m_VolumeOnPlayerSpeaking : 1f) - m_AudioReducer;
         }
         protected override IEnumerator InteractionCoroutine()
         {

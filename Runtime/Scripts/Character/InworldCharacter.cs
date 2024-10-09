@@ -117,8 +117,8 @@ namespace Inworld
         /// </summary>
         public string ID => string.IsNullOrEmpty(Data?.agentId) ? GetLiveSessionID() : Data?.agentId;
         /// <summary>
-        ///     Returns the priority of the character.
-        ///     the higher the Priority is, the character is more likely responding to player.
+        ///     Returns the priority of the character. It's used by CharacterHandler3D.     
+        ///     The closer to zero the Priority is, the character is more likely responding to player.
         /// </summary>
         public float Priority { get; set; } = float.MaxValue;
         /// <summary>
