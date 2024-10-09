@@ -393,19 +393,35 @@ namespace Inworld
         /// otherwise, it'll be sent as broadcast.
         /// </summary>
         /// <param name="text">the message to send.</param>
-        public bool SendText(string text)
+        /// <param name="interruptible">if this text will interrupt the current character, by default is true.</param>
+        public bool SendText(string text, bool interruptible = true)
         {
-            CancelResponses();
+            if (!m_Client)
+                return false;
+            if (interruptible)
+                CancelResponses();
             return m_Client.SendTextTo(text, CharacterHandler.CurrentCharacter? CharacterHandler.CurrentCharacter.BrainName : "");
+        }
+        /// <summary>
+        /// Send Text to LLM Service
+        /// </summary>
+        /// <param name="text">the text to send</param>
+        public bool SendLLMText(string text)
+        {
+            return IsTokenValid && m_LLMRuntime && m_LLMRuntime.SendText(text);
         }
         /// <summary>
         /// Send a narrative action to an InworldCharacter in this current scene.
         /// </summary>
         /// <param name="charID">the live session ID of the character to send</param>
         /// <param name="narrativeAction">the narrative action to send.</param>
-        public bool SendNarrativeAction(string narrativeAction)
+        /// <param name="interruptible">if this text will interrupt the current character, by default is true.</param>
+        public bool SendNarrativeAction(string narrativeAction, bool interruptible = true)
         {
-            CancelResponses();
+            if (!m_Client)
+                return false;
+            if (interruptible)
+                CancelResponses();
             return m_Client.SendNarrativeActionTo(narrativeAction, CharacterHandler.CurrentCharacter? CharacterHandler.CurrentCharacter.BrainName : "");
         }
         /// <summary>

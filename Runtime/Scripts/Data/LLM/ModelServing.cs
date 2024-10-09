@@ -38,22 +38,6 @@ namespace Inworld.LLM.ModelServing
 					model = "inworld-mage";
 					service_provider = ServiceProvider.SERVICE_PROVIDER_INWORLD;
 					break;
-				case ModelName.GPT3_5_Turbo_Instruct:
-					model = "gpt-3.5-turbo-instruct";
-					service_provider = ServiceProvider.SERVICE_PROVIDER_AZURE;
-					break;
-				case ModelName.GPT3_5_Turbo_0613:
-					model = "gpt-3.5-turbo-0613";
-					service_provider = ServiceProvider.SERVICE_PROVIDER_AZURE;
-					break;
-				case ModelName.GPT3_5:
-					model = "gpt-3.5";
-					service_provider = ServiceProvider.SERVICE_PROVIDER_OPENAI;
-					break;
-				case ModelName.GPT4o:
-					model = "gpt-4o";
-					service_provider = ServiceProvider.SERVICE_PROVIDER_OPENAI;
-					break;
 				case ModelName.Undefined:
 				case ModelName.Inworld_Dragon:
 				default:
