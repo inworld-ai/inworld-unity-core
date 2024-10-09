@@ -475,15 +475,15 @@ namespace Inworld
         /// <param name="textToSend">the message to send.</param>
         /// <param name="brainName">the list of the characters full name.</param>
         /// <param name="immediate">if this packet needs to send immediately without order (Need to make sure client is connected first).</param>
-        /// <param name="reconnectable">if this packet will be resent if connection terminated</param>
-        public virtual bool SendTextTo(string textToSend, string brainName = null, bool immediate = false, bool reconnectable = true)
+        /// <param name="resendOnReconnect">if this packet will be resent if connection terminated</param>
+        public virtual bool SendTextTo(string textToSend, string brainName = null, bool immediate = false, bool resendOnReconnect = true)
         {
             if (string.IsNullOrEmpty(textToSend))
                 return false;
             if (!Current.UpdateLiveInfo(brainName))
                 return false;
             InworldPacket rawPkt = new TextPacket(textToSend);
-            if (reconnectable)
+            if (resendOnReconnect)
                 rawPkt.packetId.correlationId = InworldAuth.Guid();
             PreparePacketToSend(rawPkt, immediate);
             return true;
@@ -517,15 +517,15 @@ namespace Inworld
         /// <param name="narrativeAction">the narrative action to send.</param>
         /// <param name="brainName">the list of the characters full name.</param>
         /// <param name="immediate">if this packet needs to send immediately without order (Need to make sure client is connected first).</param>
-        /// <param name="reconnectable">if this packet will be resent if connection terminated</param>
-        public virtual bool SendNarrativeActionTo(string narrativeAction, string brainName = null, bool immediate = false, bool reconnectable = true)
+        /// <param name="resendOnReconnect">if this packet will be resent if connection terminated</param>
+        public virtual bool SendNarrativeActionTo(string narrativeAction, string brainName = null, bool immediate = false, bool resendOnReconnect = true)
         {
             if (string.IsNullOrEmpty(narrativeAction))
                 return false;
             if (!Current.UpdateLiveInfo(brainName))
                 return false;
             InworldPacket rawPkt = new ActionPacket(narrativeAction);
-            if (reconnectable)
+            if (resendOnReconnect)
                 rawPkt.packetId.correlationId = InworldAuth.Guid();
             PreparePacketToSend(rawPkt, immediate);
             return true;
@@ -673,15 +673,15 @@ namespace Inworld
         /// <param name="parameters">the parameters and their values for the triggers.</param>
         /// <param name="brainName">the full name of the characters in the scene.</param>
         /// <param name="immediate">if this packet needs to send immediately without order. By default it's true (Need to make sure client is connected first).</param>
-        /// <param name="reconnectable">if this packet will be resent if connection terminated</param>
-        public virtual bool SendTriggerTo(string triggerName, Dictionary<string, string> parameters = null, string brainName = null, bool immediate = false, bool reconnectable = true)
+        /// <param name="resendOnReconnect">if this packet will be resent if connection terminated</param>
+        public virtual bool SendTriggerTo(string triggerName, Dictionary<string, string> parameters = null, string brainName = null, bool immediate = false, bool resendOnReconnect = true)
         {
             if (string.IsNullOrEmpty(triggerName))
                 return false;
             if (!Current.UpdateLiveInfo(brainName))
                 return false;
             InworldPacket rawPkt = new CustomPacket(triggerName, parameters);
-            if (reconnectable)
+            if (resendOnReconnect)
                 rawPkt.packetId.correlationId = InworldAuth.Guid();
             PreparePacketToSend(rawPkt, immediate);
             return true;
