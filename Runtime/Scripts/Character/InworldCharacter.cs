@@ -117,8 +117,8 @@ namespace Inworld
         /// </summary>
         public string ID => string.IsNullOrEmpty(Data?.agentId) ? GetLiveSessionID() : Data?.agentId;
         /// <summary>
-        ///     Returns the priority of the character.
-        ///     the higher the Priority is, the character is more likely responding to player.
+        ///     Returns the priority of the character. It's used by CharacterHandler3D.     
+        ///     The closer to zero the Priority is, the character is more likely responding to player.
         /// </summary>
         public float Priority { get; set; } = float.MaxValue;
         /// <summary>
@@ -316,17 +316,12 @@ namespace Inworld
                 if (PlayerController.Instance)
                     PlayerController.Instance.onPlayerSpeaks.Invoke(packet.text.text);
             }
-            if (packet.Source == SourceType.AGENT && packet.IsSource(ID))
-            {
-                IsSpeaking = true;
-                if (m_VerboseLog)
-                    InworldAI.Log($"{Name}: {packet.text.text}");
-                Event.onCharacterSpeaks.Invoke(BrainName, packet.text.text);
-            }
-            else
-            {
-                IsSpeaking = false;
-            }
+            if (packet.Source != SourceType.AGENT || !packet.IsSource(ID)) 
+                return false;
+            IsSpeaking = true;
+            if (m_VerboseLog)
+                InworldAI.Log($"{Name}: {packet.text.text}");
+            Event.onCharacterSpeaks.Invoke(BrainName, packet.text.text);
             return true;
         }
         protected virtual void HandleTask(CustomPacket taskPacket)
