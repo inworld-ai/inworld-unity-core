@@ -259,7 +259,6 @@ namespace Inworld
     {
         Manual,
         KeyCode,
-        SightAngle,
-        AutoChat
+        SightAngle
     }
 }

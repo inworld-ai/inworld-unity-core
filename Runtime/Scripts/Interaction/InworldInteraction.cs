@@ -8,6 +8,7 @@
 using UnityEngine;
 using Inworld.Packet;
 using System.Collections;
+using Inworld.Entities;
 using UnityEngine.InputSystem;
 using Random = UnityEngine.Random;
 

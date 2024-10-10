@@ -66,7 +66,6 @@ namespace Inworld.Entities
 		}
 		public static InworldMessage ProcessPacket(CustomPacket packet) => 
 			(from data in s_Message where packet.custom.name.StartsWith(data.Key) select data.Value).FirstOrDefault();
-
 		public static bool EnableGoal(string goalName, string brainName) => InworldController.Client.SendTriggerTo($"{k_GoalEnable}.{goalName}", null, brainName);
 		
 		public static bool DisableGoal(string goalName, string brainName) => InworldController.Client.SendTriggerTo($"{k_GoalDisable}.{goalName}", null, brainName);

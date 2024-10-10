@@ -29,8 +29,14 @@ namespace Inworld
         [SerializeField] protected bool m_AutoScene = false;
         [SerializeField] protected int m_MaxWaitingListSize = 100;
         [Space(10)]
+        [Header("Conversation history:")]
         [SerializeField] protected Continuation m_Continuation;
+        [Space(10)]
+        [Header("MultiAgents settings:")]
+        [Tooltip("Toggle this will enable group chat. Characters will be in the same conversation")]
         [SerializeField] protected bool m_EnableGroupChat = true;
+        [Tooltip("Toggle this will enable auto chat. Characters will talk to each other. (Must enable group chat first)")]
+        [SerializeField] protected bool m_AutoChat = false;
 #endregion
 
 #region Events
@@ -73,13 +79,25 @@ namespace Inworld
         /// </summary>
         public Dictionary<string, InworldCharacterData> LiveSessionData => m_LiveSessionData;
         /// <summary>
-        /// Gets if group chat is enabled.
+        /// Get/Set if group chat is enabled.
         /// </summary>
         public bool EnableGroupChat
         {
             get => m_EnableGroupChat;
             set => m_EnableGroupChat = value;
         }
+        /// <summary>
+        /// Get/Set if the group is in AutoChat mode.
+        /// </summary>
+        public bool AutoChat
+        {
+            get => m_AutoChat;
+            set => m_AutoChat = value;
+        }
+        /// <summary>
+        /// Get/Set if the current interaction is ended by player's interruption
+        /// </summary>
+        public bool IsPlayerCancelling {get; set;}
         /// <summary>
         /// Gets if it's sampling audio latency.
         /// </summary>
@@ -579,6 +597,7 @@ namespace Inworld
                 cancelResponses = cancelResponses
             };
             InworldPacket rawPkt = new MutationPacket(mutation);
+            IsPlayerCancelling = true;
             PreparePacketToSend(rawPkt, immediate);
             return true;
         }
@@ -1258,6 +1277,8 @@ namespace Inworld
         void _FinishInteraction(string correlationID)
         {
             m_Sent.RemoveAll(p => p.packetId.correlationId == correlationID);
+            if (IsPlayerCancelling)
+                IsPlayerCancelling = false;
         }
 #endregion
     }
