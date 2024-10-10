@@ -73,6 +73,7 @@ namespace Inworld
                 {
                     if (m_VerboseLog)
                         InworldAI.Log($"{Name} Ends Speaking");
+                    HandleNextTurn();
                     m_CharacterEvents.onEndSpeaking.Invoke(BrainName);
                 }
             }
@@ -323,6 +324,17 @@ namespace Inworld
                 InworldAI.Log($"{Name}: {packet.text.text}");
             Event.onCharacterSpeaks.Invoke(BrainName, packet.text.text);
             return true;
+        }
+
+        protected virtual bool HandleNextTurn()
+        {
+            if (InworldController.Instance &&
+                InworldController.Client.AutoChat &&
+                !InworldController.Client.IsPlayerCancelling &&
+                InworldController.Client.Current.IsConversation &&
+                InworldController.Client.Current.Conversation.BrainNames.Count > 1)
+                return InworldController.Instance.SendTrigger(InworldMessenger.NextTurn);
+            return false;
         }
         protected virtual void HandleTask(CustomPacket taskPacket)
         {

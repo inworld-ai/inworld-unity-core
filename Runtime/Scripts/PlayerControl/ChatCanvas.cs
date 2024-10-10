@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
+using System;
 using Inworld.UI;
 using System.Linq;
 using TMPro;
@@ -87,28 +88,23 @@ namespace Inworld.Sample
             if (!m_Dropdown)
                 return;
             string givenName = InworldController.CharacterHandler[newCharBrainName]?.Name;
-            if (string.IsNullOrEmpty(givenName))
-            {
-                m_Dropdown.value = 0;
-                m_Dropdown.RefreshShownValue();
-            }
-            else
-            {
-                int value = m_Dropdown.options.FindIndex(o => o.text == givenName);
-                if (value == -1)
-                    return;
-                m_Dropdown.value = value;
-                m_Dropdown.RefreshShownValue();
-            }
+            UpdateCharacterSelection(string.IsNullOrEmpty(givenName) ? k_BroadCast : givenName);
             RefreshUIInteractive(true);
         }
         protected virtual void OnCharDeselected(string newCharBrainName)
         {
+            UpdateCharacterSelection(k_BroadCast);
+        }
+
+        protected virtual void UpdateCharacterSelection(string newCharBrainName)
+        {
             if (!m_Dropdown)
                 return;
-            m_Dropdown.value = 0;
+            int value = m_Dropdown.options.FindIndex(o => o.text == newCharBrainName);
+            if (value == -1)
+                return;
+            m_Dropdown.value = value;
             m_Dropdown.RefreshShownValue();
-            RefreshUIInteractive(false);
         }
         protected virtual void RefreshUIInteractive(bool isON)
         {
@@ -123,6 +119,13 @@ namespace Inworld.Sample
         {
             m_PrevSelectingMethod = InworldController.CharacterHandler.SelectingMethod;
             InworldController.CharacterHandler.SelectingMethod = CharSelectingMethod.Manual;
+            if (m_IsCharacterInteraction)
+            {
+                string givenName = InworldController.CharacterHandler.CurrentCharacter?.Name;
+                UpdateCharacterSelection(string.IsNullOrEmpty(givenName) ? k_BroadCast : givenName);
+            }
+            else
+                UpdateCharacterSelection(k_LLMService);
             if (m_BubblePanel)
                 m_BubblePanel.UpdateContent();
         }

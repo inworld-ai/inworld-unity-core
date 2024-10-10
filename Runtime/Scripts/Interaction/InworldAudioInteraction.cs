@@ -81,7 +81,7 @@ namespace Inworld.Interactions
         {
             base.Awake();
             m_PlaybackSource = GetComponent<AudioSource>();
-            if(!m_PlaybackSource)
+            if (!m_PlaybackSource)
                 m_PlaybackSource = gameObject.AddComponent<AudioSource>();
             m_PlaybackSource.playOnAwake = false;
             m_PlaybackSource.Stop();
@@ -92,7 +92,8 @@ namespace Inworld.Interactions
         {
             if (!m_PlaybackSource || !m_Character)
                     return;
-            m_PlaybackSource.volume = (1 - 2 * MathF.Max(0, m_Character.Priority)) * (m_IsPlayerSpeaking ? m_VolumeOnPlayerSpeaking : 1f) - m_AudioReducer;
+            float fallBackValue = m_Character.Priority < 0 ? 1f : m_Character.Priority * 2f;
+            m_PlaybackSource.volume = (1 - fallBackValue) * (m_IsPlayerSpeaking ? m_VolumeOnPlayerSpeaking : 1f) - m_AudioReducer;
         }
         protected override IEnumerator InteractionCoroutine()
         {
