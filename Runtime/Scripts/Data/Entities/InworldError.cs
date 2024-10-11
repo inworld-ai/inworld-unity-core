@@ -36,7 +36,16 @@ namespace Inworld
 		[JsonIgnore]
 		public bool IsValid => !string.IsNullOrEmpty(message);
 		[JsonIgnore]
-		public ReconnectionType RetryType  => details?[0]?.reconnectType ?? ReconnectionType.UNDEFINED;
+		public ReconnectionType RetryType
+		{
+			get
+			{
+				if (details != null && details.Count > 0)
+					return details[0].reconnectType;
+				return ReconnectionType.UNDEFINED;
+			}
+		}
+
 		[JsonIgnore]
 		public ErrorType ErrorType => details?[0]?.errorType ?? ErrorType.UNDEFINED;
 

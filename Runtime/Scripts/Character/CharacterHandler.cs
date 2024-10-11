@@ -18,6 +18,7 @@ namespace Inworld
     {
         InworldCharacter m_CurrentCharacter;
         string m_ConversationID;
+        bool m_IsAutoChatStarted;
         [SerializeField] ConversationEvents m_Events;
         
         // The Character List only lists the interactable characters. 
@@ -83,7 +84,7 @@ namespace Inworld
         public List<InworldCharacter> CurrentCharacters => m_CharacterList;
 
         /// <summary>
-        ///     Get the current Character Selecting Method. By default it's manual.
+        ///     Get the current Character Selecting Method. By default, it's manual.
         /// </summary>
         public virtual CharSelectingMethod SelectingMethod { get; set; } = CharSelectingMethod.Manual;
 
@@ -134,7 +135,7 @@ namespace Inworld
                 return;
             Event.onCharacterListJoined?.Invoke(character);
             m_CharacterList.Add(character);
-            InworldController.Client.UpdateConversation();
+            UpdateConversation();
         }
         /// <summary>
         /// Remove the character from the character list.
@@ -151,7 +152,7 @@ namespace Inworld
                 return false;
             m_CharacterList.Remove(character);
             Event.onCharacterListLeft?.Invoke(character); 
-            InworldController.Client.UpdateConversation();
+            UpdateConversation();
             return true;
         }
          /// <summary>
@@ -167,22 +168,64 @@ namespace Inworld
              m_CharacterList.Clear();
              return true;
          }
+         /// <summary>
+         /// Update Conversation with target conversation.
+         /// </summary>
+         /// <param name="conversationID">Target conversation</param>
+         public bool UpdateConversation(string conversationID = null)
+         {
+             if (!InworldController.Client)
+                 return false;
+             if (string.IsNullOrEmpty(conversationID))
+                 conversationID = InworldController.CharacterHandler.ConversationID;
+             return InworldController.Client.UpdateConversation(conversationID);
+         }
+         public bool NextTurn()
+         {
+             if (CurrentCharacter || !InworldController.Client || CurrentCharacters.Count <= 1 ||
+                 m_IsAutoChatStarted) 
+                 return false;
+             InworldController.Client.NextTurn();
+             m_IsAutoChatStarted = true;
+             return true;
+         }
          
          protected virtual void OnEnable()
          {
+             if (!InworldController.Instance)
+                 return;
+             InworldController.Client.OnAutoChatChanged += AutoChatChanged;
              InworldController.Client.OnPacketReceived += ReceivePacket;
-         }
-         void ReceivePacket(InworldPacket packet)
-         {
-             if (packet is ControlPacket controlPacket && controlPacket.Action == ControlType.CONVERSATION_EVENT)
-             {
-                 Event.onConversationUpdated?.Invoke();
-             }
          }
          protected virtual void OnDisable()
          {
-             if (InworldController.Instance)
-                 InworldController.Client.OnPacketReceived -= ReceivePacket;
+             if (!InworldController.Instance)
+                 return;
+             InworldController.Client.OnAutoChatChanged -= AutoChatChanged;
+             InworldController.Client.OnPacketReceived -= ReceivePacket;
+         }
+         void ReceivePacket(InworldPacket packet)
+         {
+             if (!(packet is ControlPacket controlPacket))
+                 return;
+             if (controlPacket.Action == ControlType.CURRENT_SCENE_STATUS)
+             {
+                 if (m_CharacterList.Count > 0) // YAN: Reconnect with current characters.
+                     UpdateConversation(); 
+                 m_IsAutoChatStarted = false;
+                 return;
+             }
+             if (controlPacket.Action != ControlType.CONVERSATION_EVENT) 
+                 return;
+             m_ConversationID = controlPacket.packetId.conversationId;
+             NextTurn();
+             Event.onConversationUpdated?.Invoke();
+         }
+
+         void AutoChatChanged(bool isOn)
+         {
+             if (isOn)
+                 NextTurn();
          }
     }
 }

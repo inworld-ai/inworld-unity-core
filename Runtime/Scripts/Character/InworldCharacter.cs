@@ -328,13 +328,9 @@ namespace Inworld
 
         protected virtual bool HandleNextTurn()
         {
-            if (InworldController.Instance &&
-                InworldController.Client.AutoChat &&
-                !InworldController.Client.IsPlayerCancelling &&
-                InworldController.Client.Current.IsConversation &&
-                InworldController.Client.Current.Conversation.BrainNames.Count > 1)
-                return InworldController.Instance.SendTrigger(InworldMessenger.NextTurn);
-            return false;
+            if (!InworldController.Client)
+                return false;
+            return InworldController.Client.NextTurn();
         }
         protected virtual void HandleTask(CustomPacket taskPacket)
         {

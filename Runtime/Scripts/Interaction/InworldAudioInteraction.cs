@@ -92,8 +92,15 @@ namespace Inworld.Interactions
         {
             if (!m_PlaybackSource || !m_Character)
                     return;
-            float fallBackValue = m_Character.Priority < 0 ? 1f : m_Character.Priority * 2f;
-            m_PlaybackSource.volume = (1 - fallBackValue) * (m_IsPlayerSpeaking ? m_VolumeOnPlayerSpeaking : 1f) - m_AudioReducer;
+            if (InworldController.CharacterHandler &&
+                InworldController.CharacterHandler.SelectingMethod != CharSelectingMethod.SightAngle)
+            {
+                m_PlaybackSource.volume = 1f;
+                return;
+            }
+            float fallBackValue =  Mathf.Min(0.8f, m_Character.Priority < 0 ? 0.8f : m_Character.Priority * 2);
+            float playerReducer = m_IsPlayerSpeaking ? m_VolumeOnPlayerSpeaking : 1f;
+            m_PlaybackSource.volume = (1 - fallBackValue) * playerReducer - m_AudioReducer;
         }
         protected override IEnumerator InteractionCoroutine()
         {

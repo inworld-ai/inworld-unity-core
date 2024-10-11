@@ -45,6 +45,8 @@ namespace Inworld
         public event Action<InworldPacket> OnPacketSent;
         public event Action<InworldPacket> OnGlobalPacketReceived;
         public event Action<InworldPacket> OnPacketReceived;
+        public event Action<bool> OnGroupChatChanged; 
+        public event Action<bool> OnAutoChatChanged;
 #endregion
 
 #region Private variables
@@ -84,16 +86,30 @@ namespace Inworld
         public bool EnableGroupChat
         {
             get => m_EnableGroupChat;
-            set => m_EnableGroupChat = value;
+            set
+            {
+                if (m_EnableGroupChat == value)
+                    return;
+                m_EnableGroupChat = value;
+                OnGroupChatChanged?.Invoke(value);
+            }
         }
+
         /// <summary>
         /// Get/Set if the group is in AutoChat mode.
         /// </summary>
         public bool AutoChat
         {
             get => m_AutoChat;
-            set => m_AutoChat = value;
+            set
+            {
+                if (m_AutoChat == value)
+                    return;
+                m_AutoChat = value;
+                OnAutoChatChanged?.Invoke(value);
+            }
         }
+
         /// <summary>
         /// Get/Set if the current interaction is ended by player's interruption
         /// </summary>
@@ -899,6 +915,21 @@ namespace Inworld
             m_Socket.SendAsync(packet.ToJson);
             return true;
         }
+        /// <summary>
+        /// Send Next Turn trigger.
+        /// It's not valid in Single Target mode.
+        /// </summary>
+        public virtual bool NextTurn()
+        {
+            if (AutoChat && !IsPlayerCancelling && Current.IsConversation && Current.Conversation.BrainNames.Count > 1)
+                return SendTriggerTo(InworldMessenger.NextTurn);
+            return false;
+        }
+        /// <summary>
+        /// Update conversation info.
+        /// </summary>
+        /// <param name="conversationID">The target conversation ID.</param>
+        /// <param name="brainNames">the list of the character's brainNames</param>
         public virtual bool UpdateConversation(string conversationID = "", List<string> brainNames = null)
         {
             if (string.IsNullOrEmpty(conversationID))

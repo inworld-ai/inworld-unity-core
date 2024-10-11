@@ -117,7 +117,7 @@ namespace Inworld.Interactions
         }
         protected virtual void OnCharacterSelected(string brainName)
         {
-            if (brainName != m_Character.BrainName)
+            if (!string.IsNullOrEmpty(brainName))
                 return;
             if (m_FadeOutCoroutine == null)
                 return;
