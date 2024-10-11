@@ -73,13 +73,12 @@ namespace Inworld
                 {
                     if (m_VerboseLog)
                         InworldAI.Log($"{Name} Ends Speaking");
-                    HandleNextTurn();
                     m_CharacterEvents.onEndSpeaking.Invoke(BrainName);
                 }
             }
         }
         /// <summary>
-        /// Gets/Sets the charater's current relationship towards players. Will invoke onRelationUpdated when set.
+        /// Gets/Sets the character's current relationship towards players. Will invoke onRelationUpdated when set.
         /// </summary>
         public RelationState CurrRelation
         {

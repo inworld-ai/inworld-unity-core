@@ -926,11 +926,12 @@ namespace Inworld
             return false;
         }
         /// <summary>
-        /// Update conversation info.
+        /// Update conversation info. 
         /// </summary>
         /// <param name="conversationID">The target conversation ID.</param>
         /// <param name="brainNames">the list of the character's brainNames</param>
-        public virtual bool UpdateConversation(string conversationID = "", List<string> brainNames = null)
+        /// <param name="immediate">if it should be sent immediately. By default, it's true.</param>
+        public virtual bool UpdateConversation(string conversationID = "", List<string> brainNames = null, bool immediate = true)
         {
             if (string.IsNullOrEmpty(conversationID))
                 conversationID = InworldController.CharacterHandler.ConversationID;
@@ -951,7 +952,7 @@ namespace Inworld
                 }
             };
             InworldPacket rawPkt = new ControlPacket(control, characterTable);
-            PreparePacketToSend(rawPkt);
+            PreparePacketToSend(rawPkt, immediate);
             return true;
         }
         #region Entities
@@ -1115,11 +1116,11 @@ namespace Inworld
         {
             return $"{sessionFullName}/interactions/{interactionID}/groups/{correlationID}";
         }
-
         protected IEnumerator _StartSession()
         {
             if (Status == InworldConnectionStatus.Connected)
                 yield break;
+            Status = InworldConnectionStatus.Connecting;
             string url = InworldController.WebsocketSessionURL;
             if (string.IsNullOrEmpty(url))
                 yield break;
@@ -1131,9 +1132,10 @@ namespace Inworld
             m_Socket.OnMessage += OnMessageReceived;
             m_Socket.OnClose += OnSocketClosed;
             m_Socket.OnError += OnSocketError;
-            Status = InworldConnectionStatus.Connecting;
             m_Socket.ConnectAsync();
         }
+
+
         void OnSocketOpen(object sender, OpenEventArgs e)
         {
             InworldAI.Log($"Connect {InworldController.SessionID}");

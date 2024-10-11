@@ -18,7 +18,6 @@ namespace Inworld
     {
         InworldCharacter m_CurrentCharacter;
         string m_ConversationID;
-        bool m_IsAutoChatStarted;
         [SerializeField] ConversationEvents m_Events;
         
         // The Character List only lists the interactable characters. 
@@ -133,61 +132,55 @@ namespace Inworld
         {
             if (m_CharacterList.Contains(character))
                 return;
-            Event.onCharacterListJoined?.Invoke(character);
             m_CharacterList.Add(character);
-            UpdateConversation();
+            Event.onCharacterListJoined?.Invoke(character);
         }
         /// <summary>
         /// Remove the character from the character list.
         /// If it's current character, or in the group chat, also remove it.
         /// </summary>
         /// <param name="character">target character to remove.</param>
-        public virtual bool Unregister(InworldCharacter character)
+        public virtual void Unregister(InworldCharacter character)
         {
             if (character == null || !InworldController.Instance)
-                return false;
+                return;
             if (character == CurrentCharacter) 
                 CurrentCharacter = null;
             if (!m_CharacterList.Contains(character))
-                return false;
+                return;
             m_CharacterList.Remove(character);
             Event.onCharacterListLeft?.Invoke(character); 
-            UpdateConversation();
-            return true;
         }
          /// <summary>
          /// Remove all the characters from the character list.
          /// </summary>
-         public bool UnregisterAll()
+         public void UnregisterAll()
          {
              if (!InworldController.Instance || m_CharacterList.Count == 0)
-                 return false;
+                 return;
              CurrentCharacter = null;
              foreach (InworldCharacter character in m_CharacterList)
                  Event.onCharacterListLeft?.Invoke(character); 
              m_CharacterList.Clear();
-             return true;
+             return;
          }
          /// <summary>
          /// Update Conversation with target conversation.
          /// </summary>
          /// <param name="conversationID">Target conversation</param>
-         public bool UpdateConversation(string conversationID = null)
+         public void UpdateConversation(string conversationID = null)
          {
              if (!InworldController.Client)
-                 return false;
+                 return;
              if (string.IsNullOrEmpty(conversationID))
                  conversationID = InworldController.CharacterHandler.ConversationID;
-             return InworldController.Client.UpdateConversation(conversationID);
+             InworldController.Client.UpdateConversation(conversationID);
          }
-         public bool NextTurn()
+         public void NextTurn()
          {
-             if (CurrentCharacter || !InworldController.Client || CurrentCharacters.Count <= 1 ||
-                 m_IsAutoChatStarted) 
-                 return false;
+             if (CurrentCharacter || !InworldController.Client || CurrentCharacters.Count <= 1) 
+                 return;
              InworldController.Client.NextTurn();
-             m_IsAutoChatStarted = true;
-             return true;
          }
          
          protected virtual void OnEnable()
@@ -212,13 +205,11 @@ namespace Inworld
              {
                  if (m_CharacterList.Count > 0) // YAN: Reconnect with current characters.
                      UpdateConversation(); 
-                 m_IsAutoChatStarted = false;
                  return;
              }
              if (controlPacket.Action != ControlType.CONVERSATION_EVENT) 
                  return;
              m_ConversationID = controlPacket.packetId.conversationId;
-             NextTurn();
              Event.onConversationUpdated?.Invoke();
          }
 
