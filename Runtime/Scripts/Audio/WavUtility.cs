@@ -14,6 +14,8 @@ namespace Inworld
 {
     public class WavUtility
     {
+        public const int InworldAudioSampleRate = 16000;
+        
         public static void ShortArrayToWavFile(short[] shortArray, string outputPath, int sampleRate = 16000)
         {
             using (var fileStream = new FileStream(outputPath, FileMode.Create))
@@ -170,22 +172,34 @@ namespace Inworld
         /// <summary>
         /// Resample all the incoming audio data to the Inworld server supported data (16000 * 1).
         /// </summary>
-        public static void Resample(out float[] resamples, float[] inputSamples, int inputSampleRate, int inputChannels) 
+        public static void Resample(out float[] resamples, float[] inputSamples, int inputSampleRate, int inputChannels)
         {
-            int nResampleRatio = inputSampleRate * inputChannels / 16000;
-            if (nResampleRatio == 1)
+            float[] monoSamples = ConvertToMono(inputSamples, inputChannels);
+            if (inputSampleRate == InworldAudioSampleRate)
             {
-                resamples = inputSamples;
+                resamples = monoSamples;
                 return;
             }
-            int nTargetLength = inputSamples.Length / nResampleRatio;
-            resamples = new float[nTargetLength];
-            for (int i = 0; i < nTargetLength; i++)
+
+            int monoSampleSize = monoSamples.Length;
+            float ratio = inputSampleRate / (float)InworldAudioSampleRate;
+            int outputSampleCount = (int)(monoSampleSize / ratio);
+
+            resamples = new float[outputSampleCount];
+            for (int i = 0; i < outputSampleCount; i++)
             {
-                int index = i * nResampleRatio;
-                resamples[i] = inputSamples[index];
+                float estimatedIndex = i * ratio;
+                int sampleIndex1 = (int)estimatedIndex;
+                int sampleIndex2 = Mathf.Min(sampleIndex1 + 1, monoSampleSize - 1);
+
+                float sampleValue1 = monoSamples[sampleIndex1];
+                float sampleValue2 = monoSamples[sampleIndex2];
+
+                float diff = estimatedIndex - sampleIndex1;
+                resamples[i] = sampleValue1 * (1 - diff) + sampleValue2 * diff;
             }
         }
+ 
         /// <summary>
         /// Get the byte array of the wave data from AudioClip
         /// </summary>
@@ -269,6 +283,24 @@ namespace Inworld
             Debug.AssertFormat(num != 0, "Unexpected AudioClip bit depth: {0}. Expected 8 or 16 or 32 bit.", objArray);
             return uint16;
         }
+        
+        static float[] ConvertToMono(float[] inputSamples, int numChannels)
+        {
+            int monoSize = inputSamples.Length / numChannels;
+            float[] output = new float[monoSize];
+            for (int i = 0; i < monoSize; i++)
+            {
+                float sum = 0;
+                for (int j = 0; j < numChannels; j++)
+                {
+                    int index = i * numChannels + j;
+                    sum += inputSamples[index];
+                }
+                output[i] = sum / numChannels;
+            }
+            return output;
+        }
+        
         static float[] Convert8BitByteArrayToAudioClipData
         (
             byte[] source,
