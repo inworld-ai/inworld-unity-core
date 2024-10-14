@@ -524,8 +524,7 @@ namespace Inworld
                 m_AudioToPush.TryDequeue(out AudioChunk chunk);
             yield break;
         }
-        // Deprecated
-        protected int GetAudioData()
+        protected virtual int GetAudioData()
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
             if (WebGLIsRecording() == 0)
