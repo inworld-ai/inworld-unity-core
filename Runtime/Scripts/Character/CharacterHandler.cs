@@ -173,7 +173,7 @@ namespace Inworld
              if (!InworldController.Client)
                  return;
              if (string.IsNullOrEmpty(conversationID))
-                 conversationID = InworldController.CharacterHandler.ConversationID;
+                 conversationID = ConversationID;
              InworldController.Client.UpdateConversation(conversationID);
          }
          public void NextTurn()
