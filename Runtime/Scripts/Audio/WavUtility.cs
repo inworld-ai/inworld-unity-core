@@ -14,7 +14,7 @@ namespace Inworld
 {
     public class WavUtility
     {
-        public const int InworldAudioSampleRate = 16000;
+        const int k_NetworkAudioSampleRate = 16000;
         
         public static void ShortArrayToWavFile(short[] shortArray, string outputPath, int sampleRate = 16000)
         {
@@ -174,28 +174,42 @@ namespace Inworld
         /// </summary>
         public static void Resample(out float[] resamples, float[] inputSamples, int inputSampleRate, int inputChannels)
         {
-            float[] monoSamples = ConvertToMono(inputSamples, inputChannels);
-            if (inputSampleRate == InworldAudioSampleRate)
+            if (inputSampleRate <= 0 || inputChannels <= 0 || inputSamples == null || inputSamples.Length == 0 ||
+                inputSampleRate == k_NetworkAudioSampleRate && inputChannels == 1)
             {
-                resamples = monoSamples;
+                resamples = inputSamples;
+                return;
+            } else if (inputSampleRate == k_NetworkAudioSampleRate)
+            {
+                resamples = ConvertToMono(inputSamples, inputChannels);
                 return;
             }
 
-            int monoSampleSize = monoSamples.Length;
-            float ratio = inputSampleRate / (float)InworldAudioSampleRate;
-            int outputSampleCount = (int)(monoSampleSize / ratio);
+            int monoSampleSize = inputSamples.Length / inputChannels;
+            float ratio = inputSampleRate / Convert.ToSingle(k_NetworkAudioSampleRate);
+            int outputSampleCount = Convert.ToInt32(monoSampleSize / ratio);
 
             resamples = new float[outputSampleCount];
             for (int i = 0; i < outputSampleCount; i++)
             {
                 float estimatedIndex = i * ratio;
-                int sampleIndex1 = (int)estimatedIndex;
-                int sampleIndex2 = Mathf.Min(sampleIndex1 + 1, monoSampleSize - 1);
+                int flooredIndex = Mathf.FloorToInt(estimatedIndex);
+                int sampleIndex1 = flooredIndex * inputChannels;
+                int sampleIndex2 = Mathf.Min(flooredIndex + 1, inputSamples.Length - 1) * inputChannels;
 
-                float sampleValue1 = monoSamples[sampleIndex1];
-                float sampleValue2 = monoSamples[sampleIndex2];
+                float sampleValue1 = inputSamples[sampleIndex1];
+                float sampleValue2 = inputSamples[sampleIndex2];
 
-                float diff = estimatedIndex - sampleIndex1;
+                for (int j = 1; j < inputChannels; j++)
+                {
+                    sampleValue1 += inputSamples[sampleIndex1 + j];
+                    sampleValue2 += inputSamples[sampleIndex2 + j];
+                }
+
+                sampleValue1 /= inputChannels;
+                sampleValue2 /= inputChannels;
+
+                float diff = estimatedIndex - flooredIndex;
                 resamples[i] = sampleValue1 * (1 - diff) + sampleValue2 * diff;
             }
         }
