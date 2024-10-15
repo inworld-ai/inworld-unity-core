@@ -83,7 +83,7 @@ namespace Inworld
         public List<InworldCharacter> CurrentCharacters => m_CharacterList;
 
         /// <summary>
-        ///     Get the current Character Selecting Method. By default it's manual.
+        ///     Get the current Character Selecting Method. By default, it's manual.
         /// </summary>
         public virtual CharSelectingMethod SelectingMethod { get; set; } = CharSelectingMethod.Manual;
 
@@ -132,57 +132,91 @@ namespace Inworld
         {
             if (m_CharacterList.Contains(character))
                 return;
-            Event.onCharacterListJoined?.Invoke(character);
             m_CharacterList.Add(character);
-            InworldController.Client.UpdateConversation();
+            Event.onCharacterListJoined?.Invoke(character);
         }
         /// <summary>
         /// Remove the character from the character list.
         /// If it's current character, or in the group chat, also remove it.
         /// </summary>
         /// <param name="character">target character to remove.</param>
-        public virtual bool Unregister(InworldCharacter character)
+        public virtual void Unregister(InworldCharacter character)
         {
             if (character == null || !InworldController.Instance)
-                return false;
+                return;
             if (character == CurrentCharacter) 
                 CurrentCharacter = null;
             if (!m_CharacterList.Contains(character))
-                return false;
+                return;
             m_CharacterList.Remove(character);
             Event.onCharacterListLeft?.Invoke(character); 
-            InworldController.Client.UpdateConversation();
-            return true;
         }
          /// <summary>
          /// Remove all the characters from the character list.
          /// </summary>
-         public bool UnregisterAll()
+         public void UnregisterAll()
          {
              if (!InworldController.Instance || m_CharacterList.Count == 0)
-                 return false;
+                 return;
              CurrentCharacter = null;
              foreach (InworldCharacter character in m_CharacterList)
                  Event.onCharacterListLeft?.Invoke(character); 
              m_CharacterList.Clear();
-             return true;
+             return;
+         }
+         /// <summary>
+         /// Update Conversation with target conversation.
+         /// </summary>
+         /// <param name="conversationID">Target conversation</param>
+         public void UpdateConversation(string conversationID = null)
+         {
+             if (!InworldController.Client)
+                 return;
+             if (string.IsNullOrEmpty(conversationID))
+                 conversationID = ConversationID;
+             InworldController.Client.UpdateConversation(conversationID);
+         }
+         public void NextTurn()
+         {
+             if (CurrentCharacter || !InworldController.Client || CurrentCharacters.Count <= 1) 
+                 return;
+             InworldController.Client.NextTurn();
          }
          
          protected virtual void OnEnable()
          {
+             if (!InworldController.Instance)
+                 return;
+             InworldController.Client.OnAutoChatChanged += AutoChatChanged;
              InworldController.Client.OnPacketReceived += ReceivePacket;
-         }
-         void ReceivePacket(InworldPacket packet)
-         {
-             if (packet is ControlPacket controlPacket && controlPacket.Action == ControlType.CONVERSATION_EVENT)
-             {
-                 Event.onConversationUpdated?.Invoke();
-             }
          }
          protected virtual void OnDisable()
          {
-             if (InworldController.Instance)
-                 InworldController.Client.OnPacketReceived -= ReceivePacket;
+             if (!InworldController.Instance)
+                 return;
+             InworldController.Client.OnAutoChatChanged -= AutoChatChanged;
+             InworldController.Client.OnPacketReceived -= ReceivePacket;
+         }
+         void ReceivePacket(InworldPacket packet)
+         {
+             if (!(packet is ControlPacket controlPacket))
+                 return;
+             if (controlPacket.Action == ControlType.CURRENT_SCENE_STATUS)
+             {
+                 if (m_CharacterList.Count > 0) // YAN: Reconnect with current characters.
+                     UpdateConversation(); 
+                 return;
+             }
+             if (controlPacket.Action != ControlType.CONVERSATION_EVENT) 
+                 return;
+             m_ConversationID = controlPacket.packetId.conversationId;
+             Event.onConversationUpdated?.Invoke();
+         }
+
+         void AutoChatChanged(bool isOn)
+         {
+             if (isOn)
+                 NextTurn();
          }
     }
 }

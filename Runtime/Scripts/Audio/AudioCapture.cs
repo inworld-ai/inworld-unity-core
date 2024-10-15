@@ -310,7 +310,10 @@ namespace Inworld
         }
         public virtual bool StopAudio()
         {
-            m_AudioToPush.Clear();
+            foreach (AudioChunk audioData in m_AudioToPush)
+            {
+                SendAudio(audioData);
+            }
             return InworldController.Client.StopAudioTo();
         }
         public virtual bool StartAudio()
@@ -495,7 +498,6 @@ namespace Inworld
                 if (m_CapturingTimer < 0)
                 {
                     IsCapturing = false;
-                    m_ProcessedWaveData.Clear();
                     m_CapturingTimer = 0;
                 }
             }
@@ -522,8 +524,7 @@ namespace Inworld
                 m_AudioToPush.TryDequeue(out AudioChunk chunk);
             yield break;
         }
-        // Deprecated
-        protected int GetAudioData()
+        protected virtual int GetAudioData()
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
             if (WebGLIsRecording() == 0)

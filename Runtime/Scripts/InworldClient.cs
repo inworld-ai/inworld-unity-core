@@ -29,8 +29,14 @@ namespace Inworld
         [SerializeField] protected bool m_AutoScene = false;
         [SerializeField] protected int m_MaxWaitingListSize = 100;
         [Space(10)]
+        [Header("Conversation history:")]
         [SerializeField] protected Continuation m_Continuation;
+        [Space(10)]
+        [Header("MultiAgents settings:")]
+        [Tooltip("Toggle this will enable group chat. Characters will be in the same conversation")]
         [SerializeField] protected bool m_EnableGroupChat = true;
+        [Tooltip("Toggle this will enable auto chat. Characters will talk to each other. (Must enable group chat first)")]
+        [SerializeField] protected bool m_AutoChat = false;
 #endregion
 
 #region Events
@@ -39,6 +45,8 @@ namespace Inworld
         public event Action<InworldPacket> OnPacketSent;
         public event Action<InworldPacket> OnGlobalPacketReceived;
         public event Action<InworldPacket> OnPacketReceived;
+        public event Action<bool> OnGroupChatChanged; 
+        public event Action<bool> OnAutoChatChanged;
 #endregion
 
 #region Private variables
@@ -73,13 +81,39 @@ namespace Inworld
         /// </summary>
         public Dictionary<string, InworldCharacterData> LiveSessionData => m_LiveSessionData;
         /// <summary>
-        /// Gets if group chat is enabled.
+        /// Get/Set if group chat is enabled.
         /// </summary>
         public bool EnableGroupChat
         {
             get => m_EnableGroupChat;
-            set => m_EnableGroupChat = value;
+            set
+            {
+                if (m_EnableGroupChat == value)
+                    return;
+                m_EnableGroupChat = value;
+                OnGroupChatChanged?.Invoke(value);
+            }
         }
+
+        /// <summary>
+        /// Get/Set if the group is in AutoChat mode.
+        /// </summary>
+        public bool AutoChat
+        {
+            get => m_AutoChat;
+            set
+            {
+                if (m_AutoChat == value)
+                    return;
+                m_AutoChat = value;
+                OnAutoChatChanged?.Invoke(value);
+            }
+        }
+
+        /// <summary>
+        /// Get/Set if the current interaction is ended by player's interruption
+        /// </summary>
+        public bool IsPlayerCancelling {get; set;}
         /// <summary>
         /// Gets if it's sampling audio latency.
         /// </summary>
@@ -579,6 +613,7 @@ namespace Inworld
                 cancelResponses = cancelResponses
             };
             InworldPacket rawPkt = new MutationPacket(mutation);
+            IsPlayerCancelling = true;
             PreparePacketToSend(rawPkt, immediate);
             return true;
         }
@@ -880,7 +915,23 @@ namespace Inworld
             m_Socket.SendAsync(packet.ToJson);
             return true;
         }
-        public virtual bool UpdateConversation(string conversationID = "", List<string> brainNames = null)
+        /// <summary>
+        /// Send Next Turn trigger.
+        /// It's not valid in Single Target mode.
+        /// </summary>
+        public virtual bool NextTurn()
+        {
+            if (AutoChat && !IsPlayerCancelling && Current.IsConversation && Current.Conversation.BrainNames.Count > 1)
+                return SendTriggerTo(InworldMessenger.NextTurn);
+            return false;
+        }
+        /// <summary>
+        /// Update conversation info. 
+        /// </summary>
+        /// <param name="conversationID">The target conversation ID.</param>
+        /// <param name="brainNames">the list of the character's brainNames</param>
+        /// <param name="immediate">if it should be sent immediately. By default, it's true.</param>
+        public virtual bool UpdateConversation(string conversationID = "", List<string> brainNames = null, bool immediate = true)
         {
             if (string.IsNullOrEmpty(conversationID))
                 conversationID = InworldController.CharacterHandler.ConversationID;
@@ -901,7 +952,7 @@ namespace Inworld
                 }
             };
             InworldPacket rawPkt = new ControlPacket(control, characterTable);
-            PreparePacketToSend(rawPkt);
+            PreparePacketToSend(rawPkt, immediate);
             return true;
         }
         #region Entities
@@ -1065,11 +1116,11 @@ namespace Inworld
         {
             return $"{sessionFullName}/interactions/{interactionID}/groups/{correlationID}";
         }
-
         protected IEnumerator _StartSession()
         {
             if (Status == InworldConnectionStatus.Connected)
                 yield break;
+            Status = InworldConnectionStatus.Connecting;
             string url = InworldController.WebsocketSessionURL;
             if (string.IsNullOrEmpty(url))
                 yield break;
@@ -1081,9 +1132,10 @@ namespace Inworld
             m_Socket.OnMessage += OnMessageReceived;
             m_Socket.OnClose += OnSocketClosed;
             m_Socket.OnError += OnSocketError;
-            Status = InworldConnectionStatus.Connecting;
             m_Socket.ConnectAsync();
         }
+
+
         void OnSocketOpen(object sender, OpenEventArgs e)
         {
             InworldAI.Log($"Connect {InworldController.SessionID}");
@@ -1258,6 +1310,8 @@ namespace Inworld
         void _FinishInteraction(string correlationID)
         {
             m_Sent.RemoveAll(p => p.packetId.correlationId == correlationID);
+            if (IsPlayerCancelling)
+                IsPlayerCancelling = false;
         }
 #endregion
     }

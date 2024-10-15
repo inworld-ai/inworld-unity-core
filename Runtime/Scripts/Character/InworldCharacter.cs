@@ -78,7 +78,7 @@ namespace Inworld
             }
         }
         /// <summary>
-        /// Gets/Sets the charater's current relationship towards players. Will invoke onRelationUpdated when set.
+        /// Gets/Sets the character's current relationship towards players. Will invoke onRelationUpdated when set.
         /// </summary>
         public RelationState CurrRelation
         {
@@ -323,6 +323,13 @@ namespace Inworld
                 InworldAI.Log($"{Name}: {packet.text.text}");
             Event.onCharacterSpeaks.Invoke(BrainName, packet.text.text);
             return true;
+        }
+
+        protected virtual bool HandleNextTurn()
+        {
+            if (!InworldController.Client)
+                return false;
+            return InworldController.Client.NextTurn();
         }
         protected virtual void HandleTask(CustomPacket taskPacket)
         {

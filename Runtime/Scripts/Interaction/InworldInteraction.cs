@@ -8,6 +8,7 @@
 using UnityEngine;
 using Inworld.Packet;
 using System.Collections;
+using Inworld.Entities;
 using UnityEngine.InputSystem;
 using Random = UnityEngine.Random;
 
@@ -116,7 +117,7 @@ namespace Inworld.Interactions
         }
         protected virtual void OnCharacterSelected(string brainName)
         {
-            if (brainName != m_Character.BrainName)
+            if (!string.IsNullOrEmpty(brainName))
                 return;
             if (m_FadeOutCoroutine == null)
                 return;
