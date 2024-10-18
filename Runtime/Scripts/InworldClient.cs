@@ -270,6 +270,16 @@ namespace Inworld
             return result;
         }
         /// <summary>
+        /// Disconnect Inworld Async.
+        /// Will wait until Status is reset to idle.
+        /// </summary>
+        public IEnumerator DisconnectAsync()
+        {
+            yield return new WaitForEndOfFrame();
+            m_Socket?.CloseAsync();
+            yield return new WaitUntil(() => Status == InworldConnectionStatus.Idle);
+        }
+        /// <summary>
         /// Gets the InworldCharacterData by the given agentID.
         /// Usually used when processing packets, but don't know it's sender/receiver of characters.
         /// </summary>
@@ -1227,12 +1237,7 @@ namespace Inworld
             if (e.Message != k_DisconnectMsg)
                 ErrorMessage = e.Message;
         }
-        protected IEnumerator DisconnectAsync()
-        {
-            yield return new WaitForEndOfFrame();
-            m_Socket?.CloseAsync();
-            yield return new WaitForEndOfFrame();
-        }
+
         protected bool PreparePacketToSend(InworldPacket rawPkt, bool immediate = false, bool needCallback = true)
         {
             if (!immediate)
