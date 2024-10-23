@@ -314,6 +314,7 @@ namespace Inworld
             {
                 SendAudio(audioData);
             }
+            m_AudioToPush.Clear();
             return InworldController.Client.StopAudioTo();
         }
         public virtual bool StartAudio()
