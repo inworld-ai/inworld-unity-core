@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Scripting;
 
-namespace Inworld.Entities
+namespace Inworld.Data
 {
     [Serializable]
     public class AudioChunk

@@ -5,22 +5,24 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
-using System;
-using System.Collections.Generic;
 
-namespace Inworld.Entities
+namespace Inworld.Data
 {
-    [Serializable]
-    public class InworldKeySecret
+    public class Client
     {
-        public string key;
-        public string secret;
-        public string state;
+        public string id;
+        public string version;
+        public string description;
+
+        public override string ToString() => $"{id}: {version} {description}";
     }
-    [Serializable]
-    public class ListKeyResponse
+    public class ReleaseData
     {
-        public List<InworldKeySecret> apiKeys;
-        public string nextPageToken;
+        public PackageData[] package;
+    }
+    public class PackageData
+    {
+        public string published_at;
+        public string tag_name;
     }
 }

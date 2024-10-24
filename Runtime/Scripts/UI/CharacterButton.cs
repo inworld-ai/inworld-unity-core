@@ -6,7 +6,7 @@
  *************************************************************************************************/
 
 using UnityEngine;
-using Inworld.Entities;
+using Inworld.Data;
 using System.Collections;
 using UnityEngine.Networking;
 

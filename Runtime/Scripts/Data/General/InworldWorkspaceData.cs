@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Inworld.Entities
+namespace Inworld.Data
 {
     [Serializable]
     public class InworldWorkspaceData
@@ -26,6 +26,8 @@ namespace Inworld.Entities
         public List<InworldSceneData> scenes;
         public List<InworldKeySecret> keySecrets;
         public List<InworldCharacterData> characters;
+        public List<InworldEntityData> entities;
+        public List<InworldTaskData> tasks;
         
         [JsonIgnore]
         public InworldKeySecret DefaultKey => keySecrets.Count > 0 ? keySecrets[0] : null;

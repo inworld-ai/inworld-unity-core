@@ -7,7 +7,7 @@
 
 using System;
 
-namespace Inworld.Entities
+namespace Inworld.Data
 {
     [Serializable]
     public class Capabilities

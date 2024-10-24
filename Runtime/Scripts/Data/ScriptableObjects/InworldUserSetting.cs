@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Inworld.Entities;
+using Inworld.Data;
 
 namespace Inworld
 {

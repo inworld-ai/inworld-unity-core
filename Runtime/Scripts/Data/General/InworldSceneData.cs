@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 
-namespace Inworld.Entities
+namespace Inworld.Data
 {
     [Serializable]
     public class InworldSceneData

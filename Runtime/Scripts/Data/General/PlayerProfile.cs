@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Inworld.Entities
+namespace Inworld.Data
 {
     [Serializable]
     public class UserRequest

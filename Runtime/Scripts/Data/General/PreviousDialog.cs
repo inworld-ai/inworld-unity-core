@@ -10,7 +10,7 @@ using System;
 using System.Collections.Generic;
 
 
-namespace Inworld.Entities
+namespace Inworld.Data
 {
 #region Legacy
     [Serializable][Obsolete]

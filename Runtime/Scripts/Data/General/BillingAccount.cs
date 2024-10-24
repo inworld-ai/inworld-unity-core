@@ -7,7 +7,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Inworld.Entities
+namespace Inworld.Data
 {
     [Serializable]
     public class BillingAccountRespone

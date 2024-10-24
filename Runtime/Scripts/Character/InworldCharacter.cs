@@ -6,7 +6,7 @@
  *************************************************************************************************/
 using Inworld.Interactions;
 using Inworld.Packet;
-using Inworld.Entities;
+using Inworld.Data;
 using Inworld.Sample;
 using System.Collections;
 using System.Collections.Generic;

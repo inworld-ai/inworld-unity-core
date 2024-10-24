@@ -6,7 +6,7 @@
  *************************************************************************************************/
 
 using Inworld.Packet;
-using Inworld.Entities;
+using Inworld.Data;
 using Newtonsoft.Json;
 using System;
 using System.Collections;

@@ -6,29 +6,21 @@
  *************************************************************************************************/
 
 using System;
-using UnityEngine.Scripting;
+using System.Collections.Generic;
 
-namespace Inworld.Entities
+namespace Inworld.Data
 {
-   
     [Serializable]
-    class WebGLCommandData<T>
+    public class InworldKeySecret
     {
-        public WebGLCommand<T> command;
+        public string key;
+        public string secret;
+        public string state;
     }
-    
     [Serializable]
-    class WebGLCommand<T>
+    public class ListKeyResponse
     {
-        public string command;
-        public T data;
-
-        [Preserve] public WebGLCommand() {}
-
-        [Preserve] public WebGLCommand(string command, T data)
-        {
-            this.command = command;
-            this.data = data;
-        }
+        public List<InworldKeySecret> apiKeys;
+        public string nextPageToken;
     }
 }

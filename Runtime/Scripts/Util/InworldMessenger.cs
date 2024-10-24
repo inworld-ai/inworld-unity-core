@@ -8,7 +8,7 @@
 using Inworld.Packet;
 using System.Collections.Generic;
 using System.Linq;
-namespace Inworld.Entities
+namespace Inworld.Data
 {
 	/// <summary>
 	/// This class is used to send/receive special interactive functions to/from Inworld server,

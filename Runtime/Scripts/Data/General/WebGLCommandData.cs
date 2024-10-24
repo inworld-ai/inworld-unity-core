@@ -5,24 +5,30 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
+using System;
+using UnityEngine.Scripting;
 
-namespace Inworld.Entities
+namespace Inworld.Data
 {
-    public class Client
+   
+    [Serializable]
+    class WebGLCommandData<T>
     {
-        public string id;
-        public string version;
-        public string description;
+        public WebGLCommand<T> command;
+    }
+    
+    [Serializable]
+    class WebGLCommand<T>
+    {
+        public string command;
+        public T data;
 
-        public override string ToString() => $"{id}: {version} {description}";
-    }
-    public class ReleaseData
-    {
-        public PackageData[] package;
-    }
-    public class PackageData
-    {
-        public string published_at;
-        public string tag_name;
+        [Preserve] public WebGLCommand() {}
+
+        [Preserve] public WebGLCommand(string command, T data)
+        {
+            this.command = command;
+            this.data = data;
+        }
     }
 }

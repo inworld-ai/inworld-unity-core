@@ -7,7 +7,7 @@
 
 using System.Collections.Generic;
 
-namespace Inworld.Entities
+namespace Inworld.Data
 {
 	public class Conversation
 	{
