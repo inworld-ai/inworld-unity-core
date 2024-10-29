@@ -25,7 +25,7 @@ namespace Inworld.Data
     }
 
     [Serializable]
-    public class TaskParameter
+    public struct TaskParameter
     {
         public string name;
         public string description;
