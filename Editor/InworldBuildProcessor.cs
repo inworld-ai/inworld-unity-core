@@ -9,7 +9,10 @@
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
 
 namespace Inworld
 {
@@ -22,6 +25,7 @@ namespace Inworld
             {
                 if (InworldAI.Initialized)
                     return;
+                _UpgradeIntensity();
                 _AddDebugMacro();
                 VersionChecker.CheckVersionUpdates();
                 if (VersionChecker.IsLegacyPackage)
@@ -30,6 +34,24 @@ namespace Inworld
                 _SetDefaultUserName();
             };
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+        }
+        static void _UpgradeIntensity()
+        {
+            if (GraphicsSettings.currentRenderPipeline == null)
+                return;
+            string[] data = AssetDatabase.FindAssets("t:SceneAsset", new[] { "Assets/Inworld/Inworld.Samples.Innequin", "Assets/Inworld/Inworld.Samples.RPM" });
+            foreach (string str in data)
+            {
+                string scenePath = AssetDatabase.GUIDToAssetPath(str);
+                Debug.Log($"Process on {scenePath}");
+                Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+                foreach (Light light in Object.FindObjectsByType<Light>(FindObjectsSortMode.None))
+                {
+                    light.intensity = 100f;
+                }
+                EditorSceneManager.MarkSceneDirty(scene);
+                EditorSceneManager.SaveScene(scene);
+            }
         }
         static void OnPlayModeStateChanged(PlayModeStateChange state)
         {

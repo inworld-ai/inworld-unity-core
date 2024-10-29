@@ -375,6 +375,11 @@ namespace Inworld
 
         protected virtual void OnDisable()
         {
+            if (PlayerController.Instance)
+            {
+                PlayerController.Instance.onCanvasOpen.RemoveListener(OnPlayerCanvasOpen);
+                PlayerController.Instance.onCanvasClosed.RemoveListener(OnPlayerCanvasClosed);
+            }
             if (m_AudioCoroutine != null)
                 StopCoroutine(m_AudioCoroutine);
             StopMicrophone(m_DeviceName);
