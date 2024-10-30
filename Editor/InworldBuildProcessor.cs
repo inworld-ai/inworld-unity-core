@@ -40,6 +40,7 @@ namespace Inworld
             if (GraphicsSettings.currentRenderPipeline == null)
                 return;
             string[] data = AssetDatabase.FindAssets("t:SceneAsset", new[] { "Assets/Inworld/Inworld.Samples.Innequin", "Assets/Inworld/Inworld.Samples.RPM" });
+            
             foreach (string str in data)
             {
                 string scenePath = AssetDatabase.GUIDToAssetPath(str);
@@ -47,11 +48,13 @@ namespace Inworld
                 Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
                 foreach (Light light in Object.FindObjectsByType<Light>(FindObjectsSortMode.None))
                 {
-                    light.intensity = 100f;
+                    light.intensity = 50;
                 }
                 EditorSceneManager.MarkSceneDirty(scene);
                 EditorSceneManager.SaveScene(scene);
             }
+            if (data.Length > 0)
+                EditorSceneManager.OpenScene(AssetDatabase.GUIDToAssetPath(data[0]), OpenSceneMode.Single);
         }
         static void OnPlayModeStateChanged(PlayModeStateChange state)
         {
