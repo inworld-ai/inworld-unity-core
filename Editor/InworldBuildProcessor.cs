@@ -31,7 +31,6 @@ namespace Inworld
                 if (VersionChecker.IsLegacyPackage)
                     VersionChecker.NoticeLegacyPackage();
                 InworldAI.Initialized = true;
-                _SetDefaultUserName();
             };
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
@@ -105,11 +104,6 @@ namespace Inworld
             System.IO.File.WriteAllText($"{pathToBuiltProject}/AudioResampler.js", InworldAI.WebGLMicResampler.text);
         }
 #endif
-        static void _SetDefaultUserName()
-        {
-            string userName = CloudProjectSettings.userName;
-            InworldAI.User.Name = !string.IsNullOrEmpty(userName) && userName.Split('@').Length > 1 ? userName.Split('@')[0] : userName;
-        }
         static void _AddDebugMacro()
         {
             BuildTargetGroup buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
