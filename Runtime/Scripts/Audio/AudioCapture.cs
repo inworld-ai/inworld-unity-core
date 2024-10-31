@@ -326,8 +326,6 @@ namespace Inworld
         }
         public virtual bool SendAudio(AudioChunk chunk)
         {
-            if (InworldController.Client.Status != InworldConnectionStatus.Connected)
-                return false;
             if (!InworldController.Client.Current.IsConversation && chunk.targetName != InworldController.Client.Current.Character?.brainName)
             {
                 InworldController.Client.Current.Character = InworldController.CharacterHandler[chunk.targetName]?.Data;

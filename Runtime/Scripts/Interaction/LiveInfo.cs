@@ -6,6 +6,7 @@
  *************************************************************************************************/
 
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Inworld.Entities
 {
@@ -39,7 +40,8 @@ namespace Inworld.Entities
 			}
 			return brainName == Target;
 		}
-		public bool HasStarted => !string.IsNullOrEmpty(ID) && !string.IsNullOrEmpty(Target);
+
+		public bool HasStarted => !string.IsNullOrEmpty(ID); 
 	}
 	/// <summary>
 	/// This class is used for caching the current conversation and audio session.

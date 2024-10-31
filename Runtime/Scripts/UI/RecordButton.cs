@@ -13,6 +13,8 @@ namespace Inworld.UI
     {
         public void OnPointerDown(PointerEventData eventData)
         {
+            if (InworldController.Client.Status == InworldConnectionStatus.Connected)
+                InworldController.Instance.CancelResponses();
             InworldController.Audio.IsRecording = true;
         }
         public void OnPointerUp(PointerEventData eventData)

@@ -85,7 +85,7 @@ namespace Inworld
         /// </summary>
         public bool EnableGroupChat
         {
-            get => m_EnableGroupChat;
+            get => m_EnableGroupChat && InworldController.Instance && InworldController.CharacterHandler.CurrentCharacters.Count > 1;
             set
             {
                 if (m_EnableGroupChat == value)
@@ -358,8 +358,9 @@ namespace Inworld
         /// <summary>
         /// Reconnect session or start a new session if the current session is invalid.
         /// </summary>
-        public void Reconnect() 
+        public void Reconnect()
         {
+            Status = InworldConnectionStatus.Initializing;
             if (InworldController.IsTokenValid)
                 StartSession();
             else
