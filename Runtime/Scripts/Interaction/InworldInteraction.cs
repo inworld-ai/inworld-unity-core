@@ -70,6 +70,7 @@ namespace Inworld.Interactions
                 return false;
             InworldController.Client.SendCancelEventTo(m_CurrentInteraction.ID, m_CurrentInteraction.CurrentUtterance?.ID, m_Character.BrainName, isHardCancelling);
             m_CurrentInteraction.Cancel(isHardCancelling);
+            m_Prepared.Enqueue(m_CurrentInteraction);
             m_Prepared.PourTo(m_Cancelled);
             m_CurrentInteraction = null;
             return true;
@@ -221,7 +222,7 @@ namespace Inworld.Interactions
         {
             if (m_Processed.IsOverDue(packet))
                 m_Processed.Add(packet);
-            else if (m_Cancelled.IsOverDue(packet))
+            else if (m_Cancelled.Contains(packet))
                 m_Cancelled.Add(packet);
             else if (m_CurrentInteraction != null && m_CurrentInteraction.Contains(packet))
                 m_CurrentInteraction.Add(packet);
