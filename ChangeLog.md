@@ -1,8 +1,15 @@
+# 3.7.0
+1. Updated Inworld log system.
+2. Updated Chat panel.
+3. Updated User data structure.
+
 # 3.6.0
-1. Supported sending packets during disconnecting.
-2. Released GroupChat mode by default.
-3. Added fallback voice recognition method.
-4. Added LLM Runtime support.
+1. Added Unity 6 Support.
+2. Added font support for multiple languages.
+3. Supported sending packets during disconnecting.
+4. Released GroupChat mode by default.
+5. Added fallback voice recognition method.
+6. Added LLM Runtime support.
 
 # 3.5.0
 1. Updated Unity Editor Panel. Supported for Studio API Key.
