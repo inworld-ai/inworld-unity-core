@@ -26,6 +26,13 @@ namespace Inworld.Entities
         public bool multiModalActionPlanning;
         public bool pingPongReport;
         public bool perceivedLatencyReport;
+        public bool logs = true;
+        // Indicates whether the client wants to receive warning logs. Defaults to true.
+        public bool logs_warning = true;
+        // Indicates whether the client wants to receive informational logs. Defaults to true.
+        public bool logs_info = true;
+        // Indicates whether the client wants to receive debug logs. Defaults to false.
+        public bool logs_debug = true;
 
         public Capabilities() {}
         public Capabilities(Capabilities rhs)
