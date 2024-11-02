@@ -15,9 +15,10 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
+
 namespace Inworld.Test
 {
-	public class InworldRuntimeTests
+	public class InworldRuntimeSyncTests
 	{
 		InworldConnectionStatus m_CurrentStatus;
 		List<InworldPacket> m_Conversation;
@@ -148,6 +149,7 @@ namespace Inworld.Test
 			Assert.IsTrue(m_Conversation.Any(p => p is TextPacket));
 			Assert.IsTrue(m_Conversation.Any(p => p is AudioPacket));
 		}
+		
 		[UnityTest]
 		public IEnumerator InworldRuntimeTest_SendAudio()
 		{
@@ -285,6 +287,14 @@ namespace Inworld.Test
 		
 		[UnityTest]
 		public IEnumerator InworldRuntimeTest_ChangeScene()
+		{
+			m_Conversation.Clear();
+			InworldController.Client.LoadScene(k_AltScene);
+			yield return new WaitWhile(() => k_TestScene == m_CurrentInworldScene);
+			Assert.IsTrue(m_CurrentInworldScene == k_AltScene);
+		}
+		[UnityTest]
+		public IEnumerator InworldRuntimeTest_SceneBehavior()
 		{
 			m_Conversation.Clear();
 			InworldController.Client.LoadScene(k_AltScene);

@@ -27,12 +27,9 @@ namespace Inworld.Entities
         public bool pingPongReport;
         public bool perceivedLatencyReport;
         public bool logs = true;
-        // Indicates whether the client wants to receive warning logs. Defaults to true.
         public bool logs_warning = true;
-        // Indicates whether the client wants to receive informational logs. Defaults to true.
         public bool logs_info = true;
-        // Indicates whether the client wants to receive debug logs. Defaults to false.
-        public bool logs_debug = true;
+        public bool logs_debug;
 
         public Capabilities() {}
         public Capabilities(Capabilities rhs)
@@ -51,6 +48,10 @@ namespace Inworld.Entities
             multiModalActionPlanning = rhs.multiModalActionPlanning;
             pingPongReport = rhs.pingPongReport;
             perceivedLatencyReport = rhs.perceivedLatencyReport;
+            logs = rhs.logs;
+            logs_info = rhs.logs_info;
+            logs_debug = rhs.logs_debug;
+            logs_warning = rhs.logs_warning;
         }
         public void CopyFrom(Capabilities rhs)
         {
@@ -68,6 +69,10 @@ namespace Inworld.Entities
             multiModalActionPlanning = rhs.multiModalActionPlanning;
             pingPongReport = rhs.pingPongReport;
             perceivedLatencyReport = rhs.perceivedLatencyReport;
+            logs = rhs.logs;
+            logs_info = rhs.logs_info;
+            logs_debug = rhs.logs_debug;
+            logs_warning = rhs.logs_warning;
         }
         public override string ToString()
         {
@@ -98,6 +103,14 @@ namespace Inworld.Entities
                 result += "PING_PONG ";
             if (perceivedLatencyReport)
                 result += "PERCEIVED_LATENCY ";
+            if (logs)
+                result += "LOGS ";
+            if (logs_info)
+                result += "LOGS INFO ";
+            if (logs_debug)
+                result += "LOGS DEBUG ";
+            if (logs_warning)
+                result += "LOGS WARNING ";
             return result;
         }
     }

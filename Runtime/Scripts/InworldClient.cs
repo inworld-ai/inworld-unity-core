@@ -233,7 +233,7 @@ namespace Inworld
         void OnDestroy()
         {
 #if !UNITY_WEBGL || UNITY_EDITOR
-            var webSocketManager = FindObjectOfType<WebSocketManager>();
+            WebSocketManager webSocketManager = FindFirstObjectByType<WebSocketManager>();
             if(webSocketManager)
                 Destroy(webSocketManager.gameObject);
 #endif
@@ -1205,6 +1205,11 @@ namespace Inworld
             if (response == null)
             {
                 ErrorMessage = e.Data;
+                return;
+            }
+            if (response.result is LogPacket logPacket)
+            {
+                logPacket.Display();
                 return;
             }
             if (response.error != null && !string.IsNullOrEmpty(response.error.message))

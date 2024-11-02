@@ -22,7 +22,7 @@ namespace Inworld
             {
                 if (__inst)
                     return __inst;
-                __inst = FindObjectOfType<T>(true);
+                __inst = FindFirstObjectByType<T>(FindObjectsInactive.Include);
                 return __inst;
             }
         }
