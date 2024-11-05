@@ -22,13 +22,8 @@ namespace Inworld.Packet
     [Serializable]
     public class CustomEvent
     {
-        public enum Type {
-            UNSPECIFIED = 0,
-            TRIGGER = 1,
-            TASK = 2
-        }
         [JsonConverter(typeof(StringEnumConverter))]
-        public Type type;
+        public CustomType type;
         public string name;
         public List<TriggerParameter> parameters;
 
@@ -41,6 +36,7 @@ namespace Inworld.Packet
         public CustomEvent(string eventName, Dictionary<string, string> eventParameters)
         {
             name = eventName;
+            type = CustomType.TRIGGER;
             if (eventParameters != null)
                 parameters = eventParameters.Select
                 (

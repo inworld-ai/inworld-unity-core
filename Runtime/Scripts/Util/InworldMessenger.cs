@@ -54,7 +54,7 @@ namespace Inworld.Entities
 		public static bool GetTask(CustomPacket taskPacket, out string taskName)
         {
             taskName = null;
-            if (taskPacket.custom.type != CustomEvent.Type.TASK)
+            if (taskPacket.custom.type != CustomType.TASK)
                 return false;
 
             string triggerName = taskPacket.custom.name;

@@ -89,6 +89,12 @@ namespace Inworld
         // The content contains repetition issue
         INTERACTION_DISLIKE_TYPE_REPETITION = 7
     }
+    public enum CustomType 
+    {
+        UNSPECIFIED = 0,
+        TRIGGER = 1,
+        TASK = 2
+    }
     public enum MicrophoneMode
     {
         UNSPECIFIED,
@@ -232,6 +238,7 @@ namespace Inworld
     public enum SourceType
     {
         NONE,
+        UNKNOWN,
         AGENT,
         PLAYER,
         WORLD
