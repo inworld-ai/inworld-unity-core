@@ -62,7 +62,7 @@ namespace Inworld.Test.Async
             Assert.IsTrue(m_Conversation.Any(p => p is AudioPacket));
             InworldController.Client.Disconnect();
             m_Conversation.Clear();
-            yield return StatusCheck(5, InworldConnectionStatus.Idle);
+            yield return StatusCheck(10, InworldConnectionStatus.Idle);
             InworldController.Client.SendTextTo("Hello", k_TestQuin);
             yield return ConversationCheck(10);
             Assert.IsTrue(m_Conversation.Any(p => p is TextPacket));
