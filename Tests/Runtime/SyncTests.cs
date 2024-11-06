@@ -21,6 +21,7 @@ namespace Inworld.Test.Sync
 	{
 		protected override IEnumerator InitTest()
 		{
+			InworldController.Client.CurrentScene = k_TestScene;
 			InworldController.Instance.Init();
 			yield return StatusCheck(5, InworldConnectionStatus.Initialized);
 			Assert.IsTrue(InworldController.IsTokenValid);
@@ -28,11 +29,15 @@ namespace Inworld.Test.Sync
 			yield return StatusCheck(5, InworldConnectionStatus.Connected);
 			yield return LiveSessionCheck(10);
 		}
+		protected override IEnumerator FinishTest()
+		{
+			yield break;
+		}
 	}
 	public class ConnectionTests : InworldRuntimeSyncTest
 	{
 		[UnityTest]
-		public IEnumerator InworldRuntimeTest_ReconnectionTest()
+		public IEnumerator SyncTest_ReconnectionTest()
 		{
 			Assert.IsTrue(InworldController.Client.LiveSessionData.Values.Count > 0);
 			InworldCharacterData character = InworldController.Client.LiveSessionData.Values.First();
@@ -65,7 +70,7 @@ namespace Inworld.Test.Sync
 	public class TextInteractionTests : InworldRuntimeSyncTest
 	{
 		[UnityTest]
-		public IEnumerator InworldRuntimeTest_SendText()
+		public IEnumerator SyncTest_SendText()
 		{
 			m_Conversation.Clear();
 			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Hello");
@@ -74,7 +79,7 @@ namespace Inworld.Test.Sync
 			Assert.IsTrue(m_Conversation.Any(p => p is AudioPacket));
 		}
 		[UnityTest]
-		public IEnumerator InworldRuntimeTest_SendTextAfterUnknownPacket()
+		public IEnumerator SyncTest_SendTextAfterUnknownPacket()
 		{
 			m_Conversation.Clear();
 			OnPacketReceived(new InworldPacket());
@@ -84,7 +89,7 @@ namespace Inworld.Test.Sync
 			Assert.IsTrue(m_Conversation.Any(p => p is AudioPacket));
 		}
 		[UnityTest]
-		public IEnumerator InworldRuntimeTest_SayVerbatim()
+		public IEnumerator SyncTest_SayVerbatim()
 		{
 			m_Conversation.Clear();
 			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "How are you?");
@@ -96,7 +101,7 @@ namespace Inworld.Test.Sync
 	public class EmotionInteractionTests : InworldRuntimeSyncTest
 	{
 		[UnityTest]
-		public IEnumerator InworldRuntimeTest_EmotionChange()
+		public IEnumerator SyncTest_EmotionChange()
 		{
 			m_Conversation.Clear();
 			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "You're feeling sad");
@@ -110,7 +115,7 @@ namespace Inworld.Test.Sync
 	public class UnitarySessionTests : InworldRuntimeSyncTest
 	{
 		[UnityTest]
-		public IEnumerator InworldRuntimeTest_ChangeScene()
+		public IEnumerator SyncTest_ChangeScene()
 		{
 			m_Conversation.Clear();
 			InworldController.Client.LoadScene(k_TestSceneVoice);
@@ -123,7 +128,7 @@ namespace Inworld.Test.Sync
 			Assert.IsTrue(m_Conversation.Any(p => p is AudioPacket));
 		}
 		[UnityTest, Order(2)]
-		public IEnumerator InworldRuntimeTest_SwitchSceneBehavior()
+		public IEnumerator SyncTest_SwitchSceneBehavior()
 		{
 			// 1.1 Original Scene: Test Innquin.
 			Assert.IsTrue(InworldController.Client.LiveSessionData.Values.Count > 0);
@@ -178,7 +183,7 @@ namespace Inworld.Test.Sync
 	public class AudioInteractionTests : InworldRuntimeSyncTest
 	{
 		[UnityTest, Order(1)]
-		public IEnumerator InworldRuntimeTest_SendAudio()
+		public IEnumerator SyncTest_SendAudio()
 		{
 			m_Conversation.Clear();
 			string agentID = InworldController.Client.LiveSessionData.Values.First().agentId;
@@ -193,7 +198,7 @@ namespace Inworld.Test.Sync
 			Assert.IsTrue(m_Conversation.Any(p => p is AudioPacket));
 		}
 		[UnityTest, Order(2)]
-		public IEnumerator InworldRuntimeTest_FreqSwitchAudioSession()
+		public IEnumerator SyncTest_FreqSwitchAudioSession()
 		{
 			m_Conversation.Clear();
 			string agentID = InworldController.Client.LiveSessionData.Values.First().agentId;
@@ -216,7 +221,7 @@ namespace Inworld.Test.Sync
 			Assert.IsTrue(m_Conversation.Any(p => p is AudioPacket));
 		}
 		[UnityTest, Order(3)]
-		public IEnumerator InworldRuntimeTest_InterleaveTextAudio()
+		public IEnumerator SyncTest_InterleaveTextAudio()
 		{
 			m_Conversation.Clear();
 			InworldController.Client.SendText(InworldController.Client.LiveSessionData.Values.First().agentId, "Hello");
@@ -240,7 +245,7 @@ namespace Inworld.Test.Sync
 	public class TriggerInteractionTests : InworldRuntimeSyncTest
 	{
 		[UnityTest, Order(1)]
-		public IEnumerator InworldRuntimeTest_GoalsTrigger()
+		public IEnumerator SyncTest_GoalsTrigger()
 		{
 			m_Conversation.Clear();
 			InworldController.Client.SendTrigger(InworldController.Client.LiveSessionData.Values.First().agentId, "hit_trigger");
@@ -249,7 +254,7 @@ namespace Inworld.Test.Sync
 			Assert.IsTrue(m_Conversation.Any(p => p is TextPacket textPacket && textPacket.text.text == k_TriggerResponse));
 		}
 		[UnityTest, Order(2)]
-		public IEnumerator InworldRuntimeTest_GoalsRepeatable()
+		public IEnumerator SyncTest_GoalsRepeatable()
 		{
 			Assert.IsTrue(InworldController.Client.LiveSessionData.Values.Count > 0);
 			InworldCharacterData character = InworldController.Client.LiveSessionData.Values.First();
@@ -263,7 +268,7 @@ namespace Inworld.Test.Sync
 			Assert.IsTrue(m_Conversation.Any(p => p is CustomPacket customPacket && customPacket.Trigger == k_RepeatableGoal));
 		}
 		[UnityTest, Order(3)]
-		public IEnumerator InworldRuntimeTest_GoalsUnrepeatable()
+		public IEnumerator SyncTest_GoalsUnrepeatable()
 		{
 			Assert.IsTrue(InworldController.Client.LiveSessionData.Values.Count > 0);
 			InworldCharacterData character = InworldController.Client.LiveSessionData.Values.First();

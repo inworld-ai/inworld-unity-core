@@ -15,7 +15,6 @@ using UnityEngine;
 
 namespace Inworld
 {
-    [RequireComponent(typeof(InworldInteraction))]
     public class InworldCharacter : MonoBehaviour
     {
         [SerializeField] protected InworldCharacterData m_Data;
@@ -196,7 +195,7 @@ namespace Inworld
         /// Ignore all the current incoming messages from the character.
         /// <param name="isHardCancelling">mark if the current playing utterance would be cancelled.</param>
         /// </summary>
-        public virtual bool CancelResponse(bool isHardCancelling = true) => m_Interaction.CancelResponse(isHardCancelling);
+        public virtual bool CancelResponse(bool isHardCancelling = true) => m_Interaction && m_Interaction.CancelResponse(isHardCancelling);
 
         /// <summary>
         /// Gradually lower the volume and call cancelresponse.
@@ -231,7 +230,7 @@ namespace Inworld
             if (!InworldController.Instance)
                 return;
             InworldController.CharacterHandler.Unregister(this);
-            m_CharacterEvents.onCharacterDestroyed?.Invoke(BrainName);
+            m_CharacterEvents?.onCharacterDestroyed?.Invoke(BrainName);
         }
         protected virtual void OnAudioCaptureStarted()
         {

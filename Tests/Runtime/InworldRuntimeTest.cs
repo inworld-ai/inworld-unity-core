@@ -57,6 +57,8 @@ namespace Inworld.Test
 		}
 
 		protected abstract IEnumerator InitTest();
+		protected abstract IEnumerator FinishTest();
+
 
 		protected virtual IEnumerator StatusCheck(float timeout, InworldConnectionStatus condition)
 		{
@@ -107,7 +109,6 @@ namespace Inworld.Test
 			Object.Instantiate(InworldAI.ControllerPrefab);
 			Assert.NotNull(InworldController.Instance);
 			InworldController.Audio.AutoDetectPlayerSpeaking = false;
-			InworldController.Client.CurrentScene = k_TestScene;
 			m_Conversation = new List<InworldPacket>();
 			InworldController.Client.OnStatusChanged += OnClientStatusChanged;
 			InworldController.Client.OnPacketReceived += OnPacketReceived;
@@ -117,16 +118,17 @@ namespace Inworld.Test
 		[UnityTearDown]
 		public virtual IEnumerator CleanupEnv()
 		{
+			yield return FinishTest();
 			m_Conversation.Clear();
 			InworldController.Instance.Disconnect();
-			if (InworldController.Instance)
-			{
-				InworldController.Client.OnStatusChanged -= OnClientStatusChanged;
-				InworldController.Client.OnPacketReceived -= OnPacketReceived;
-				Object.DestroyImmediate(InworldController.Instance);
-			}
+			Assert.NotNull(InworldController.Instance);
+			InworldController.Client.OnStatusChanged -= OnClientStatusChanged;
+			InworldController.Client.OnPacketReceived -= OnPacketReceived;
+			Object.DestroyImmediate(InworldController.Instance.gameObject);
 			Assert.IsNull(InworldController.Instance);
-			yield return null;
+			
 		}
+
+
     }
 }
