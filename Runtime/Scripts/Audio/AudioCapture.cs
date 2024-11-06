@@ -402,6 +402,8 @@ namespace Inworld
 #region Protected Functions
         protected virtual void OnPlayerCanvasOpen()
         {
+            if (!m_DetectPlayerSpeaking)
+                return;
             m_PrevSampleMode = m_SamplingMode;
             m_SamplingMode = MicSampleMode.PUSH_TO_TALK;
             m_PrevDetectPlayerSpeaking = m_DetectPlayerSpeaking;
@@ -409,6 +411,8 @@ namespace Inworld
         }
         protected virtual void OnPlayerCanvasClosed()
         {
+            if (m_DetectPlayerSpeaking)
+                return;
             m_SamplingMode = m_PrevSampleMode;
             m_DetectPlayerSpeaking = m_PrevDetectPlayerSpeaking;
         }
