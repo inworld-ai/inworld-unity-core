@@ -9,6 +9,7 @@ using Newtonsoft.Json.Converters;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -98,7 +99,9 @@ namespace Inworld.Entities
     [Serializable]
     public class CharacterAssets
     {
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public string rpmModelUri;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public string rpmImageUri;
         public string avatarImg;
         public string avatarImgOriginal;
@@ -173,6 +176,7 @@ namespace Inworld.Entities
                 rpmModelUri = rhs.rpmAvatar.rpmModelUri;
         }
     }
+
     [Serializable]
     public class CharacterDescription
     {
@@ -180,11 +184,14 @@ namespace Inworld.Entities
         public string description;
         [JsonConverter(typeof(StringEnumConverter))]
         public Pronoun pronoun;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public List<string> nickNames;
         public string motivation;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public List<string> personalityAdjectives;
         [JsonConverter(typeof(StringEnumConverter))]
         public LifeStage lifeStage;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public List<string> hobbyOrInterests;
         public string characterRole;
         public string flaws;
@@ -196,7 +203,9 @@ namespace Inworld.Entities
         public string language;
         public CharacterDescription defaultCharacterDescription;
         public CharacterAssets defaultCharacterAssets;
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
         public List<string> commonKnowledges;
+
     }
     [Serializable]
     public class CharacterReference
