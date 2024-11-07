@@ -21,13 +21,15 @@ namespace Inworld.Data
         public string ShortName => name.Substring(name.LastIndexOf('/') + 1);
         
         public string name;
-        public List<TaskParameter> parameters;
+        public List<TaskParameterData> parameters;
     }
 
     [Serializable]
-    public struct TaskParameter
+    public struct TaskParameterData
     {
         public string name;
         public string description;
+        public List<string> entities;
     }
 }
+

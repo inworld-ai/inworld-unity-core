@@ -21,15 +21,5 @@ namespace Inworld.Data
         public string name;
         public string displayName;
         public string description;
-        public List<TaskReference> customTasks;
-    }
-
-    [Serializable]
-    public class TaskReference
-    {
-        public string ShortName => task.Substring(task.LastIndexOf('/') + 1);
-        
-        public string task;
-        public string parameter;
     }
 }
