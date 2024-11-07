@@ -4,7 +4,7 @@ var InworldMicrophoneInterop =
 
     WebGLInitSamplesMemoryData: function(byteOffset, length) 
     {
-        document.microphoneNative.samplesMemoryData = new Float32Array(buffer, byteOffset, length);
+        document.microphoneNative.samplesMemoryData = new Float32Array(Module.HEAPF32.buffer, byteOffset, length);
     },
 
     WebGLGetDeviceData: function () 
