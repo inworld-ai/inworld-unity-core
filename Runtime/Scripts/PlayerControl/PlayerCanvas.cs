@@ -18,7 +18,7 @@ namespace Inworld.Sample
         protected InputAction m_InputAction;
         public bool KeyReleased => m_InputAction != null && m_InputAction.WasReleasedThisFrame();
 
-        public void Open()
+        public virtual void Open()
         {
             if (m_CanvasObj.activeSelf)
                 return;
@@ -28,7 +28,7 @@ namespace Inworld.Sample
                 PlayerController.Instance.UILayer++;
         }
 
-        public void Close()
+        public virtual void Close()
         {
             if (!m_CanvasObj.activeSelf)
                 return;

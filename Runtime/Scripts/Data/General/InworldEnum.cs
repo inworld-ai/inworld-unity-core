@@ -33,6 +33,21 @@ namespace Inworld
         IncompleteInteraction,
         Task
     }
+
+    public enum LogLevel
+    {
+        // Log level was not set for the given log entry. Defaults to WARNING.
+        UNSPECIFIED = 0,
+        // Important log messages that usually indicate a developer issue that needs resolution.
+        // For example, a goal function mutation failed due to an invalid value.
+        WARNING = 1,
+        // Informational logs provide the developer with general information about the system's state.
+        // For example, information about completed goals in the current turn.
+        INFO = 2,
+        // Detailed information needed primarily for debugging specific issues.
+        // For example, information about changes in variable values.
+        DEBUG = 3
+    }
     public enum ErrorType
     {
         UNDEFINED = -2,
@@ -88,6 +103,12 @@ namespace Inworld
         INTERACTION_DISLIKE_TYPE_UNEXPECTED_GOAL_BEHAVIOR = 6,
         // The content contains repetition issue
         INTERACTION_DISLIKE_TYPE_REPETITION = 7
+    }
+    public enum CustomType 
+    {
+        UNSPECIFIED = 0,
+        TRIGGER = 1,
+        TASK = 2
     }
     public enum MicrophoneMode
     {
@@ -232,6 +253,7 @@ namespace Inworld
     public enum SourceType
     {
         NONE,
+        UNKNOWN,
         AGENT,
         PLAYER,
         WORLD

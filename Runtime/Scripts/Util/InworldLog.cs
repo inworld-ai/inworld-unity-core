@@ -30,7 +30,6 @@ namespace Inworld
         {
             Application.logMessageReceived -= OnLogReceived;
         }
-
         void OnLogReceived(string log, string backTrace, LogType type)
         {
             if (!m_LogArea)

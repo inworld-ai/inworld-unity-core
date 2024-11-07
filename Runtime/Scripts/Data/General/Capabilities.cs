@@ -26,6 +26,10 @@ namespace Inworld.Data
         public bool multiModalActionPlanning;
         public bool pingPongReport;
         public bool perceivedLatencyReport;
+        public bool logs = true;
+        public bool logs_warning = true;
+        public bool logs_info = true;
+        public bool logs_debug;
 
         public Capabilities() {}
         public Capabilities(Capabilities rhs)
@@ -44,6 +48,10 @@ namespace Inworld.Data
             multiModalActionPlanning = rhs.multiModalActionPlanning;
             pingPongReport = rhs.pingPongReport;
             perceivedLatencyReport = rhs.perceivedLatencyReport;
+            logs = rhs.logs;
+            logs_info = rhs.logs_info;
+            logs_debug = rhs.logs_debug;
+            logs_warning = rhs.logs_warning;
         }
         public void CopyFrom(Capabilities rhs)
         {
@@ -61,6 +69,10 @@ namespace Inworld.Data
             multiModalActionPlanning = rhs.multiModalActionPlanning;
             pingPongReport = rhs.pingPongReport;
             perceivedLatencyReport = rhs.perceivedLatencyReport;
+            logs = rhs.logs;
+            logs_info = rhs.logs_info;
+            logs_debug = rhs.logs_debug;
+            logs_warning = rhs.logs_warning;
         }
         public override string ToString()
         {
@@ -91,6 +103,14 @@ namespace Inworld.Data
                 result += "PING_PONG ";
             if (perceivedLatencyReport)
                 result += "PERCEIVED_LATENCY ";
+            if (logs)
+                result += "LOGS ";
+            if (logs_info)
+                result += "LOGS INFO ";
+            if (logs_debug)
+                result += "LOGS DEBUG ";
+            if (logs_warning)
+                result += "LOGS WARNING ";
             return result;
         }
     }

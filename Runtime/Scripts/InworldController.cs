@@ -575,7 +575,6 @@ namespace Inworld
                 uwr.uploadHandler = new UploadHandlerRaw(bodyRaw);
                 uwr.downloadHandler = new DownloadHandlerBuffer();
                 yield return uwr.SendWebRequest();
-                OnControllerStatusChanged?.Invoke(InworldConnectionStatus.Initializing, "Sent Request");
                 if (uwr.result != UnityWebRequest.Result.Success)
                     OnControllerStatusChanged?.Invoke(InworldConnectionStatus.Error, $"Error Get Token: {uwr.error}");
                 uwr.uploadHandler.Dispose();

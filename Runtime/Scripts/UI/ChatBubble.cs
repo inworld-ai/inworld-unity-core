@@ -74,7 +74,7 @@ namespace Inworld.UI
         }
         void CreateFeedbackDlg(string interactionID, string correlationID)
         {
-            if (PlayerController.Instance)
+            if (PlayerController.Instance && !string.IsNullOrEmpty(interactionID)) 
                 PlayerController.Instance.OpenFeedback(interactionID, correlationID);
         }
 

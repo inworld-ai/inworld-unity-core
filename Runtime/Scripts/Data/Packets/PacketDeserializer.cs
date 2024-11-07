@@ -43,6 +43,8 @@ namespace Inworld.Packet
 				return jo.ToObject<OperationStatusPacket>(serializer);
 			if (jo["latencyReport"] != null)
 				return jo.ToObject<LatencyReportPacket>(serializer);
+			if (jo["log"] != null)
+				return jo.ToObject<LogPacket>(serializer);
 			InworldAI.LogWarning($"Unsupported type {jo}");
 			return jo.ToObject<InworldPacket>(serializer);
 		}
@@ -52,7 +54,8 @@ namespace Inworld.Packet
 		}
 		public override bool CanWrite => false; // YAN: Use default serializer.
 	}
-    public class NetworkPacketResponse
+
+	public class NetworkPacketResponse
     {
         [JsonConverter(typeof(PacketDeserializer))]
         public InworldPacket result;

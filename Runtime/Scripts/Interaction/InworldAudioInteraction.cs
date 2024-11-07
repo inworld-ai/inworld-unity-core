@@ -18,7 +18,7 @@ namespace Inworld.Interactions
     {
         [Range (0, 1)][SerializeField] protected float m_VolumeOnPlayerSpeaking = 1f;
         const string k_NoAudioCapabilities = "Audio Capabilities have been disabled in the Inworld AI object. Audio is required to be enabled when using the InworldAudioInteraction component.";
-        public override float AnimFactor => m_PlaybackSource ? m_PlaybackSource.time : base.AnimFactor;
+        public override float AnimFactor => m_PlaybackSource && m_PlaybackSource.clip != null ? m_PlaybackSource.time : base.AnimFactor;
         protected float m_AudioReducer;
         protected bool m_IsPlayerSpeaking;
         /// <summary>

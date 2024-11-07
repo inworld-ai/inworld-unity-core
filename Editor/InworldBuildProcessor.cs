@@ -9,7 +9,10 @@
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
 
 namespace Inworld
 {
@@ -22,14 +25,35 @@ namespace Inworld
             {
                 if (InworldAI.Initialized)
                     return;
+                _UpgradeIntensity();
                 _AddDebugMacro();
                 VersionChecker.CheckVersionUpdates();
                 if (VersionChecker.IsLegacyPackage)
                     VersionChecker.NoticeLegacyPackage();
                 InworldAI.Initialized = true;
-                _SetDefaultUserName();
             };
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+        }
+        static void _UpgradeIntensity()
+        {
+            if (GraphicsSettings.currentRenderPipeline == null)
+                return;
+            string[] data = AssetDatabase.FindAssets("t:SceneAsset", new[] { "Assets/Inworld/Inworld.Samples.Innequin", "Assets/Inworld/Inworld.Samples.RPM" });
+            
+            foreach (string str in data)
+            {
+                string scenePath = AssetDatabase.GUIDToAssetPath(str);
+                Debug.Log($"Process on {scenePath}");
+                Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+                foreach (Light light in Object.FindObjectsByType<Light>(FindObjectsSortMode.None))
+                {
+                    light.intensity = 50;
+                }
+                EditorSceneManager.MarkSceneDirty(scene);
+                EditorSceneManager.SaveScene(scene);
+            }
+            if (data.Length > 0)
+                EditorSceneManager.OpenScene(AssetDatabase.GUIDToAssetPath(data[0]), OpenSceneMode.Single);
         }
         static void OnPlayModeStateChanged(PlayModeStateChange state)
         {
@@ -80,25 +104,22 @@ namespace Inworld
             System.IO.File.WriteAllText($"{pathToBuiltProject}/AudioResampler.js", InworldAI.WebGLMicResampler.text);
         }
 #endif
-        static void _SetDefaultUserName()
-        {
-            string userName = CloudProjectSettings.userName;
-            InworldAI.User.Name = !string.IsNullOrEmpty(userName) && userName.Split('@').Length > 1 ? userName.Split('@')[0] : userName;
-        }
         static void _AddDebugMacro()
         {
             BuildTargetGroup buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
-            string strSymbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
+            NamedBuildTarget namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(buildTargetGroup);
+            string strSymbols = PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget);
             if (!strSymbols.Contains("INWORLD_DEBUG"))
                 strSymbols = string.IsNullOrEmpty(strSymbols) ? "INWORLD_DEBUG" : strSymbols + ";INWORLD_DEBUG";
-            PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, strSymbols);
+            PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, strSymbols);
         }
         static void _RemoveDebugMacro()
         {
             BuildTargetGroup buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
-            string strSymbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
+            NamedBuildTarget namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(buildTargetGroup);
+            string strSymbols = PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget);
             strSymbols = strSymbols.Replace(";INWORLD_DEBUG", "").Replace("INWORLD_DEBUG", "");
-            PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, strSymbols);
+            PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, strSymbols);
         }
         public int callbackOrder { get; }
     }

@@ -314,6 +314,7 @@ namespace Inworld
             {
                 SendAudio(audioData);
             }
+            m_AudioToPush.Clear();
             return InworldController.Client.StopAudioTo();
         }
         public virtual bool StartAudio()
@@ -325,8 +326,6 @@ namespace Inworld
         }
         public virtual bool SendAudio(AudioChunk chunk)
         {
-            if (InworldController.Client.Status != InworldConnectionStatus.Connected)
-                return false;
             if (!InworldController.Client.Current.IsConversation && chunk.targetName != InworldController.Client.Current.Character?.brainName)
             {
                 InworldController.Client.Current.Character = InworldController.CharacterHandler[chunk.targetName]?.Data;
@@ -374,6 +373,11 @@ namespace Inworld
 
         protected virtual void OnDisable()
         {
+            if (PlayerController.Instance)
+            {
+                PlayerController.Instance.onCanvasOpen.RemoveListener(OnPlayerCanvasOpen);
+                PlayerController.Instance.onCanvasClosed.RemoveListener(OnPlayerCanvasClosed);
+            }
             if (m_AudioCoroutine != null)
                 StopCoroutine(m_AudioCoroutine);
             StopMicrophone(m_DeviceName);
@@ -398,6 +402,8 @@ namespace Inworld
 #region Protected Functions
         protected virtual void OnPlayerCanvasOpen()
         {
+            if (!m_DetectPlayerSpeaking)
+                return;
             m_PrevSampleMode = m_SamplingMode;
             m_SamplingMode = MicSampleMode.PUSH_TO_TALK;
             m_PrevDetectPlayerSpeaking = m_DetectPlayerSpeaking;
@@ -405,6 +411,8 @@ namespace Inworld
         }
         protected virtual void OnPlayerCanvasClosed()
         {
+            if (m_DetectPlayerSpeaking)
+                return;
             m_SamplingMode = m_PrevSampleMode;
             m_DetectPlayerSpeaking = m_PrevDetectPlayerSpeaking;
         }

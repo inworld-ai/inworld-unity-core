@@ -85,7 +85,7 @@ namespace Inworld
         /// </summary>
         public bool EnableGroupChat
         {
-            get => m_EnableGroupChat;
+            get => m_EnableGroupChat && InworldController.Instance && InworldController.CharacterHandler.CurrentCharacters.Count > 1;
             set
             {
                 if (m_EnableGroupChat == value)
@@ -233,7 +233,7 @@ namespace Inworld
         void OnDestroy()
         {
 #if !UNITY_WEBGL || UNITY_EDITOR
-            var webSocketManager = FindObjectOfType<WebSocketManager>();
+            WebSocketManager webSocketManager = FindFirstObjectByType<WebSocketManager>();
             if(webSocketManager)
                 Destroy(webSocketManager.gameObject);
 #endif
@@ -268,6 +268,16 @@ namespace Inworld
                     result[brainID] = "";
             }
             return result;
+        }
+        /// <summary>
+        /// Disconnect Inworld Async.
+        /// Will wait until Status is reset to idle.
+        /// </summary>
+        public IEnumerator DisconnectAsync()
+        {
+            yield return new WaitForEndOfFrame();
+            m_Socket?.CloseAsync();
+            yield return new WaitUntil(() => Status == InworldConnectionStatus.Idle);
         }
         /// <summary>
         /// Gets the InworldCharacterData by the given agentID.
@@ -348,8 +358,9 @@ namespace Inworld
         /// <summary>
         /// Reconnect session or start a new session if the current session is invalid.
         /// </summary>
-        public void Reconnect() 
+        public void Reconnect()
         {
+            Status = InworldConnectionStatus.Initializing;
             if (InworldController.IsTokenValid)
                 StartSession();
             else
@@ -1196,6 +1207,11 @@ namespace Inworld
                 ErrorMessage = e.Data;
                 return;
             }
+            if (response.result is LogPacket logPacket)
+            {
+                logPacket.Display();
+                return;
+            }
             if (response.error != null && !string.IsNullOrEmpty(response.error.message))
             {
                 Error = response.error;
@@ -1227,12 +1243,7 @@ namespace Inworld
             if (e.Message != k_DisconnectMsg)
                 ErrorMessage = e.Message;
         }
-        protected IEnumerator DisconnectAsync()
-        {
-            yield return new WaitForEndOfFrame();
-            m_Socket?.CloseAsync();
-            yield return new WaitForEndOfFrame();
-        }
+
         protected bool PreparePacketToSend(InworldPacket rawPkt, bool immediate = false, bool needCallback = true)
         {
             if (!immediate)
