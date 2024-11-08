@@ -17,12 +17,12 @@ namespace Inworld.Interactions
     {
         [Range (0, 1)][SerializeField] protected float m_VolumeOnPlayerSpeaking = 1f;
         const string k_NoAudioCapabilities = "Audio Capabilities have been disabled in the Inworld AI object. Audio is required to be enabled when using the InworldAudioInteraction component.";
+
         public override float AnimFactor
         {
             get => m_AnimFactor;
             set => m_AnimFactor = value;
-        }
-
+        } 
         protected float m_AudioReducer;
         protected bool m_IsPlayerSpeaking;
         /// <summary>
@@ -141,14 +141,20 @@ namespace Inworld.Interactions
                     m_PlaybackSource.Play();
                 }
                 m_Character.OnInteractionChanged(m_CurrentInteraction.CurrentUtterance.Packets);
-
                 yield return new WaitUntil(CanPass);
                 m_PlaybackSource.clip = null;
             }
             m_CurrentInteraction?.Processed();
         }
 
-        bool CanPass() => !m_PlaybackSource || !m_PlaybackSource.clip || !m_PlaybackSource.isPlaying;
+        bool CanPass()
+        {
+            bool canPass = !m_PlaybackSource.clip || !m_PlaybackSource.isPlaying;
+            if (canPass)
+                AnimFactor = 0;
+            return canPass;
+        }
+
 
         protected override void SkipCurrentUtterance()
         {

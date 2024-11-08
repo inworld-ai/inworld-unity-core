@@ -18,7 +18,6 @@ using UnityEngine.InputSystem;
 
 #if UNITY_WEBGL
 using AOT;
-using System.Linq;
 using System.Runtime.InteropServices;
 #endif
 
