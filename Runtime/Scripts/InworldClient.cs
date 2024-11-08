@@ -85,7 +85,7 @@ namespace Inworld
         /// </summary>
         public bool EnableGroupChat
         {
-            get => m_EnableGroupChat && InworldController.Instance && InworldController.CharacterHandler.CurrentCharacters.Count > 1;
+            get => m_EnableGroupChat;
             set
             {
                 if (m_EnableGroupChat == value)
@@ -1184,8 +1184,8 @@ namespace Inworld
                         if (controlPacket.control is CurrentSceneStatusEvent currentSceneStatusEvent)
                         {
                             _RegisterLiveSession(currentSceneStatusEvent.currentSceneStatus.agents);
-                            UpdateConversation();
                             Status = InworldConnectionStatus.Connected;
+                            UpdateConversation(InworldController.CharacterHandler.ConversationID, m_LiveSessionData.Keys.ToList());
                             foreach (InworldPacket pkt in m_Sent)
                             {
                                 m_Prepared.Enqueue(pkt);

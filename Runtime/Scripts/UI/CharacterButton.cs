@@ -51,12 +51,12 @@ namespace Inworld.UI
         /// <summary>
         /// Select this character to interact with.
         /// </summary>
-        public void SelectCharacter()
+        public void SelectCharacter(bool isSelected)
         {
             //TODO(Yan): Support Async Connections.
             if (InworldController.Status != InworldConnectionStatus.Connected)
                 return;
-            m_IsSelected = !m_IsSelected;
+            m_IsSelected = isSelected;
             m_Icon.material = m_IsSelected ? m_MatSelected : m_MatDeselected;
             InworldCharacter iwChar = GetCharacter();
             if (!iwChar)
@@ -65,7 +65,10 @@ namespace Inworld.UI
                 iwChar.transform.name = m_Data.givenName;
             }
             iwChar.Data = m_Data;
-            InworldController.CurrentCharacter = iwChar;
+            if (isSelected)
+                InworldController.CharacterHandler.Register(iwChar);
+            else
+                InworldController.CharacterHandler.Unregister(iwChar);
         }
         /// <summary>
         /// Get this character.
