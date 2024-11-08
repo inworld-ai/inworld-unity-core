@@ -8,7 +8,6 @@
 using UnityEngine;
 using Inworld.Packet;
 using System.Collections;
-using Inworld.Entities;
 using UnityEngine.InputSystem;
 using Random = UnityEngine.Random;
 
@@ -35,11 +34,21 @@ namespace Inworld.Interactions
         protected bool m_Proceed = true;
         protected bool m_IsContinueKeyPressed;
         protected bool m_LastFromPlayer;
+        protected float m_AnimFactor;
         /// <summary>
         /// Gets the factor for selecting animation clips.
         /// If without Audio, it's a random value between 0 and 1.
         /// </summary>
-        public virtual float AnimFactor => Random.Range(0, 1);
+        public virtual float AnimFactor
+        {
+            get
+            {
+                if (m_AnimFactor == 0)
+                    m_AnimFactor = Random.Range(0, 1);
+                return m_AnimFactor;
+            }
+            set => m_AnimFactor = value;
+        }
 
         /// <summary>
         /// If the target packet is sent or received by this character.
