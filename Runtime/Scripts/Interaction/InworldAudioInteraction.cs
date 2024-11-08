@@ -5,10 +5,9 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
-using System;
+
 using UnityEngine;
 using System.Collections;
-using System.Linq;
 
 
 namespace Inworld.Interactions
@@ -18,7 +17,12 @@ namespace Inworld.Interactions
     {
         [Range (0, 1)][SerializeField] protected float m_VolumeOnPlayerSpeaking = 1f;
         const string k_NoAudioCapabilities = "Audio Capabilities have been disabled in the Inworld AI object. Audio is required to be enabled when using the InworldAudioInteraction component.";
-        public override float AnimFactor => m_PlaybackSource && m_PlaybackSource.clip != null ? m_PlaybackSource.time : base.AnimFactor;
+        public override float AnimFactor
+        {
+            get => m_AnimFactor;
+            set => m_AnimFactor = value;
+        }
+
         protected float m_AudioReducer;
         protected bool m_IsPlayerSpeaking;
         /// <summary>
@@ -88,10 +92,19 @@ namespace Inworld.Interactions
             if (!InworldAI.Capabilities.audio)
                 InworldAI.LogWarning(k_NoAudioCapabilities);
         }
+
+        void FixedUpdate()
+        {
+            if (!CanPass())
+                AnimFactor += Time.fixedUnscaledDeltaTime;
+            else
+                AnimFactor = 0;
+        }
+
         void LateUpdate()
         {
             if (!m_PlaybackSource || !m_Character)
-                    return;
+                return;
             if (InworldController.CharacterHandler &&
                 InworldController.CharacterHandler.SelectingMethod != CharSelectingMethod.SightAngle)
             {
@@ -128,11 +141,15 @@ namespace Inworld.Interactions
                     m_PlaybackSource.Play();
                 }
                 m_Character.OnInteractionChanged(m_CurrentInteraction.CurrentUtterance.Packets);
-                yield return new WaitUntil(() => m_PlaybackSource.clip == null || m_PlaybackSource.time >= m_PlaybackSource.clip.length - Time.fixedUnscaledDeltaTime);
+
+                yield return new WaitUntil(CanPass);
                 m_PlaybackSource.clip = null;
             }
             m_CurrentInteraction?.Processed();
         }
+
+        bool CanPass() => !m_PlaybackSource || !m_PlaybackSource.clip || !m_PlaybackSource.isPlaying;
+
         protected override void SkipCurrentUtterance()
         {
             base.SkipCurrentUtterance();
