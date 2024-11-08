@@ -10,7 +10,7 @@ using Inworld.Packet;
 using NUnit.Framework;
 using System.Collections;
 using System.Linq;
-using Inworld.Entities;
+using Inworld.Data;
 using UnityEngine;
 using UnityEngine.TestTools;
 

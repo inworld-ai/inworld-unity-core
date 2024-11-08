@@ -7,7 +7,7 @@
 
 using System.Collections;
 using System.Linq;
-using Inworld.Entities;
+using Inworld.Data;
 using Inworld.Packet;
 using NUnit.Framework;
 using UnityEngine;
