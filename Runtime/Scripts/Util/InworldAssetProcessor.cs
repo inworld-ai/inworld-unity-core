@@ -24,7 +24,7 @@ namespace Inworld
             => k_LuminanceRed * color.r + k_LuminanceGreen * color.g + k_LuminanceBlue * color.b;
         
         public static Color GetFontColor(Texture2D texture)
-            => texture.GetPixels().Average(GetLuminance) > 0.5 ? Color.black : Color.white;
+            => texture == InworldAI.DefaultThumbnail || texture.GetPixels().Average(GetLuminance) < 0.5 ? Color.white : Color.black;
 
     }
 }
