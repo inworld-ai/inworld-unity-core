@@ -48,7 +48,7 @@ namespace Inworld.UI
             if (m_Icon && thumbnail)
                 m_Icon.texture = thumbnail;
         }
-        public virtual void SetBubbleWithPacketInfo(string charName, string interactionID, string correlationID, Texture2D thumbnail = null, string text = null)
+        public virtual void SetBubbleWithPacketInfo(string charName, string interactionID, string correlationID, string utteranceID, Texture2D thumbnail = null, string text = null)
         {
             if (m_Title)
                 m_Title.text = charName;

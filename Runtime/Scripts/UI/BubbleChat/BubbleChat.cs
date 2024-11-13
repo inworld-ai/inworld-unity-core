@@ -24,18 +24,20 @@ namespace Inworld.Sample
         public bool audio;
         public bool text;
         public bool emotion;
+        public bool hasFeedback;
         public bool narrativeAction;
         public bool relation;
         public bool trigger;
         public bool longBubbleMode;
         public bool task;
     }
-    public class ChatPanel : BubblePanel
+    public class BubbleChat : BubbleContainer
     {
         [SerializeField] protected ChatBubble m_BubbleLeft;
+        [SerializeField] protected ChatBubbleFeedback m_FeedbackBubbleLeft;
         [SerializeField] protected ChatBubble m_BubbleRight;
         [SerializeField] protected ChatOptions m_ChatOptions;
-        public override bool IsUIReady => base.IsUIReady && m_BubbleLeft && m_BubbleRight;
+        public override bool IsUIReady => base.IsUIReady && m_BubbleLeft && m_BubbleRight && m_FeedbackBubbleLeft;
         
         void OnEnable()
         {
@@ -74,11 +76,14 @@ namespace Inworld.Sample
             foreach (Message history in chatHistories)
             {
                 string hash = history.ToHash;
-                ChatBubble bubble = history.role == MessageRole.MESSAGE_ROLE_USER ? m_BubbleRight : m_BubbleLeft;
+                InworldUIElement bubble = history.role == MessageRole.MESSAGE_ROLE_USER ? m_BubbleRight : m_ChatOptions.hasFeedback ? m_FeedbackBubbleLeft : m_BubbleLeft;
                 Texture2D thumbnail = history.role == MessageRole.MESSAGE_ROLE_USER ? InworldAI.User.Thumbnail : InworldAI.Logo;
                 InsertBubble(hash, bubble, history.Role, false, history.ToMessage, thumbnail);
             }
         }
+        
+        
+        
         protected virtual void OnInteraction(InworldPacket incomingPacket)
         {
             switch (incomingPacket)
@@ -112,6 +117,12 @@ namespace Inworld.Sample
                     break;
             }
         }
+
+        public void RemoveBubble(string interactionId, string utteranceID)
+        {
+            RemoveBubbleByKey(m_ChatOptions.longBubbleMode ? interactionId : utteranceID);
+        }
+        
         protected virtual bool RemoveBubbles(MutationPacket mutationPacket)
         {
             CancelResponse response = new CancelResponse();
@@ -122,7 +133,7 @@ namespace Inworld.Sample
             if (string.IsNullOrEmpty(response.interactionId))
                 return false;
             if (!m_ChatOptions.longBubbleMode)
-                response.utteranceId?.ForEach(RemoveBubble);
+                response.utteranceId?.ForEach(RemoveBubbleByKey);
             return true;
         }
         protected virtual void HandleAudio(AudioPacket audioPacket)
@@ -205,7 +216,7 @@ namespace Inworld.Sample
                         string charName = charData.givenName ?? "Character";
                         Texture2D thumbnail = charData.thumbnail ? charData.thumbnail : InworldAI.DefaultThumbnail;
                         string content = textPacket.text.text;
-                        InsertBubbleWithPacketInfo(key, textPacket.packetId, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
+                        InsertBubbleWithPacketInfo(key, textPacket.packetId, m_ChatOptions.hasFeedback ? m_FeedbackBubbleLeft : m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
                     }
                     break;
                 }

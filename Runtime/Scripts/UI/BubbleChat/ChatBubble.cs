@@ -12,6 +12,7 @@ using UnityEngine.EventSystems;
 
 namespace Inworld.UI
 {
+
     /// <summary>
     ///     This class is for each detailed chat bubble.
     /// </summary>
@@ -51,9 +52,9 @@ namespace Inworld.UI
         /// <param name="correlationID">The bubble's correlation ID</param>
         /// <param name="thumbnail">The bubble's owner's thumbnail</param>
         /// <param name="text">The bubble's content</param>
-        public override void SetBubbleWithPacketInfo(string charName, string interactionID, string correlationID, Texture2D thumbnail = null, string text = null)
+        public override void SetBubbleWithPacketInfo(string charName, string interactionID, string correlationID, string utteranceID, Texture2D thumbnail = null, string text = null)
         {
-            base.SetBubbleWithPacketInfo(charName, interactionID, correlationID, thumbnail, text);
+            base.SetBubbleWithPacketInfo(charName, interactionID, correlationID, utteranceID, thumbnail, text);
             m_InteractionID = interactionID;
             m_CorrelationID = correlationID;
             if (m_TextField && !string.IsNullOrEmpty(text))

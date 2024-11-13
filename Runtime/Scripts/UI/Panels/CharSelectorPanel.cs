@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Inworld.Sample
 {
-    public class CharSelectorPanel : BubblePanel
+    public class CharSelectorPanel : BubbleContainer
     {
         [SerializeField] CharacterButton m_CharSelectorPrefab;
 

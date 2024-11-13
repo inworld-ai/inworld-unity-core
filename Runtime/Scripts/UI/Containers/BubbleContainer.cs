@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace Inworld.UI
 {
-    public class BubblePanel : MonoBehaviour
+    public class BubbleContainer : MonoBehaviour
     {
         [SerializeField] RectTransform m_ContentAnchor;
 
@@ -53,7 +53,7 @@ namespace Inworld.UI
             if (!m_Bubbles.ContainsKey(key))
             {
                 m_Bubbles[key] = Instantiate(bubble, m_ContentAnchor);
-                m_Bubbles[key].SetBubbleWithPacketInfo(title, packetId.interactionId, packetId.correlationId, thumbnail, content);
+                m_Bubbles[key].SetBubbleWithPacketInfo(title, packetId.interactionId, packetId.correlationId, packetId.utteranceId, thumbnail, content);
             }
             else if (isAttachMode)
             {
@@ -61,11 +61,11 @@ namespace Inworld.UI
             }
             else
             {
-                m_Bubbles[key].SetBubbleWithPacketInfo(title, packetId.interactionId, packetId.correlationId, thumbnail, content);
+                m_Bubbles[key].SetBubbleWithPacketInfo(title, packetId.interactionId, packetId.correlationId, packetId.utteranceId, thumbnail, content);
             }
             UpdateContent();
         }
-        protected virtual void RemoveBubble(string key)
+        protected virtual void RemoveBubbleByKey(string key)
         {
             if (string.IsNullOrEmpty(key) || !m_Bubbles.ContainsKey(key))
                 return;

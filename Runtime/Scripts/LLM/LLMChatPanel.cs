@@ -15,7 +15,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 namespace Inworld.LLM
 {
-	public class LLMChatPanel : BubblePanel
+	public class LLMChatPanel : BubbleContainer
 	{
 		[SerializeField] protected ChatBubble m_BubbleLeft;
 		[SerializeField] protected ChatBubble m_BubbleRight;

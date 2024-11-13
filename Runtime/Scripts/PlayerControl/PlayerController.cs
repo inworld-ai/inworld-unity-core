@@ -21,6 +21,7 @@ namespace Inworld.Sample
     /// </summary>
     public class PlayerController : SingletonBehavior<PlayerController>
     {
+        protected BubbleChat m_BubbleChat;
         protected int m_CurrentUILayers;
         public UnityEvent<string> onPlayerSpeaks;
         public UnityEvent onCanvasOpen; 
@@ -52,6 +53,10 @@ namespace Inworld.Sample
         {
 
         }
+        public virtual void RemoveBubble(string m_InteractionID, string m_UtteranceID)
+        {
+            if (m_BubbleChat)
+                m_BubbleChat.RemoveBubble(m_InteractionID, m_UtteranceID);
+        }
     }
 }
-
