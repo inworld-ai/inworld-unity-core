@@ -75,7 +75,7 @@ namespace Inworld.UI
         void CreateFeedbackDlg(string interactionID, string correlationID)
         {
             if (PlayerController.Instance && !string.IsNullOrEmpty(interactionID)) 
-                PlayerController.Instance.OpenFeedback(interactionID, correlationID);
+                PlayerController.Instance.OpenContextEditing(interactionID, correlationID);
         }
 
         public void OnPointerDown(PointerEventData eventData)
