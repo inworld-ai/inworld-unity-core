@@ -477,7 +477,6 @@ namespace Inworld
         /// Without sending this message, all the audio data would be discarded by server.
         /// However, if you send this event twice in a row, without sending `StopAudio()`, Inworld server will also through exceptions and terminate the session.
         /// </summary>
-        /// <exception cref="ArgumentException">If the charID is not legal, this function will throw exception.</exception>
         public virtual bool StartAudio()
         {
             if (!Client || Client.Status != InworldConnectionStatus.Connected)
@@ -564,7 +563,6 @@ namespace Inworld
                 UnityWebRequest uwr = new UnityWebRequest(m_ServerConfig.TokenServer, "POST");
                 uwr.SetRequestHeader("Authorization", header);
                 uwr.SetRequestHeader("Content-Type", "application/json");
-
                 AccessTokenRequest req = new AccessTokenRequest
                 {
                     api_key = m_APIKey,

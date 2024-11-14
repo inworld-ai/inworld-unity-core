@@ -8,6 +8,7 @@
 using UnityEngine;
 using Inworld.Entities;
 using System.Collections;
+using System.Linq;
 using UnityEngine.Networking;
 
 namespace Inworld.UI
@@ -16,7 +17,10 @@ namespace Inworld.UI
     {
         [SerializeField] InworldCharacterData m_Data;
         [SerializeField] InworldCharacter m_Char;
+        [SerializeField] Material m_MatSelected;
+        [SerializeField] Material m_MatDeselected;
 
+        protected bool m_IsSelected;
         /// <summary>
         /// Set the character's data.
         /// </summary>
@@ -36,19 +40,24 @@ namespace Inworld.UI
             UnityWebRequest uwr = new UnityWebRequest(url);
             uwr.downloadHandler = new DownloadHandlerTexture();
             yield return uwr.SendWebRequest();
-            if (uwr.isDone && uwr.result == UnityWebRequest.Result.Success)
-            {
-                m_Icon.texture = (uwr.downloadHandler as DownloadHandlerTexture)?.texture;
-            }
+            if (!uwr.isDone || uwr.result != UnityWebRequest.Result.Success) 
+                yield break;
+            if (!(uwr.downloadHandler is DownloadHandlerTexture downloadTexture))
+                yield break;
+            Texture2D texture = downloadTexture.texture;
+            m_Icon.texture = texture;
+            m_Title.color = InworldAssetProcessor.GetFontColor(texture);
         }
         /// <summary>
         /// Select this character to interact with.
         /// </summary>
-        public void SelectCharacter()
+        public void SelectCharacter(bool isSelected)
         {
+            //TODO(Yan): Support Async Connections.
             if (InworldController.Status != InworldConnectionStatus.Connected)
                 return;
-
+            m_IsSelected = isSelected;
+            m_Icon.material = m_IsSelected ? m_MatSelected : m_MatDeselected;
             InworldCharacter iwChar = GetCharacter();
             if (!iwChar)
             {
@@ -56,7 +65,10 @@ namespace Inworld.UI
                 iwChar.transform.name = m_Data.givenName;
             }
             iwChar.Data = m_Data;
-            InworldController.CurrentCharacter = iwChar;
+            if (isSelected)
+                InworldController.CharacterHandler.Register(iwChar);
+            else
+                InworldController.CharacterHandler.Unregister(iwChar);
         }
         /// <summary>
         /// Get this character.
