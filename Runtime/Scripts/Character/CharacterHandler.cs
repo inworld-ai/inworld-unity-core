@@ -144,7 +144,7 @@ namespace Inworld
         {
             if (character == null || !InworldController.Instance)
                 return;
-            if (character == CurrentCharacter) 
+            if (character == CurrentCharacter)
                 CurrentCharacter = null;
             if (!m_CharacterList.Contains(character))
                 return;
