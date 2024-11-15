@@ -60,6 +60,10 @@ namespace Inworld.Entities
 		// As InworldController.CharacterHandler would return directly in most cases.
 		public bool UpdateMultiTargets(string conversationID = "", List<string> brainNames = null)
 		{
+			if (brainNames?.Count == 1 && !string.IsNullOrEmpty(brainNames[0]))
+				return UpdateSingleTarget(brainNames[0]);
+			if (InworldController.CharacterHandler.CurrentCharacters.Count == 1)
+				return UpdateSingleTarget(InworldController.CharacterHandler.CurrentCharacters[0].BrainName);
 			if (!InworldController.Client.EnableGroupChat)
 				return false;
 			IsConversation = true;

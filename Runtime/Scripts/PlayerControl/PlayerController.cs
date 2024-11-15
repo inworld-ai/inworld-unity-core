@@ -43,7 +43,7 @@ namespace Inworld.Sample
         {
             HandleInput();
         }
-        public virtual void OpenFeedback(string interactionID, string correlationID)
+        public virtual void OpenContextEditing(string interactionID, string correlationID)
         {
             
         }

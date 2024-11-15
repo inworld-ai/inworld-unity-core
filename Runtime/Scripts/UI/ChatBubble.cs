@@ -15,11 +15,11 @@ namespace Inworld.UI
     /// <summary>
     ///     This class is for each detailed chat bubble.
     /// </summary>
-    public class ChatBubble : InworldUIElement, IPointerUpHandler, IPointerDownHandler
+    public class ChatBubble : InworldUIElement
     {
-        [SerializeField] TMP_Text m_TextField;
-        string m_InteractionID;
-        string m_CorrelationID;
+        [SerializeField] protected TMP_Text m_TextField;
+        protected string m_InteractionID;
+        protected string m_CorrelationID;
         
     #region Properties
         /// <summary>
@@ -66,22 +66,7 @@ namespace Inworld.UI
         public override void AttachBubble(string text) => m_TextField.text = $"{m_TextField.text.Trim()} {text.Trim()}";
 
     #endregion
-        public virtual void OnPointerUp(PointerEventData eventData)
-        {
-            if (m_Title.text == InworldAI.User.Name) // Send by player.
-                return;
-            CreateFeedbackDlg( m_InteractionID, m_CorrelationID);
-        }
-        void CreateFeedbackDlg(string interactionID, string correlationID)
-        {
-            if (PlayerController.Instance && !string.IsNullOrEmpty(interactionID)) 
-                PlayerController.Instance.OpenFeedback(interactionID, correlationID);
-        }
 
-        public void OnPointerDown(PointerEventData eventData)
-        {
-            // To make PointerUp working, PointerDown is required.
-        }
     }
 
 }
