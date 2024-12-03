@@ -1,4 +1,4 @@
-Shader "Inworld/UI/RoundRect"
+Shader "Inworld/UI/RoundRectCore"
 {
     Properties
     {
