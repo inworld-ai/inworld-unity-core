@@ -44,6 +44,7 @@ namespace Inworld
         public event Action<InworldError> OnErrorReceived;
         public event Action<InworldPacket> OnPacketSent;
         public event Action<InworldPacket> OnGlobalPacketReceived;
+        public event Action<LogPacket> OnLogReceived;
         public event Action<InworldPacket> OnPacketReceived;
         public event Action<bool> OnGroupChatChanged; 
         public event Action<bool> OnAutoChatChanged;
@@ -1209,6 +1210,7 @@ namespace Inworld
             }
             if (response.result is LogPacket logPacket)
             {
+                OnLogReceived?.Invoke(logPacket);
                 logPacket.Display();
                 return;
             }
