@@ -256,6 +256,7 @@ namespace Inworld
         {
             if (!incomingPacket.IsRelated(ID))
                 return false;
+                
             m_CharacterEvents.onPacketReceived.Invoke(incomingPacket);
             
             switch (incomingPacket)
