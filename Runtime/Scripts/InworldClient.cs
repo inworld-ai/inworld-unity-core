@@ -12,7 +12,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-
+using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEngine;
@@ -1200,18 +1200,13 @@ namespace Inworld
             }
             return true;
         }
+
         void OnMessageReceived(object sender, MessageEventArgs e)
         {
             NetworkPacketResponse response = JsonConvert.DeserializeObject<NetworkPacketResponse>(e.Data);
             if (response == null)
             {
                 ErrorMessage = e.Data;
-                return;
-            }
-            if (response.result is LogPacket logPacket)
-            {
-                OnLogReceived?.Invoke(logPacket);
-                logPacket.Display();
                 return;
             }
             if (response.error != null && !string.IsNullOrEmpty(response.error.message))
@@ -1222,6 +1217,12 @@ namespace Inworld
             if (response.result == null)
             {
                 ErrorMessage = e.Data;
+                return;
+            }
+            if (response.result is LogPacket logPacket)
+            {
+                OnLogReceived?.Invoke(logPacket);
+                logPacket.Display();
                 return;
             }
             InworldPacket packetReceived = response.result;
