@@ -14,24 +14,30 @@ using UnityEngine;
 namespace Inworld.Packet
 {
     [Serializable]
+    public class LogDetail
+    {
+        public string text;
+        public string detail;
+    }
+    [Serializable]
     public class LogEvent
     {
         public string text;
         [JsonConverter(typeof(StringEnumConverter))]
         public LogLevel level;
-        public Dictionary<string, string> metadata;
+        public List<LogDetail> details;
         
         public LogEvent()
         {
             text = "";
-            metadata = new Dictionary<string, string>();
+            details = new List<LogDetail>();
         }
 
-        public LogEvent(string log, LogLevel logLevel, Dictionary<string, string> eventParameters)
+        public LogEvent(string log, LogLevel logLevel, List<LogDetail> logDetails)
         {
             text = log;
             level = logLevel;
-            metadata = eventParameters;
+            details = logDetails;
         }
     }
     [Serializable]
@@ -43,9 +49,9 @@ namespace Inworld.Packet
         {
             log = new LogEvent();
         }
-        public LogPacket(string text, LogLevel logLevel, Dictionary<string, string> parameters = null)
+        public LogPacket(string text, LogLevel logLevel, List<LogDetail> logDetails = null)
         {
-            log = new LogEvent(text, logLevel, parameters);
+            log = new LogEvent(text, logLevel, logDetails);
             PreProcess();
         }
         public LogPacket(InworldPacket rhs, LogEvent evt) : base(rhs)

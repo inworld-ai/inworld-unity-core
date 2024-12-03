@@ -241,8 +241,8 @@ namespace Inworld
     {
         UNSPECIFIED,
         WEAK,
-        NEUTRAL,
-        STRONG
+        STRONG,
+        NORMAL
     }
     public enum ConversationEventType
     {

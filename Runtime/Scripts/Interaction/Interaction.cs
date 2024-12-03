@@ -7,6 +7,7 @@
 
 using Inworld.Packet;
 using System;
+using UnityEngine;
 
 
 namespace Inworld.Interactions
@@ -49,7 +50,10 @@ namespace Inworld.Interactions
                 Interruptible = false;
             if (m_Processed.IsOverDue(packet) || m_Processed.Contains(packet))
             {
-                m_Processed.Add(packet);
+                if (packet is TextPacket || packet is CustomPacket)
+                    m_Prepared.Add(packet);
+                else
+                    m_Processed.Add(packet);
                 return; //YAN: As will return null if it's not trigger.
             }
             if (CurrentUtterance != null && CurrentUtterance.ID == packet?.packetId?.utteranceId)

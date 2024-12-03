@@ -6,7 +6,9 @@
  *************************************************************************************************/
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using Inworld.Packet;
 using TMPro;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
@@ -20,17 +22,35 @@ namespace Inworld
     public class InworldLog : MonoBehaviour
     {
         [SerializeField] TMP_Text m_LogArea;
-
+        readonly List<LogDetail> m_InworldLogs = new();
         void Awake()
         {
-            Application.logMessageReceived += OnLogReceived;
+            Application.logMessageReceived += OnUnityLogReceived;
+            if (InworldController.Client)
+                InworldController.Client.OnLogReceived += OnInworldLogReceived;
         }
 
         void OnDisable()
         {
-            Application.logMessageReceived -= OnLogReceived;
+            if (InworldController.Client)
+                InworldController.Client.OnLogReceived -= OnInworldLogReceived;
+            Application.logMessageReceived -= OnUnityLogReceived;
         }
-        void OnLogReceived(string log, string backTrace, LogType type)
+
+        void OnInworldLogReceived(LogPacket logPacket)
+        {
+            if (logPacket?.log == null)
+                return;
+            m_InworldLogs.AddRange(logPacket.log.details);
+            if (!InworldAI.IsDebugMode)
+                return;
+            foreach (LogDetail detail in logPacket.log.details)
+            {
+                m_LogArea.text += $"Text: {detail.text} Detail: {detail.detail}\n";
+            }
+        }
+
+        void OnUnityLogReceived(string log, string backTrace, LogType type)
         {
             if (!m_LogArea)
                 return;
@@ -48,24 +68,29 @@ namespace Inworld
                     break;
             }
         }
+        /// <summary>
+        /// Get the logs from Inworld server.
+        /// </summary>
+        public List<LogDetail> InworldLogs => m_InworldLogs;
+        
         [Conditional("INWORLD_DEBUG")]
-        static internal void Log(string msg)
+        internal static void Log(string msg)
         {
             Debug.Log(msg);
         }
 
         [Conditional("INWORLD_DEBUG")]
-        static internal void LogWarning(string msg)
+        internal static void LogWarning(string msg)
         {
             Debug.LogWarning(msg);
         }
 
         [Conditional("INWORLD_DEBUG")]
-        static internal void LogError(string msg)
+        internal static void LogError(string msg)
         {
             Debug.LogError($"[Inworld {InworldAI.Version}] {msg}");
         }
-        static internal void LogException(string exception)
+        internal static void LogException(string exception)
         {
             throw new InworldException(exception);
         }
