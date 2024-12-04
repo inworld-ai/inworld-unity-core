@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
+using System.Collections.Generic;
 using Inworld.Packet;
 using TMPro;
 using UnityEngine;
@@ -59,6 +60,11 @@ namespace Inworld.UI
             UpdateBubbleWithPacketInfo(packetID, text);
         }
         public virtual void AttachBubble(string text)
+        {
+            
+        }
+
+        public virtual void RemoveUtterances(List<string> utterancesToRemove)
         {
             
         }

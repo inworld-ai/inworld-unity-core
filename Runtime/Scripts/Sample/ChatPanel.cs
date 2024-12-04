@@ -114,16 +114,25 @@ namespace Inworld.Sample
         }
         protected virtual bool RemoveBubbles(MutationPacket mutationPacket)
         {
-            CancelResponse response = new CancelResponse();
+            CancelResponse response = new();
             if (mutationPacket?.mutation is RegenerateResponseEvent regenEvt)
                 response.interactionId = regenEvt.regenerateResponse.interactionId;
-            if (mutationPacket?.mutation is CancelResponseEvent cancelEvt)
+            else if (mutationPacket?.mutation is CancelResponseEvent cancelEvt)
                 response = cancelEvt.cancelResponses;
-            if (string.IsNullOrEmpty(response.interactionId))
-                return false;
-            if (!m_ChatOptions.longBubbleMode)
-                response.utteranceId?.ForEach(RemoveBubble);
+            RemoveBubbleByResponse(response);
             return true;
+        }
+
+        protected virtual void RemoveBubbleByResponse(CancelResponse responseToRemove)
+        {
+            if (string.IsNullOrEmpty(responseToRemove?.interactionId))
+                return;
+            if (!m_ChatOptions.longBubbleMode)
+            {
+                responseToRemove.utteranceId?.ForEach(RemoveBubble);
+                return;
+            }
+            m_Bubbles[responseToRemove.interactionId].RemoveUtterances(responseToRemove.utteranceId);
         }
         protected virtual void HandleAudio(AudioPacket audioPacket)
         {

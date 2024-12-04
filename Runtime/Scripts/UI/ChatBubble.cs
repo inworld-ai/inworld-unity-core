@@ -20,7 +20,7 @@ namespace Inworld.UI
     public class ChatBubble : InworldUIElement
     {
         [SerializeField] protected TMP_Text m_TextField;
-        protected List<KeyValuePair<string, string>> m_Utterances = new();
+        protected readonly Dictionary<string, string> m_Utterances = new Dictionary<string, string>();
         protected string m_InteractionID;
         protected string m_CorrelationID;
         
@@ -61,10 +61,28 @@ namespace Inworld.UI
         {
             m_InteractionID = packetID.interactionId;
             m_CorrelationID = packetID.correlationId;
-            m_Utterances.Add(new KeyValuePair<string, string>(packetID.utteranceId, text.Trim()));
+            m_Utterances[packetID.utteranceId] = text;
             if (!m_TextField)
                 return;
             m_TextField.text = m_Utterances.Aggregate("", (current, kvp) => current + $"{kvp.Value} ");
+        }
+        /// <summary>
+        /// Remove utterances
+        /// </summary>
+        /// <param name="utterancesToRemove"></param>
+        public override void RemoveUtterances(List<string> utterancesToRemove)
+        {
+            foreach (var utterance in utterancesToRemove)
+            {
+                if (m_Utterances.ContainsKey(utterance))
+                    m_Utterances.Remove(utterance);
+            }
+            if (!m_TextField)
+                return;
+            foreach (KeyValuePair<string, string> kvp in m_Utterances)
+            {
+                m_TextField.text = m_Utterances.Aggregate("", (current, kvp) => current + $"{kvp.Value} ");
+            }
         }
 
     #endregion
