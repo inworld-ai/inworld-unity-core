@@ -6,6 +6,7 @@
  *************************************************************************************************/
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
 using UnityEngine;
@@ -151,13 +152,13 @@ namespace Inworld
         /// <param name="data">the raw wave data.</param>
         /// <param name="sampleRate">the output sample rate</param>
         /// <param name="channels">the output channels</param>
-        public static void ConvertAudioClipDataToInt16Array(ref List<short> array, float[] data, int sampleRate, int channels)
+        public static void ConvertAudioClipDataToInt16Array(ref ConcurrentQueue<short> queue, float[] data, int sampleRate, int channels)
         {
             Resample(out float[] resampledData, data, sampleRate, channels); 
             foreach (float sample in resampledData)
             {
                 float clampedSample = Mathf.Clamp(sample, -1, 1);
-                array.Add(Convert.ToInt16(clampedSample * short.MaxValue));
+                queue.Enqueue(Convert.ToInt16(clampedSample * short.MaxValue));
             }
         }
         public static float[] ConvertInt16ArrayToFloatArray(short[] input)
