@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
+using Inworld.Packet;
 using Inworld.Sample;
 using TMPro;
 using UnityEngine;
@@ -47,15 +48,14 @@ namespace Inworld.UI
         ///     Set the bubble's property.
         /// </summary>
         /// <param name="charName">The bubble's owner's name</param>
-        /// <param name="interactionID">The bubble's interaction ID</param>
-        /// <param name="correlationID">The bubble's correlation ID</param>
+        /// <param name="packetID">The bubble's packet ID</param>
         /// <param name="thumbnail">The bubble's owner's thumbnail</param>
         /// <param name="text">The bubble's content</param>
-        public override void SetBubbleWithPacketInfo(string charName, string interactionID, string correlationID, Texture2D thumbnail = null, string text = null)
+        public override void SetBubbleWithPacketInfo(string charName, PacketId packetID, Texture2D thumbnail = null, string text = null)
         {
-            base.SetBubbleWithPacketInfo(charName, interactionID, correlationID, thumbnail, text);
-            m_InteractionID = interactionID;
-            m_CorrelationID = correlationID;
+            base.SetBubbleWithPacketInfo(charName, packetID, thumbnail, text);
+            m_InteractionID = packetID.interactionId;
+            m_CorrelationID = packetID.correlationId;
             if (m_TextField && !string.IsNullOrEmpty(text))
                 m_TextField.text = text;
         }
