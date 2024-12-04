@@ -56,8 +56,14 @@ namespace Inworld.UI
                 m_Title.text = charName;
             if (m_Icon && thumbnail)
                 m_Icon.texture = thumbnail;
+            UpdateBubbleWithPacketInfo(packetID, text);
         }
         public virtual void AttachBubble(string text)
+        {
+            
+        }
+
+        public virtual void UpdateBubbleWithPacketInfo(PacketId packetID, string text)
         {
             
         }

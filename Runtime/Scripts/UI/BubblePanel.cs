@@ -58,7 +58,7 @@ namespace Inworld.UI
             }
             else if (isAttachMode)
             {
-                m_Bubbles[key].AttachBubble(content);
+                m_Bubbles[key].UpdateBubbleWithPacketInfo(packetId, content);
             }
             else
             {
