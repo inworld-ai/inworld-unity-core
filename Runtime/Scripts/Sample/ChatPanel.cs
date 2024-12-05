@@ -114,16 +114,25 @@ namespace Inworld.Sample
         }
         protected virtual bool RemoveBubbles(MutationPacket mutationPacket)
         {
-            CancelResponse response = new CancelResponse();
+            CancelResponse response = new();
             if (mutationPacket?.mutation is RegenerateResponseEvent regenEvt)
                 response.interactionId = regenEvt.regenerateResponse.interactionId;
-            if (mutationPacket?.mutation is CancelResponseEvent cancelEvt)
+            else if (mutationPacket?.mutation is CancelResponseEvent cancelEvt)
                 response = cancelEvt.cancelResponses;
-            if (string.IsNullOrEmpty(response.interactionId))
-                return false;
-            if (!m_ChatOptions.longBubbleMode)
-                response.utteranceId?.ForEach(RemoveBubble);
+            RemoveBubbleByResponse(response);
             return true;
+        }
+
+        protected virtual void RemoveBubbleByResponse(CancelResponse responseToRemove)
+        {
+            if (string.IsNullOrEmpty(responseToRemove?.interactionId))
+                return;
+            if (!m_ChatOptions.longBubbleMode)
+            {
+                responseToRemove.utteranceId?.ForEach(RemoveBubble);
+                return;
+            }
+            m_Bubbles[responseToRemove.interactionId].RemoveUtterances(responseToRemove.utteranceId);
         }
         protected virtual void HandleAudio(AudioPacket audioPacket)
         {
@@ -144,7 +153,7 @@ namespace Inworld.Sample
             string charName = charData.givenName ?? "Character";
             Texture2D thumbnail = charData.thumbnail ? charData.thumbnail : InworldAI.DefaultThumbnail;
             string content = relationPacket.custom.parameters.Aggregate(" ", (current, param) => current + $"{param.name}: {param.value} ");
-            InsertBubbleWithPacketInfo(key, relationPacket.packetId, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
+            InsertBubbleWithPacketInfo(relationPacket.packetId, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
             return true;
         }
         protected virtual bool HandleTask(CustomPacket taskPacket)
@@ -162,7 +171,7 @@ namespace Inworld.Sample
             else
                 content = $"Received Task: {taskPacket.custom.name}\n" + parameters.Aggregate("", (current, param) => current + $"{param.name}: {param.value}\n");
             
-            InsertBubbleWithPacketInfo(key, taskPacket.packetId, m_BubbleLeft, "Task", m_ChatOptions.longBubbleMode, $"<i><color=#AAAAAA>{content}</color></i>", InworldAI.DefaultThumbnail);
+            InsertBubbleWithPacketInfo(taskPacket.packetId, m_BubbleLeft, "Task", m_ChatOptions.longBubbleMode, $"<i><color=#AAAAAA>{content}</color></i>", InworldAI.DefaultThumbnail);
             return true;
         }
         protected virtual bool HandleTrigger(CustomPacket customPacket)
@@ -182,7 +191,7 @@ namespace Inworld.Sample
             if (string.IsNullOrEmpty(customPacket.TriggerName))
                 return false;
             string content = $"(Received: {customPacket.Trigger})";
-            InsertBubbleWithPacketInfo(key, customPacket.packetId, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
+            InsertBubbleWithPacketInfo(customPacket.packetId, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
             return true;
         }
         protected virtual void HandleEmotion(EmotionPacket emotionPacket)
@@ -205,7 +214,7 @@ namespace Inworld.Sample
                         string charName = charData.givenName ?? "Character";
                         Texture2D thumbnail = charData.thumbnail ? charData.thumbnail : InworldAI.DefaultThumbnail;
                         string content = textPacket.text.text;
-                        InsertBubbleWithPacketInfo(key, textPacket.packetId, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
+                        InsertBubbleWithPacketInfo(textPacket.packetId, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
                     }
                     break;
                 }
@@ -213,7 +222,7 @@ namespace Inworld.Sample
                     // YAN: Player Input does not apply longBubbleMode.
                     //      And Key is always utteranceID.
                     key = textPacket.packetId.utteranceId;
-                    InsertBubbleWithPacketInfo(key, textPacket.packetId, m_BubbleRight, InworldAI.User.Name, false, textPacket.text.text, InworldAI.User.Thumbnail);
+                    InsertBubbleWithPacketInfo(textPacket.packetId, m_BubbleRight, InworldAI.User.Name, false, textPacket.text.text, InworldAI.User.Thumbnail);
                     break;
             }
             return true;
@@ -233,14 +242,14 @@ namespace Inworld.Sample
                     string charName = charData.givenName ?? "Character";
                     Texture2D thumbnail = charData.thumbnail ? charData.thumbnail : InworldAI.DefaultThumbnail;
                     string content = $"<i><color=#AAAAAA>{actionPacket.action.narratedAction.content}</color></i>";
-                    InsertBubbleWithPacketInfo(key, actionPacket.packetId, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
+                    InsertBubbleWithPacketInfo(actionPacket.packetId, m_BubbleLeft, charName, m_ChatOptions.longBubbleMode, content, thumbnail);
                     break;
                 case SourceType.PLAYER:
                     // YAN: Player Input does not apply longBubbleMode.
                     //      And Key is always utteranceID.
                     key = actionPacket.packetId.utteranceId;
                     content = $"<i><color=#AAAAAA>{actionPacket.action.narratedAction.content}</color></i>";
-                    InsertBubbleWithPacketInfo(key, actionPacket.packetId, m_BubbleRight, InworldAI.User.Name, false, content, InworldAI.DefaultThumbnail);
+                    InsertBubbleWithPacketInfo(actionPacket.packetId, m_BubbleRight, InworldAI.User.Name, false, content, InworldAI.DefaultThumbnail);
                     break;
             }
             return true;

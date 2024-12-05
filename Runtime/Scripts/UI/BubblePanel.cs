@@ -48,20 +48,21 @@ namespace Inworld.UI
             }
             UpdateContent();
         }
-        protected virtual void InsertBubbleWithPacketInfo(string key, PacketId packetId, InworldUIElement bubble, string title, bool isAttachMode = false, string content = null, Texture2D thumbnail = null)
+        protected virtual void InsertBubbleWithPacketInfo(PacketId packetId, InworldUIElement bubble, string title, bool isAttachMode = false, string content = null, Texture2D thumbnail = null)
         {
+            string key = isAttachMode ? packetId.interactionId : packetId.utteranceId;
             if (!m_Bubbles.ContainsKey(key))
             {
                 m_Bubbles[key] = Instantiate(bubble, m_ContentAnchor);
-                m_Bubbles[key].SetBubbleWithPacketInfo(title, packetId.interactionId, packetId.correlationId, thumbnail, content);
+                m_Bubbles[key].SetBubbleWithPacketInfo(title, packetId, thumbnail, content);
             }
             else if (isAttachMode)
             {
-                m_Bubbles[key].AttachBubble(content);
+                m_Bubbles[key].UpdateBubbleWithPacketInfo(packetId, content);
             }
             else
             {
-                m_Bubbles[key].SetBubbleWithPacketInfo(title, packetId.interactionId, packetId.correlationId, thumbnail, content);
+                m_Bubbles[key].SetBubbleWithPacketInfo(title, packetId, thumbnail, content);
             }
             UpdateContent();
         }

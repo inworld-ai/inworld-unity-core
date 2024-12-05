@@ -280,6 +280,7 @@ namespace Inworld
     public enum CharSelectingMethod
     {
         Manual,
+        Auto,
         KeyCode,
         SightAngle
     }

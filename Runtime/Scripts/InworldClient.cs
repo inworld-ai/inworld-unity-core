@@ -1203,7 +1203,10 @@ namespace Inworld
 
         void OnMessageReceived(object sender, MessageEventArgs e)
         {
-            NetworkPacketResponse response = JsonConvert.DeserializeObject<NetworkPacketResponse>(e.Data);
+            NetworkPacketResponse response = JsonConvert.DeserializeObject<NetworkPacketResponse>(e.Data.Replace('’', '\'')
+                .Replace('‘', '\'')
+                .Replace('“', '\"')
+                .Replace('”', '\"'));
             if (response == null)
             {
                 ErrorMessage = e.Data;
