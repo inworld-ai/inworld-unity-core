@@ -229,9 +229,7 @@ namespace Inworld.Interactions
         }
         protected void HandleAgentPackets(InworldPacket packet)
         {
-            if (m_Processed.IsOverDue(packet))
-                m_Processed.Add(packet);
-            else if (m_Cancelled.Contains(packet))
+            if (m_Cancelled.Contains(packet))
                 m_Cancelled.Add(packet);
             else if (m_CurrentInteraction != null && m_CurrentInteraction.Contains(packet))
                 m_CurrentInteraction.Add(packet);
