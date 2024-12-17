@@ -34,7 +34,6 @@ namespace Inworld
         [Range(0, 30)][SerializeField] protected float m_PlayerVolumeThreshold = 10f;
         [Range(0.3f, 2f)][SerializeField] protected float m_CaptureCheckingDuration = 0.5f;
         [Range(0.1f, 2f)][SerializeField] protected int m_BufferSeconds = 1;
-        [Range(1000, 48000)][SerializeField] protected int m_InputSampleRate = 48000;
         [SerializeField] protected int m_AudioToPushCapacity = 100;
         [SerializeField] protected string m_DeviceName;
         [SerializeField] protected bool m_DetectPlayerSpeaking = true;
@@ -68,7 +67,7 @@ namespace Inworld
         protected readonly ConcurrentQueue<AudioChunk> m_AudioToPush = new ConcurrentQueue<AudioChunk>();
         protected List<AudioDevice> m_Devices = new List<AudioDevice>();
         protected List<short> m_PlayerVolumeCheckBuffer = new List<short>();
-        protected ConcurrentQueue<short> m_InputBuffer = new ConcurrentQueue<short>();
+        protected List<short> m_InputBuffer = new List<short>();
         protected float[] m_RawInput;
         protected List<short> m_ProcessedWaveData = new List<short>();
         protected float m_CapturingTimer;
@@ -421,10 +420,10 @@ namespace Inworld
             AudioConfiguration audioSetting = AudioSettings.GetConfiguration();
             m_OutputSampleRate = audioSetting.sampleRate;
             m_OutputChannels = audioSetting.speakerMode == AudioSpeakerMode.Stereo ? 2 : 1;
-            m_BufferSize = m_BufferSeconds * m_InputSampleRate;
+            m_BufferSize = m_BufferSeconds * k_SampleRate;
             m_PrevSampleMode = m_SamplingMode;
 #if UNITY_WEBGL && !UNITY_EDITOR
-            s_WebGLBuffer = new float[m_BufferSeconds * k_SampleRate * k_Channel];
+            s_WebGLBuffer = new float[m_BufferSize * k_Channel];
             WebGLInit(OnWebGLInitialized);
 #endif
         }
@@ -463,11 +462,11 @@ namespace Inworld
             }
         }
         
-        protected virtual void RemoveOverDueData(ref List<short> array, int sampleRate)
+        protected virtual void RemoveOverDueData(ref List<short> array)
         {
-            if (array.Count > sampleRate * m_BufferSeconds)
+            if (array.Count > k_SampleRate * m_BufferSeconds)
             {
-                array.RemoveRange(0, array.Count - sampleRate * m_BufferSeconds);
+                array.RemoveRange(0, array.Count - k_SampleRate * m_BufferSeconds);
             }
         }
         
@@ -477,7 +476,7 @@ namespace Inworld
             m_PlayerVolumeCheckBuffer.Clear();
             m_PlayerVolumeCheckBuffer.AddRange(m_InputBuffer);
             m_InputBuffer.Clear();
-            RemoveOverDueData(ref m_ProcessedWaveData, k_SampleRate);
+            RemoveOverDueData(ref m_ProcessedWaveData);
         }
         protected virtual bool Collect()
         {
@@ -561,7 +560,7 @@ namespace Inworld
             if (!Recording.clip)
                 return -1;
             Recording.clip.GetData(m_RawInput, m_LastPosition);
-            WavUtility.ConvertAudioClipDataToInt16Array(ref m_InputBuffer, m_RawInput, Recording.clip.frequency, Recording.clip.channels);
+            WavUtility.ConvertAudioClipDataToInt16Array(ref m_InputBuffer, m_RawInput, k_SampleRate, 1);
 #endif
             m_LastPosition = m_nPosition % m_BufferSize;
             return nSize;
@@ -656,7 +655,7 @@ namespace Inworld
         }
         
 
-        public virtual bool StartMicrophone(string deviceName)
+        public bool StartMicrophone(string deviceName)
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
             deviceName = string.IsNullOrEmpty(deviceName) ? m_DeviceName : deviceName;
@@ -674,11 +673,11 @@ namespace Inworld
             WebGLMicStart(microphoneDeviceIDFromName, k_SampleRate, m_BufferSeconds);
             return true;
 #else
-            Recording.clip = Microphone.Start(deviceName, true, m_BufferSeconds, m_InputSampleRate);
+            Recording.clip = Microphone.Start(deviceName, true, m_BufferSeconds, k_SampleRate);
             return Recording.clip;
 #endif
         }
-        protected virtual void StopMicrophone(string deviceName)
+        protected void StopMicrophone(string deviceName)
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
             WebGLMicEnd();
