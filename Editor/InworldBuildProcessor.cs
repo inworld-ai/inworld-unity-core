@@ -21,11 +21,13 @@ namespace Inworld
     {
         static InworldBuildProcessor()
         {
-            AssetDatabase.importPackageCompleted += _ =>
+            AssetDatabase.importPackageCompleted += pkgName =>
             {
-                if (InworldAI.Initialized)
+                if (!pkgName.ToLower().Contains("inworld"))
                     return;
                 _UpgradeIntensity();
+                if (InworldAI.Initialized)
+                    return;
                 _AddDebugMacro();
                 VersionChecker.CheckVersionUpdates();
                 if (VersionChecker.IsLegacyPackage)
@@ -38,7 +40,7 @@ namespace Inworld
         {
             if (GraphicsSettings.currentRenderPipeline == null)
                 return;
-            string[] data = AssetDatabase.FindAssets("t:SceneAsset", new[] { "Assets/Inworld/Inworld.Samples.Innequin", "Assets/Inworld/Inworld.Samples.RPM" });
+            string[] data = AssetDatabase.FindAssets("t:SceneAsset", new[] { "Assets/Inworld" });
             
             foreach (string str in data)
             {
