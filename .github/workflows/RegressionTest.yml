@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
   repository_dispatch:
     types: [dispatch-event]
+  release:
+    types: [published]
 
 jobs:
   fetch-release:
