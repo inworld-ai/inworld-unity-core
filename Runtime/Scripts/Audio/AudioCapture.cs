@@ -34,6 +34,7 @@ namespace Inworld
         [Range(0, 30)][SerializeField] protected float m_PlayerVolumeThreshold = 10f;
         [Range(0.3f, 2f)][SerializeField] protected float m_CaptureCheckingDuration = 0.5f;
         [Range(0.1f, 2f)][SerializeField] protected int m_BufferSeconds = 1;
+        [Min(0)][SerializeField] protected int m_InputSampleRate = 48000;
         [SerializeField] protected int m_AudioToPushCapacity = 100;
         [SerializeField] protected string m_DeviceName;
         [SerializeField] protected bool m_DetectPlayerSpeaking = true;
@@ -62,12 +63,10 @@ namespace Inworld
         protected float m_CalibratingTime;
         // Last known position in AudioClip buffer.
         protected int m_LastPosition;
-        // Size of audioclip used to collect information, need to be big enough to keep up with collect. 
-        protected int m_BufferSize;
         protected readonly ConcurrentQueue<AudioChunk> m_AudioToPush = new ConcurrentQueue<AudioChunk>();
         protected List<AudioDevice> m_Devices = new List<AudioDevice>();
         protected List<short> m_PlayerVolumeCheckBuffer = new List<short>();
-        protected List<short> m_InputBuffer = new List<short>();
+        protected ConcurrentQueue<short> m_InputBuffer = new ConcurrentQueue<short>();
         protected float[] m_RawInput;
         protected List<short> m_ProcessedWaveData = new List<short>();
         protected float m_CapturingTimer;
@@ -420,10 +419,9 @@ namespace Inworld
             AudioConfiguration audioSetting = AudioSettings.GetConfiguration();
             m_OutputSampleRate = audioSetting.sampleRate;
             m_OutputChannels = audioSetting.speakerMode == AudioSpeakerMode.Stereo ? 2 : 1;
-            m_BufferSize = m_BufferSeconds * k_SampleRate;
             m_PrevSampleMode = m_SamplingMode;
 #if UNITY_WEBGL && !UNITY_EDITOR
-            s_WebGLBuffer = new float[m_BufferSize * k_Channel];
+            s_WebGLBuffer = new float[m_BufferSeconds * k_SampleRate * k_Channel];
             WebGLInit(OnWebGLInitialized);
 #endif
         }
@@ -462,11 +460,11 @@ namespace Inworld
             }
         }
         
-        protected virtual void RemoveOverDueData(ref List<short> array)
+        protected virtual void RemoveOverDueData(ref List<short> array, int sampleRate)
         {
-            if (array.Count > k_SampleRate * m_BufferSeconds)
+            if (array.Count > sampleRate * m_BufferSeconds)
             {
-                array.RemoveRange(0, array.Count - k_SampleRate * m_BufferSeconds);
+                array.RemoveRange(0, array.Count - sampleRate * m_BufferSeconds);
             }
         }
         
@@ -476,7 +474,7 @@ namespace Inworld
             m_PlayerVolumeCheckBuffer.Clear();
             m_PlayerVolumeCheckBuffer.AddRange(m_InputBuffer);
             m_InputBuffer.Clear();
-            RemoveOverDueData(ref m_ProcessedWaveData);
+            RemoveOverDueData(ref m_ProcessedWaveData, k_SampleRate);
         }
         protected virtual bool Collect()
         {
@@ -545,7 +543,7 @@ namespace Inworld
             m_nPosition = Microphone.GetPosition(m_DeviceName);
 #endif
             if (m_nPosition < m_LastPosition)
-                m_nPosition = m_BufferSize;
+                m_nPosition = Recording.clip.samples;
             if (m_nPosition <= m_LastPosition)
             {
                 return -1;
@@ -560,9 +558,9 @@ namespace Inworld
             if (!Recording.clip)
                 return -1;
             Recording.clip.GetData(m_RawInput, m_LastPosition);
-            WavUtility.ConvertAudioClipDataToInt16Array(ref m_InputBuffer, m_RawInput, k_SampleRate, 1);
+            WavUtility.ConvertAudioClipDataToInt16Array(ref m_InputBuffer, m_RawInput, Recording.clip.frequency, Recording.clip.channels);
 #endif
-            m_LastPosition = m_nPosition % m_BufferSize;
+            m_LastPosition = m_nPosition % Recording.clip.samples;
             return nSize;
         }
 
@@ -655,7 +653,7 @@ namespace Inworld
         }
         
 
-        public bool StartMicrophone(string deviceName)
+        public virtual bool StartMicrophone(string deviceName)
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
             deviceName = string.IsNullOrEmpty(deviceName) ? m_DeviceName : deviceName;
@@ -671,13 +669,24 @@ namespace Inworld
                 s_WebGLBuffer = new float[k_SampleRate];
             WebGLInitSamplesMemoryData(s_WebGLBuffer, s_WebGLBuffer.Length);
             WebGLMicStart(microphoneDeviceIDFromName, k_SampleRate, m_BufferSeconds);
+            m_LastPosition = 0;
             return true;
 #else
-            Recording.clip = Microphone.Start(deviceName, true, m_BufferSeconds, k_SampleRate);
+            Microphone.GetDeviceCaps(deviceName, out int minFreq, out int maxFreq);
+            // if minFreq == 0 and maxFreq == 0 then the device supports any frequency
+            if (!(minFreq == 0 && maxFreq == 0))
+            {
+                if (m_InputSampleRate > maxFreq)
+                    m_InputSampleRate = maxFreq;
+                if (m_InputSampleRate < minFreq)
+                    m_InputSampleRate = minFreq;
+            }
+            Recording.clip = Microphone.Start(deviceName, true, m_BufferSeconds, m_InputSampleRate);
+            m_LastPosition = 0;
             return Recording.clip;
 #endif
         }
-        protected void StopMicrophone(string deviceName)
+        protected virtual void StopMicrophone(string deviceName)
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
             WebGLMicEnd();
