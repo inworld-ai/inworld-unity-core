@@ -494,8 +494,9 @@ namespace Inworld
         /// <summary>
         /// Send PingPong Response for latency Test.
         /// </summary>
-        /// <param name="packetID"></param>
-        public virtual void SendLatencyTestResponse(PacketId packetID)
+        /// <param name="packetID">the ping packet's packet ID.</param>
+        /// <param name="packetTimeStamp">the ping packet's timestamp</param>
+        public virtual void SendLatencyTestResponse(PacketId packetID, string packetTimeStamp)
         {
             LatencyReportPacket latencyReport = new LatencyReportPacket
             {
@@ -508,7 +509,7 @@ namespace Inworld
                     {
                         type = PingPongType.PONG,
                         pingPacketId = packetID,
-                        pingTimestamp = InworldDateTime.UtcNow
+                        pingTimestamp = packetTimeStamp
                     }
                 }
             };
@@ -1165,7 +1166,7 @@ namespace Inworld
                 if (latencyReportPacket.latencyReport is PingPongEvent)
                 {
                     m_PingpongLatency = InworldDateTime.ToLatency(receivedPacket.timestamp);
-                    SendLatencyTestResponse(latencyReportPacket.packetId);
+                    SendLatencyTestResponse(latencyReportPacket.packetId, receivedPacket.timestamp);
                 }
                 return false;
             }
