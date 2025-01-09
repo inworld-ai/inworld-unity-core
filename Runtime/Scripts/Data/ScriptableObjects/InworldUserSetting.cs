@@ -100,6 +100,7 @@ namespace Inworld
         /// Get the workspace list by workspace full name.
         /// </summary>
         public List<string> WorkspaceList => m_Workspaces.Select(ws => ws.displayName).ToList();
+        public InworldProjectData GetProjectByDisplayName(string displayName) => m_Projects.FirstOrDefault(proj => proj.name.Contains(displayName));
         /// <summary>
         /// Get the workspace full name by its display name
         /// </summary>

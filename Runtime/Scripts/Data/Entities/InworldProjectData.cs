@@ -45,6 +45,12 @@ namespace Inworld.Entities
         public List<WorkspaceInfo> workspaceInfo;
         public List<UserShareInfo> ownerInfo;
         public List<UserShareInfo> collaboratorInfo;
+
+        [JsonIgnore] public string DisplayName => name.Substring(name.LastIndexOf('/') + 1);
+
+        [JsonIgnore]
+        public List<string> WorkspaceList => workspaceInfo.Select(ws => ws.displayName).ToList();
+
     }
     [Serializable]
     public class ListProjectResponse
