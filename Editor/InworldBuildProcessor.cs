@@ -87,7 +87,6 @@ namespace Inworld
         public static void OnPostprocessBuild(BuildTarget target, string pathToBuiltProject)
         {
             string indexPath = $"{pathToBuiltProject}/index.html";
-
             if (!System.IO.File.Exists(indexPath))
             {
                 Debug.LogError("Cannot load index file.");
