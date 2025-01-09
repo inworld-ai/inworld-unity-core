@@ -18,6 +18,7 @@ namespace Inworld
         [SerializeField] string m_PlayerName;
         [SerializeField] Texture2D m_PlayerThumbnail;
         [SerializeField] List<PlayerProfileField> m_PlayerData = new List<PlayerProfileField>();
+        [SerializeField] List<InworldProjectData> m_Projects = new List<InworldProjectData>();
         [SerializeField] List<InworldWorkspaceData> m_Workspaces = new List<InworldWorkspaceData>();
         [SerializeField] string m_UserID;
         [HideInInspector][SerializeField] string m_BillingAccount;
@@ -87,6 +88,10 @@ namespace Inworld
             }
             set => m_UserID = value;
         }
+        /// <summary>
+        /// Get the projects list by InworldProjectData.
+        /// </summary>
+        public List<InworldProjectData> Projects => m_Projects;
         /// <summary>
         /// Get the workspace list by InworldWorkspaceData.
         /// </summary>
