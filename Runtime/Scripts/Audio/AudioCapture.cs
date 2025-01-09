@@ -70,7 +70,7 @@ namespace Inworld
         protected float[] m_RawInput;
         protected List<short> m_ProcessedWaveData = new List<short>();
         protected float m_CapturingTimer;
-        static int m_nPosition;
+        protected static int m_nPosition;
 #if UNITY_WEBGL
         protected static float[] s_WebGLBuffer;
         public static bool WebGLPermission { get; set; }
@@ -249,19 +249,19 @@ namespace Inworld
 #endregion
 
 #if UNITY_WEBGL && !UNITY_EDITOR 
-        delegate void NativeCommand(string json);
-        [DllImport("__Internal")] static extern int WebGLInit(NativeCommand handler);
-        [DllImport("__Internal")] static extern int WebGLInitSamplesMemoryData(float[] array, int length);
-        [DllImport("__Internal")] static extern int WebGLIsRecording();
-        [DllImport("__Internal")] static extern string WebGLGetDeviceData();
-        [DllImport("__Internal")] static extern string WebGLGetDeviceCaps();
-        [DllImport("__Internal")] static extern int WebGLGetPosition();
-        [DllImport("__Internal")] static extern void WebGLMicStart(string deviceId, int frequency, int lengthSec);
-        [DllImport("__Internal")] static extern void WebGLMicEnd();
-        [DllImport("__Internal")] static extern void WebGLDispose();
-        [DllImport("__Internal")] static extern int WebGLIsPermitted();
+        public delegate void NativeCommand(string json);
+        [DllImport("__Internal")] public static extern int WebGLInit(NativeCommand handler);
+        [DllImport("__Internal")] public static extern int WebGLInitSamplesMemoryData(float[] array, int length);
+        [DllImport("__Internal")] public static extern int WebGLIsRecording();
+        [DllImport("__Internal")] public static extern string WebGLGetDeviceData();
+        [DllImport("__Internal")] public static extern string WebGLGetDeviceCaps();
+        [DllImport("__Internal")] public static extern int WebGLGetPosition();
+        [DllImport("__Internal")] public static extern void WebGLMicStart(string deviceId, int frequency, int lengthSec);
+        [DllImport("__Internal")] public static extern void WebGLMicEnd();
+        [DllImport("__Internal")] public static extern void WebGLDispose();
+        [DllImport("__Internal")] public static extern int WebGLIsPermitted();
 #endif
-        
+
 #region Public Functions
         /// <summary>
         /// Change the device of microphone input.
@@ -581,7 +581,7 @@ namespace Inworld
             for (int i = m_LastPosition; i < m_nPosition; i++)
             {
                 float clampedSample = Math.Max(-1.0f, Math.Min(1.0f, s_WebGLBuffer[i]));
-                m_InputBuffer.Add((short)(clampedSample * 32767));
+                m_InputBuffer.Enqueue((short)(clampedSample * 32767));
             }
             return true;
         }
