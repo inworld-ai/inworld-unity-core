@@ -99,9 +99,17 @@ namespace Inworld
         /// </summary>
         public static Capabilities Capabilities
         {
-            get => Instance.m_Capabilities;
+            get
+            {
+                Instance.m_Capabilities.logs = IsDebugMode;
+                Instance.m_Capabilities.logs_debug = IsDebugMode;
+                Instance.m_Capabilities.logs_warning = IsDebugMode;
+                Instance.m_Capabilities.logs_info = IsDebugMode;
+                return Instance.m_Capabilities;
+            }
             set => Instance.m_Capabilities = value;
         }
+
         /// <summary>
         /// The Input Action Asset that defines all the input controls utilized by the SDK.
         /// </summary>

@@ -18,6 +18,7 @@ namespace Inworld
     }
     public static class InworldDateTime
     {
+        static TimeSpan s_TimeSpan  = TimeSpan.Zero;
         // YAN: In Unity we use the first format.
         //      And server will return the format with 9 digits.
         //      However, DotNet can only process 7 digits at most. 
@@ -56,7 +57,12 @@ namespace Inworld
         public static int ToLatency(string timeStamp)
         {
             DateTime receivedTime = ToDateTime(timeStamp);
-            TimeSpan delta = DateTime.UtcNow - receivedTime;
+            if (s_TimeSpan == TimeSpan.Zero)
+            {
+                s_TimeSpan = DateTime.UtcNow - receivedTime;
+                return 20;
+            }
+            TimeSpan delta = DateTime.UtcNow - s_TimeSpan - receivedTime;
             // YAN: Sometimes result can be even smaller than 0, due to the clock skew.
             // < 20ms is not able to be perceived. 
             int result = delta.Seconds * 1000 + delta.Milliseconds;
