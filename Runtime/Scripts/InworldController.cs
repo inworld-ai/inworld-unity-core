@@ -6,6 +6,7 @@
  *************************************************************************************************/
 
 using Inworld.Entities;
+using Inworld.Audio;
 using Inworld.LLM;
 using System;
 using System.Collections;

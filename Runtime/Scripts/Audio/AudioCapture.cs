@@ -21,13 +21,14 @@ using AOT;
 using System.Runtime.InteropServices;
 #endif
 
-
-namespace Inworld
+// TODO(Yan): Rewrite with new class InworldAudioCapture
+namespace Inworld.Audio
 {
     /// <summary>
     /// YAN: This is a global Audio Capture controller.
     ///      For each separate InworldCharacter, we use class AudioInteraction to handle audio clips.
     /// </summary>
+    [Obsolete]
     public class AudioCapture : MonoBehaviour
     {
         [SerializeField] protected MicSampleMode m_SamplingMode = MicSampleMode.NO_FILTER;
