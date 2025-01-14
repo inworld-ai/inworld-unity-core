@@ -35,6 +35,7 @@ namespace Inworld.Audio
         [SerializeField] protected MicSampleMode m_SamplingMode = MicSampleMode.NO_FILTER;
         [Range(0, 30)][SerializeField] protected float m_PlayerVolumeThreshold = 10f;
         [Range(0.3f, 2f)][SerializeField] protected float m_CaptureCheckingDuration = 0.5f;
+        // Yan: The max bufferSec (2) is only for sampleRate 16k * 1. Any sample rate larger than that will exceed the limit.
         [Range(0.1f, 2f)][SerializeField] protected int m_BufferSeconds = 1;
         protected const int k_InputSampleRate = 16000; // Yan: We should not support input sample rate larger than 16k.
         [SerializeField] protected int m_AudioToPushCapacity = 100;

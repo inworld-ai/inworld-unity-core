@@ -486,7 +486,7 @@ namespace Inworld
                 return false;
             }
             if (CharacterHandler.CurrentCharacterNames.Count > 0)
-                return Audio.StartAudio();
+                return Audio.StartMicrophone();
             InworldAI.LogError("No characters in the session.");
             return false;
         }
@@ -495,7 +495,7 @@ namespace Inworld
         /// </summary>
         public virtual bool StopAudio()
         {
-            return Audio && Audio.StopAudio();
+            return Audio && Audio.StopMicrophone();
         }
         /// <summary>
         /// Send the wav data to the current character.

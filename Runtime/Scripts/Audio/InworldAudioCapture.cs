@@ -6,6 +6,7 @@
  *************************************************************************************************/
 
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Inworld.Entities;
@@ -14,25 +15,42 @@ using UnityEngine.Events;
 
 namespace Inworld.Audio
 {
-    public class InworldModuleException : InworldException
-    {
-        public InworldModuleException(string moduleName) : base($"Module {moduleName} not found")
-        {
-        }
-    }
     [RequireComponent(typeof(AudioSource))]
     public class InworldAudioCapture : MonoBehaviour
     {
         const string k_UniqueModuleChecker = "Find Multiple Modules with StartingAudio.\nPlease ensure there is only one in the feature list.";
         [SerializeField] AudioCaptureStatus m_CurrentStatus = AudioCaptureStatus.Idle;
+        [Range(0.1f, 2f)][SerializeField] protected float m_BufferSeconds = 1;
         [SerializeField] List<InworldAudioModule> m_AudioModules;
         [SerializeField] AudioEvent m_AudioEvent;
+        [SerializeField] string m_DeviceName;
         
         AudioSource m_RecordingSource;
         AudioCaptureStatus m_LastStatus = AudioCaptureStatus.Idle;
+        protected float[] m_RawInput;
+        protected ConcurrentQueue<short> m_InputBuffer = new ConcurrentQueue<short>();
         protected List<short> m_ProcessedWaveData = new List<short>();
+
         bool m_IsRecording = false;
-        
+
+        public float[] RawInput
+        {
+            get => m_RawInput;
+            set => m_RawInput = value;
+        }
+
+        public ConcurrentQueue<short> InputBuffer
+        {
+            get => m_InputBuffer;
+            set => m_InputBuffer = value;
+        }
+
+        public List<short> ProcessedWaveData => m_ProcessedWaveData;
+        public string DeviceName
+        {
+            get => m_DeviceName;
+            set => m_DeviceName = value;
+        }
         public AudioSource RecordingSource
         {
             get             
@@ -43,6 +61,15 @@ namespace Inworld.Audio
                 if (!m_RecordingSource)
                     m_RecordingSource = gameObject.AddComponent<AudioSource>();
                 return m_RecordingSource;
+            }
+        }
+        public AudioClip RecordingClip
+        {
+            get => RecordingSource?.clip;
+            set
+            {
+                if (RecordingSource)
+                    RecordingSource.clip = value;
             }
         }
 
@@ -75,13 +102,12 @@ namespace Inworld.Audio
             
         }
 
-        public bool StartAudio() => GetUniqueModule<IStartAudioHandler>().OnStartAudio();
-
-
-        public bool StopAudio()
-        {
-            return false;
-        }
+        public bool IsMicRecording() => GetUniqueModule<IMicrophoneHandler>()?.IsMicRecording ?? false;
+        public bool StartMicrophone() => GetUniqueModule<IMicrophoneHandler>()?.StartMicrophone() ?? false;
+        
+        //TODO(Yan): Make it void.
+        public bool StopMicrophone() => GetUniqueModule<IMicrophoneHandler>()?.StopMicrophone() ?? false;
+        public void ResetPointer() => GetUniqueModule<ICollectAudioHandler>()?.ResetPointer();
 
         public bool SendAudio(AudioChunk audioChunk)
         {

@@ -14,7 +14,7 @@ namespace Inworld.Audio
     {
         InworldAudioCapture m_Capture;
 
-        public InworldAudioCapture Handler
+        public InworldAudioCapture Audio
         {
             get
             {
@@ -25,9 +25,33 @@ namespace Inworld.Audio
             }
         }
     }
-
-    public interface IStartAudioHandler
+    public class InworldModuleException : InworldException
     {
-        bool OnStartAudio();
+        public InworldModuleException(string moduleName) : base($"Module {moduleName} not found")
+        {
+        }
+    }
+    public interface IMicrophoneHandler
+    {
+        bool IsMicRecording {get;}
+        bool StartMicrophone();
+        bool ChangeInputDevice(string deviceName);
+        bool StopMicrophone();
+    }
+
+    public interface ICollectAudioHandler
+    {
+        int OnCollectAudio();
+        void ResetPointer();
+    }
+
+    public interface IProcessAudioHandler
+    {
+        bool OnProcessAudio();
+    }
+
+    public interface ISendAudioHandler
+    {
+        bool OnSendAudio();
     }
 }
