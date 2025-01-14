@@ -297,4 +297,12 @@ namespace Inworld
         KeyCode,
         SightAngle
     }
+
+    public enum AudioCaptureStatus
+    {
+        Idle,
+        Calibrating,
+        Recording,
+        Error
+    }
 }

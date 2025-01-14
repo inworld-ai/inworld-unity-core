@@ -5,29 +5,14 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
-using System;
-using UnityEngine;
-
 namespace Inworld.Audio
 {
-    public abstract class InworldAudioModule : MonoBehaviour
+    public class WebGLCaptureModule : InworldAudioModule, IStartAudioHandler
     {
-        InworldAudioCapture m_Capture;
-
-        public InworldAudioCapture Handler
+        public bool OnStartAudio()
         {
-            get
-            {
-                if (m_Capture != null)
-                    return m_Capture;
-                m_Capture = InworldController.Audio;
-                return m_Capture;
-            }
+            InworldAI.Log("WebGL Is Starting Audio");
+            return false;
         }
-    }
-
-    public interface IStartAudioHandler
-    {
-        bool OnStartAudio();
     }
 }

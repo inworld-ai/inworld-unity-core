@@ -250,8 +250,9 @@ namespace Inworld
         }
         protected virtual void OnAudioCaptureStarted()
         {
-            if (InworldController.Audio.IsRecording)
-                CancelResponse();
+            // TODO(Yan): Check if cancel Response here is necessary.
+            // if (InworldController.Audio.IsRecording)
+            //     CancelResponse();
         }
         protected virtual void OnStatusChanged(InworldConnectionStatus newStatus)
         {

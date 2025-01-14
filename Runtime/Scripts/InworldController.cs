@@ -39,7 +39,7 @@ namespace Inworld
         
         protected Token m_Token;
         protected InworldClient m_Client;
-        protected AudioCapture m_AudioCapture;
+        protected InworldAudioCapture m_AudioCapture;
         protected CharacterHandler m_CharacterHandler;
         protected LLMRuntime m_LLMRuntime;
 #endregion
@@ -49,7 +49,7 @@ namespace Inworld
         /// <summary>
         /// Gets the AudioCapture of the InworldController.
         /// </summary>
-        public static AudioCapture Audio
+        public static InworldAudioCapture Audio
         {
             get
             {
@@ -59,7 +59,7 @@ namespace Inworld
                 if (Instance.m_AudioCapture)
                     return Instance.m_AudioCapture;
 
-                Instance.m_AudioCapture = Instance.GetComponentInChildren<AudioCapture>();
+                Instance.m_AudioCapture = Instance.GetComponentInChildren<InworldAudioCapture>();
                 return Instance.m_AudioCapture;
             }
         }

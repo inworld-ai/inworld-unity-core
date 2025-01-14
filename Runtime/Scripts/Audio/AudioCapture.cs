@@ -14,6 +14,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 
 #if UNITY_WEBGL
@@ -35,7 +36,7 @@ namespace Inworld.Audio
         [Range(0, 30)][SerializeField] protected float m_PlayerVolumeThreshold = 10f;
         [Range(0.3f, 2f)][SerializeField] protected float m_CaptureCheckingDuration = 0.5f;
         [Range(0.1f, 2f)][SerializeField] protected int m_BufferSeconds = 1;
-        [Min(0)][SerializeField] protected int m_InputSampleRate = 48000;
+        protected const int k_InputSampleRate = 16000; // Yan: We should not support input sample rate larger than 16k.
         [SerializeField] protected int m_AudioToPushCapacity = 100;
         [SerializeField] protected string m_DeviceName;
         [SerializeField] protected bool m_DetectPlayerSpeaking = true;
@@ -675,14 +676,7 @@ namespace Inworld.Audio
 #else
             Microphone.GetDeviceCaps(deviceName, out int minFreq, out int maxFreq);
             // if minFreq == 0 and maxFreq == 0 then the device supports any frequency
-            if (!(minFreq == 0 && maxFreq == 0))
-            {
-                if (m_InputSampleRate > maxFreq)
-                    m_InputSampleRate = maxFreq;
-                if (m_InputSampleRate < minFreq)
-                    m_InputSampleRate = minFreq;
-            }
-            Recording.clip = Microphone.Start(deviceName, true, m_BufferSeconds, m_InputSampleRate);
+            Recording.clip = Microphone.Start(deviceName, true, m_BufferSeconds, k_InputSampleRate);
             m_LastPosition = 0;
             return Recording.clip;
 #endif
