@@ -23,7 +23,7 @@ namespace Inworld.Audio
     [RequireComponent(typeof(AudioSource))]
     public class InworldAudioCapture : MonoBehaviour
     {
-        const string k_UniqueModuleChecker = "Please ensure there is only one in the feature list.";
+        const string k_UniqueModuleChecker = "Find Multiple Modules with StartingAudio.\nPlease ensure there is only one in the feature list.";
         [SerializeField] AudioCaptureStatus m_CurrentStatus = AudioCaptureStatus.Idle;
         [SerializeField] List<InworldAudioModule> m_AudioModules;
         [SerializeField] AudioEvent m_AudioEvent;
@@ -74,16 +74,9 @@ namespace Inworld.Audio
         {
             
         }
-        
-        public bool StartAudio()
-        {
-            List<IStartAudioHandler> modules = GetModules<IStartAudioHandler>();
-            if (modules.Count > 1)
-                InworldAI.LogWarning("Find Multiple Modules with StartingAudio.\n");
-            else if (modules.Count == 1)
-                return modules[0].OnStartAudio();
-            throw new InworldModuleException("StartAudio");
-        }
+
+        public bool StartAudio() => GetUniqueModule<IStartAudioHandler>().OnStartAudio();
+
 
         public bool StopAudio()
         {
@@ -104,6 +97,16 @@ namespace Inworld.Audio
         }
 
         public T GetModule<T>() => m_AudioModules.Select(module => module.GetComponent<T>()).FirstOrDefault(result => result != null);
+
+        public T GetUniqueModule<T>()
+        {
+            List<T> modules = GetModules<T>();
+            if (modules == null || modules.Count == 0) 
+                throw new InworldModuleException(typeof(T).Name);
+            if (modules.Count > 1)
+                InworldAI.LogWarning(k_UniqueModuleChecker);
+            return modules[0];
+        }
 
         public List<T> GetModules<T>() => m_AudioModules.Select(module => module.GetComponent<T>()).Where(result => result != null).ToList();
 
