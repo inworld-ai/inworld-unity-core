@@ -50,15 +50,19 @@ namespace Inworld.Audio
     {
         void OnStartCalibration();
         void OnStopCalibration();
+        void OnCalibrate();
     }
 
     public interface IProcessAudioHandler
     {
-        bool OnProcessAudio();
+        bool OnPreProcessAudio();
+        bool OnPostProcessAudio();
     }
 
     public interface ISendAudioHandler
     {
-        bool OnSendAudio();
+        void OnStartSendAudio();
+        void OnStopSendAudio();
+        void OnSendAudio();
     }
 }

@@ -9,11 +9,26 @@ using System;
 
 namespace Inworld.Audio
 {
-    public class PushToTalkModule : InworldAudioModule
+    public class PushToTalkModule : InworldAudioModule, ISendAudioHandler
     {
         void Update()
         {
             
+        }
+
+        public void OnStartSendAudio()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnStopSendAudio()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnSendAudio()
+        {
+            throw new NotImplementedException();
         }
     }
 }

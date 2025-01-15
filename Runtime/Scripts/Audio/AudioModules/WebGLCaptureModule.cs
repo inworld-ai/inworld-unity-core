@@ -113,8 +113,8 @@ namespace Inworld.Audio
                 return false;
             for (int i = m_LastPosition; i < m_CurrPosition; i++)
             {
-                float clampedSample = Math.Max(-1.0f, Math.Min(1.0f, s_WebGLBuffer[i]));
-                Audio.InputBuffer.Enqueue((short)(clampedSample * 32767));
+                float clampedSample = Mathf.Clamp(s_WebGLBuffer[i], -1, 1);
+                Audio.InputBuffer.Enqueue(Convert.ToInt16(clampedSample * short.MaxValue));
             }
             return true;
         }

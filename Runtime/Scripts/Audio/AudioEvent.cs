@@ -14,8 +14,6 @@ namespace Inworld.Audio
 	[Serializable]
 	public class AudioEvent
 	{
-		public UnityEvent<AudioCaptureStatus> OnAudioStatusExit;
-		public UnityEvent<AudioCaptureStatus> OnAudioStatusEnter;
 		public UnityEvent onStartCalibrating;
 		public UnityEvent onStopCalibrating;
 		public UnityEvent onRecordingStart;

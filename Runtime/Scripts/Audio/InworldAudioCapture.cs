@@ -5,7 +5,6 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
-using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -20,25 +19,18 @@ namespace Inworld.Audio
     public class InworldAudioCapture : MonoBehaviour
     {
         const string k_UniqueModuleChecker = "Find Multiple Modules with StartingAudio.\nPlease ensure there is only one in the feature list.";
-        [SerializeField] AudioCaptureStatus m_CurrentStatus = AudioCaptureStatus.Idle;
         [SerializeField] List<InworldAudioModule> m_AudioModules;
         [SerializeField] AudioEvent m_AudioEvent;
         [SerializeField] string m_DeviceName;
         
         AudioSource m_RecordingSource;
-        AudioCaptureStatus m_LastStatus = AudioCaptureStatus.Idle;
-        protected float[] m_RawInput;
+
         protected ConcurrentQueue<short> m_InputBuffer = new ConcurrentQueue<short>();
         protected List<short> m_ProcessedWaveData = new List<short>();
-        IEnumerator m_AudioCoroutine;
-
-        bool m_IsRecording = false;
-
-        public float[] RawInput
-        {
-            get => m_RawInput;
-            set => m_RawInput = value;
-        }
+        protected IEnumerator m_AudioCoroutine;
+        protected bool m_IsPlayerSpeaking;
+        protected bool m_IsRecording = false;
+        protected bool m_IsCalibrating = false;
 
         public ConcurrentQueue<short> InputBuffer
         {
@@ -47,6 +39,7 @@ namespace Inworld.Audio
         }
 
         public List<short> ProcessedWaveData => m_ProcessedWaveData;
+
         public string DeviceName
         {
             get => m_DeviceName;
@@ -75,20 +68,18 @@ namespace Inworld.Audio
         }
 
         public AudioEvent Event => m_AudioEvent;
-        public AudioCaptureStatus Status
-        {
-            get => m_CurrentStatus;
-            set
-            {
-                if (m_CurrentStatus == value)
-                    return;
-                m_LastStatus = m_CurrentStatus;
-                m_CurrentStatus = value;
-                Event.OnAudioStatusExit?.Invoke(m_LastStatus);
-                Event.OnAudioStatusEnter?.Invoke(m_CurrentStatus);
-            }
-        }
 
+        public bool IsPlayerSpeaking
+        {
+            get => m_IsPlayerSpeaking;
+            set => _SetBoolWithEvent(ref m_IsPlayerSpeaking, value, Event.onPlayerStartSpeaking, Event.onPlayerStopSpeaking);
+        }
+        
+        public bool IsCalibrating
+        {
+            get => m_IsCalibrating;
+            set => _SetBoolWithEvent(ref m_IsCalibrating, value, Event.onStartCalibrating, Event.onStopCalibrating);
+        }
         public bool IsRecording
         {
             get => m_IsRecording;
@@ -96,27 +87,17 @@ namespace Inworld.Audio
         }
 
         public bool IsAudioAvailable => m_ProcessedWaveData?.Count > 0;
-        public float Volume { get; set; }
 
-
-        protected virtual IEnumerator AudioCoroutine()
+        public float Volume
         {
-            while (true)
+            get => RecordingSource?.volume ?? -1f;
+            set
             {
-                // int nSize = GetAudioData();
-                // if (nSize > 0)
-                // {
-                //     ProcessAudio();
-                //     Calibrate();
-                //     Collect();
-                //     yield return OutputData();
-                // }
-                yield return new WaitForSecondsRealtime(0.1f);
+                if (RecordingSource)
+                    RecordingSource.volume = value;
             }
         }
-        public bool IsMicRecording() => GetUniqueModule<IMicrophoneHandler>()?.IsMicRecording ?? false;
-        
-        
+        public bool IsMicRecording => GetUniqueModule<IMicrophoneHandler>()?.IsMicRecording ?? false;
         public bool StartMicrophone()
         {
             IMicrophoneHandler micHandler = GetUniqueModule<IMicrophoneHandler>();
@@ -126,7 +107,6 @@ namespace Inworld.Audio
             return true;
         }
 
-        //TODO(Yan): Make it void.
         public bool StopMicrophone()
         {
             IMicrophoneHandler micHandler = GetUniqueModule<IMicrophoneHandler>();
@@ -154,10 +134,9 @@ namespace Inworld.Audio
         public void ResetPointer() => GetUniqueModule<ICollectAudioHandler>()?.ResetPointer();
         public void StartCalibrate() => GetModules<ICalibrateAudioHandler>().ForEach(module => module.OnStartCalibration());
         public void StopCalibrate() => GetModules<ICalibrateAudioHandler>().ForEach(module => module.OnStopCalibration());
-        public bool SendAudio(AudioChunk audioChunk)
-        {
-            return false;
-        }
+        public void CollectAudio() => GetModules<ICollectAudioHandler>().ForEach(module => module.OnCollectAudio());
+        public void PreProcess() => GetModules<IProcessAudioHandler>().ForEach(module => module.OnPreProcessAudio());
+        public void PostProcess() => GetModules<IProcessAudioHandler>().ForEach(module => module.OnPostProcessAudio());
 
         /// <summary>
         /// Manually push the audio wave data to server.
@@ -185,6 +164,16 @@ namespace Inworld.Audio
         {
             StopMicrophone();
         }
+        protected virtual IEnumerator AudioCoroutine()
+        {
+            while (IsMicRecording)
+            {
+                PreProcess();
+                CollectAudio();
+                PostProcess();
+                yield return new WaitForSecondsRealtime(0.1f);
+            }
+        }
 
         void _SetBoolWithEvent(ref bool flag, bool value, UnityEvent onEvent, UnityEvent offEvent)
         {
@@ -196,6 +185,5 @@ namespace Inworld.Audio
             else
                 offEvent?.Invoke();
         }
-
     }
 }
