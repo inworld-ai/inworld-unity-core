@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using AOT;
 using Inworld.Entities;
 using UnityEngine;
 
@@ -31,17 +32,37 @@ namespace Inworld.Audio
         protected static float[] s_WebGLBuffer;
         public static bool WebGLPermission { get; set; }
         protected List<AudioDevice> m_Devices = new List<AudioDevice>();
-
-
+        protected int m_LastPosition;
+        protected int m_CurrPosition;
         public override bool IsMicRecording => WebGLIsRecording() != 0;
 
+        protected void Awake()
+        {
+            s_WebGLBuffer = new float[k_InputBufferSecond * k_InputSampleRate * k_InputChannels];
+            WebGLInit(OnWebGLInitialized);
+        }
+
+        protected void OnDestroy()
+        {
+            m_Devices.Clear();
+            WebGLDispose();
+            s_WebGLBuffer = null;
+        }
         string GetWebGLMicDeviceID() => m_Devices.FirstOrDefault(d => d.label == Audio.DeviceName)?.deviceId;
         public override bool StartMicrophone()
         {
+            if (m_Devices.Count == 0)
+            {
+                m_Devices = JsonUtility.FromJson<WebGLAudioDevicesData>(WebGLGetDeviceData()).devices;
+            }
+            if (string.IsNullOrEmpty(Audio.DeviceName))
+            {
+                Audio.DeviceName = m_Devices.Count == 0 ? "" : m_Devices[0].label;
+            }
             string micDeviceID = GetWebGLMicDeviceID();
             if (string.IsNullOrEmpty(micDeviceID))
                 throw new ArgumentException($"Couldn't acquire device ID for device name: {Audio.DeviceName} ");
-            if (WebGLIsRecording() == 1)
+            if (IsMicRecording)
                 return false;
             if (Audio.RecordingClip)
                 Destroy(Audio.RecordingClip);
@@ -51,29 +72,91 @@ namespace Inworld.Audio
             WebGLInitSamplesMemoryData(s_WebGLBuffer, s_WebGLBuffer.Length);
             WebGLMicStart(micDeviceID, k_InputSampleRate, k_InputBufferSecond);
             Audio.ResetPointer();
+            Audio.StartAudioThread();
             return true;
-        }
-
-        public override bool ChangeInputDevice(string deviceName)
-        {
-            throw new NotImplementedException();
         }
 
         public override bool StopMicrophone()
         {
             WebGLMicEnd();
             Audio.InputBuffer.Clear();
+            Audio.ResetPointer();
+            Audio.StopAudioThread();
             return true;
         }
 
         public int OnCollectAudio()
         {
-            throw new System.NotImplementedException();
+            if (!IsMicRecording)
+                StartMicrophone();
+            AudioClip recClip = Audio.RecordingClip;
+            if (!recClip)
+                return -1;
+            m_CurrPosition = WebGLGetPosition();
+
+            if (m_CurrPosition < m_LastPosition)
+                m_CurrPosition = recClip.samples;
+            if (m_CurrPosition <= m_LastPosition)
+                return -1;
+            int nSize = m_CurrPosition - m_LastPosition;
+            if (!WebGLGetAudioData())
+                return -1;
+            m_LastPosition = m_CurrPosition % recClip.samples;
+            return nSize;
         }
 
-        public void ResetPointer()
+        public void ResetPointer() => m_LastPosition = m_CurrPosition = 0;
+
+        protected bool WebGLGetAudioData()
         {
-            throw new NotImplementedException();
+            if (s_WebGLBuffer == null || s_WebGLBuffer.Length == 0)
+                return false;
+            for (int i = m_LastPosition; i < m_CurrPosition; i++)
+            {
+                float clampedSample = Math.Max(-1.0f, Math.Min(1.0f, s_WebGLBuffer[i]));
+                Audio.InputBuffer.Enqueue((short)(clampedSample * 32767));
+            }
+            return true;
         }
+        [MonoPInvokeCallback(typeof(NativeCommand))]
+        static void OnWebGLInitialized(string json)
+        {
+            try
+            {
+                WebGLCommand<object> command = JsonUtility.FromJson<WebGLCommandData<object>>(json).command;
+                switch (command.command)
+                {
+                    case "PermissionChanged":
+                        WebGLCommand<bool> boolCmd = JsonUtility.FromJson<WebGLCommandData<bool>>(json).command;
+                        if (boolCmd.data) // Permitted.
+                        {
+                            WebGLPermission = true;
+                            InworldController.Audio.StartMicrophone();
+                        }
+                        break;
+                    case "StreamChunkReceived":
+                        WebGLCommand<string> strCmd = JsonUtility.FromJson<WebGLCommandData<string>>(json).command;
+                        string[] split = strCmd.data.Split(':');
+
+                        int index = int.Parse(split[0]);
+                        int length = int.Parse(split[1]);
+                        int bufferLength = int.Parse(split[2]);
+                        if (bufferLength == 0)
+                        {
+                            // Somehow the buffer will be dropped in the middle.
+                            InworldAI.Log("Buffer released, reinstall");
+                            WebGLInitSamplesMemoryData(s_WebGLBuffer, s_WebGLBuffer.Length); 
+                        }
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (InworldAI.IsDebugMode)
+                {
+                    Debug.LogException(ex);
+                }
+            }
+        }  
     }
 }

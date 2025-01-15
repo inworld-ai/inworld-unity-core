@@ -25,12 +25,13 @@ namespace Inworld.Audio
             }
         }
     }
-    public class InworldModuleException : InworldException
+    public class ModuleNotFoundException : InworldException
     {
-        public InworldModuleException(string moduleName) : base($"Module {moduleName} not found")
+        public ModuleNotFoundException(string moduleName) : base($"Module {moduleName} not found")
         {
         }
     }
+
     public interface IMicrophoneHandler
     {
         bool IsMicRecording {get;}
@@ -43,6 +44,12 @@ namespace Inworld.Audio
     {
         int OnCollectAudio();
         void ResetPointer();
+    }
+
+    public interface ICalibrateAudioHandler
+    {
+        void OnStartCalibration();
+        void OnStopCalibration();
     }
 
     public interface IProcessAudioHandler
