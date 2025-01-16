@@ -76,6 +76,7 @@ MonoBehaviour:
       history: []
     externallySavedState: 
   m_EnableGroupChat: 1
+  m_AutoChat: 0
 --- !u!114 &4769464275635075730
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -117,6 +118,7 @@ MonoBehaviour:
   m_PlayerVolumeThreshold: 2
   m_CaptureCheckingDuration: 0.5
   m_BufferSeconds: 1
+  m_InputSampleRate: 48000
   m_AudioToPushCapacity: 100
   m_DeviceName: 
   m_DetectPlayerSpeaking: 0
@@ -153,6 +155,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4b6f91b2e7f4dda9f33fd704df850b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_ModelName: 0
+  m_TextGenerationConfig:
+    frequency_penalty: 0
+    logit_bias: []
+    max_tokens: 2500
+    n: 1
+    presence_penalty: 0
+    stop: []
+    stream: 0
+    temperature: 1
+    top_p: 1
+    repetition_penalty: 1
   m_MaxChatHistorySize: 100
   onChatHistoryUpdated:
     m_PersistentCalls:
