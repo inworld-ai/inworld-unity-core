@@ -108,7 +108,7 @@ namespace Inworld.Test
 			InworldAI.User.Name = k_PlayerName;
 			Object.Instantiate(InworldAI.ControllerPrefab);
 			Assert.NotNull(InworldController.Instance);
-			InworldController.Audio.AutoDetectPlayerSpeaking = false;
+			InworldController.Audio.IsMute = true;
 			m_Conversation = new List<InworldPacket>();
 			InworldController.Client.OnStatusChanged += OnClientStatusChanged;
 			InworldController.Client.OnPacketReceived += OnPacketReceived;
@@ -126,9 +126,6 @@ namespace Inworld.Test
 			InworldController.Client.OnPacketReceived -= OnPacketReceived;
 			Object.DestroyImmediate(InworldController.Instance.gameObject);
 			Assert.IsNull(InworldController.Instance);
-			
 		}
-
-
     }
 }

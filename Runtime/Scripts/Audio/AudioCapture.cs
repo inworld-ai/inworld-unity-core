@@ -154,12 +154,7 @@ namespace Inworld
         public bool IsRecording
         {
             get => m_IsRecording || (IsValidPushToTalkInput && m_PushToTalkInputAction.IsPressed());
-            set
-            {
-                m_IsRecording = value;
-                if (m_IsRecording)
-                    m_ProcessedWaveData.Clear();
-            }
+            set => m_IsRecording = value;
         }
         /// <summary>
         /// Signifies if user is speaking based on audio amplitude and threshold.
@@ -191,8 +186,6 @@ namespace Inworld
                 m_IsCapturing = value;
                 if (m_IsCapturing)
                 {
-                    if (!EnableAEC)
-                        m_ProcessedWaveData.Clear();
                     Event.onRecordingStart?.Invoke();
                     StartAudio();
                 }
@@ -376,6 +369,8 @@ namespace Inworld
                 PlayerController.Instance.onCanvasOpen.RemoveListener(OnPlayerCanvasOpen);
                 PlayerController.Instance.onCanvasClosed.RemoveListener(OnPlayerCanvasClosed);
             }
+            IsCapturing = false;
+            IsRecording = false;
             if (m_AudioCoroutine != null)
                 StopCoroutine(m_AudioCoroutine);
             StopMicrophone(m_DeviceName);
@@ -485,22 +480,13 @@ namespace Inworld
             IsPlayerSpeaking = DetectPlayerSpeaking();
             if (IsRecording || IsPlayerSpeaking)
             {
-                if (!EnableAEC)
-                    IsCapturing = true;
-                else
-                {
-                    m_CapturingTimer += 0.1f;
-                    if (m_CapturingTimer > m_CaptureCheckingDuration)
-                    {
-                        m_CapturingTimer = m_CaptureCheckingDuration;
-                        IsCapturing = true;
-                    }
-                }
+                m_CapturingTimer = m_CaptureCheckingDuration;
+                IsCapturing = true;
             }
             else
             {
                 m_CapturingTimer -= 0.1f;
-                if (m_CapturingTimer < 0)
+                if (m_CapturingTimer <= 0)
                 {
                     IsCapturing = false;
                     m_CapturingTimer = 0;
@@ -519,7 +505,7 @@ namespace Inworld
             });
             return true;
         }
-        protected virtual bool DetectPlayerSpeaking() => !IsMute && AutoDetectPlayerSpeaking && CalculateSNR() > m_PlayerVolumeThreshold;
+        protected virtual bool DetectPlayerSpeaking() => !IsMute && (!AutoDetectPlayerSpeaking || CalculateSNR() > m_PlayerVolumeThreshold);
 
         protected virtual IEnumerator OutputData()
         {
