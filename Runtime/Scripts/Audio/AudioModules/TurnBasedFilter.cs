@@ -7,21 +7,8 @@
 
 namespace Inworld.Audio
 {
-    public class TurnBasedFilter : InworldAudioModule, ISendAudioHandler
+    public class TurnBasedFilter : InworldAudioModule
     {
-        public void OnStartSendAudio()
-        {
-            throw new System.NotImplementedException();
-        }
 
-        public void OnStopSendAudio()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void OnSendAudio()
-        {
-            throw new System.NotImplementedException();
-        }
     }
 }

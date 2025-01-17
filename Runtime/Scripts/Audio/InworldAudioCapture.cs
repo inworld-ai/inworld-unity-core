@@ -18,6 +18,7 @@ namespace Inworld.Audio
     [RequireComponent(typeof(AudioSource))]
     public class InworldAudioCapture : MonoBehaviour
     {
+        const int k_SampleRate = 16000;
         const string k_UniqueModuleChecker = "Find Multiple Modules with StartingAudio.\nPlease ensure there is only one in the feature list.";
         [SerializeField] List<InworldAudioModule> m_AudioModules;
         [SerializeField] AudioEvent m_AudioEvent;
@@ -25,14 +26,14 @@ namespace Inworld.Audio
         
         AudioSource m_RecordingSource;
 
-        protected ConcurrentQueue<short> m_InputBuffer = new ConcurrentQueue<short>();
+        protected CircularBuffer<short> m_InputBuffer = new CircularBuffer<short>(k_SampleRate);
         protected List<short> m_ProcessedWaveData = new List<short>();
         protected IEnumerator m_AudioCoroutine;
         protected bool m_IsPlayerSpeaking;
         protected bool m_IsRecording = false;
         protected bool m_IsCalibrating = false;
 
-        public ConcurrentQueue<short> InputBuffer
+        public CircularBuffer<short> InputBuffer
         {
             get => m_InputBuffer;
             set => m_InputBuffer = value;
@@ -69,6 +70,7 @@ namespace Inworld.Audio
 
         public AudioEvent Event => m_AudioEvent;
 
+        //YAN: NOTE: All the flags will only trigger events invoking. They will not control other stuff.
         public bool IsPlayerSpeaking
         {
             get => m_IsPlayerSpeaking;
@@ -84,6 +86,17 @@ namespace Inworld.Audio
         {
             get => m_IsRecording;
             set => _SetBoolWithEvent(ref m_IsRecording, value, Event.onRecordingStart, Event.onRecordingEnd);
+        }
+
+        public MicrophoneMode SendingMode
+        {
+            get => GetModule<ISendAudioHandler>()?.SendingMode ?? MicrophoneMode.UNSPECIFIED;
+            set
+            {
+                ISendAudioHandler module = GetModule<ISendAudioHandler>();
+                if (module != null)
+                    module.SendingMode = value;
+            }
         }
 
         public bool IsAudioAvailable => m_ProcessedWaveData?.Count > 0;

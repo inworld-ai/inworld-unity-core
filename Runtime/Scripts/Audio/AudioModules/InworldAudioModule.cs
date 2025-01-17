@@ -6,13 +6,22 @@
  *************************************************************************************************/
 
 using System;
+using System.Collections;
+using System.Collections.Concurrent;
+using Inworld.Entities;
 using UnityEngine;
 
 namespace Inworld.Audio
 {
+    /// <summary>
+    /// The basic module class. All the module related interfaces are also put in the same file.
+    /// </summary>
     public abstract class InworldAudioModule : MonoBehaviour
     {
+        public int Priority {get; set;}
+
         InworldAudioCapture m_Capture;
+        IEnumerator m_ModuleCoroutine;
 
         public InworldAudioCapture Audio
         {
@@ -23,6 +32,21 @@ namespace Inworld.Audio
                 m_Capture = InworldController.Audio;
                 return m_Capture;
             }
+        }
+        public virtual void StartModule(IEnumerator moduleCycle)
+        {
+            if (moduleCycle == null || m_ModuleCoroutine != null) 
+                return;
+            m_ModuleCoroutine = moduleCycle;
+            StartCoroutine(m_ModuleCoroutine);
+        }
+
+        public virtual void StopModule()
+        {
+            if (m_ModuleCoroutine == null) 
+                return;
+            StopCoroutine(m_ModuleCoroutine);
+            m_ModuleCoroutine = null;
         }
     }
     public class ModuleNotFoundException : InworldException
@@ -57,12 +81,14 @@ namespace Inworld.Audio
     {
         bool OnPreProcessAudio();
         bool OnPostProcessAudio();
+        CircularBuffer<short> ProcessedBuffer { get; set; }
     }
 
     public interface ISendAudioHandler
     {
+        MicrophoneMode SendingMode { get; set; }
         void OnStartSendAudio();
         void OnStopSendAudio();
-        void OnSendAudio();
+        bool OnSendAudio(AudioChunk audioChunk);
     }
 }

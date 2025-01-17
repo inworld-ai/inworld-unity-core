@@ -74,6 +74,7 @@ namespace Inworld.Audio
         protected List<short> m_ProcessedWaveData = new List<short>();
         protected float m_CapturingTimer;
         protected static int m_nPosition;
+        
 #if UNITY_WEBGL
         protected static float[] s_WebGLBuffer;
         public static bool WebGLPermission { get; set; }
@@ -630,7 +631,6 @@ namespace Inworld.Audio
         }  
         string GetWebGLMicDeviceID(string deviceName) => m_Devices.FirstOrDefault(d => d.label == deviceName)?.deviceId;
 #endif
-
         
         protected virtual byte[] Output(int nSize)
         {

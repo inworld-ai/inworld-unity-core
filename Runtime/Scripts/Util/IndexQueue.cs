@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 
-namespace Inworld.Interactions
+namespace Inworld
 {
     public interface IContainable
     {

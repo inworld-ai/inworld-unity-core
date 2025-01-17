@@ -111,11 +111,14 @@ namespace Inworld.Audio
         {
             if (s_WebGLBuffer == null || s_WebGLBuffer.Length == 0)
                 return false;
+            List<short> samples = new List<short>();
+            
             for (int i = m_LastPosition; i < m_CurrPosition; i++)
             {
                 float clampedSample = Mathf.Clamp(s_WebGLBuffer[i], -1, 1);
-                Audio.InputBuffer.Enqueue(Convert.ToInt16(clampedSample * short.MaxValue));
+                samples.Add(Convert.ToInt16(clampedSample * short.MaxValue));
             }
+            Audio.InputBuffer.Enqueue(samples);
             return true;
         }
         [MonoPInvokeCallback(typeof(NativeCommand))]

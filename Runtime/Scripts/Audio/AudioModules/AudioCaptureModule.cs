@@ -5,11 +5,18 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
-using System;
 using UnityEngine;
 
 namespace Inworld.Audio
 {
+    /// <summary>
+    /// The Base Module for controlling Microphone system.
+    /// Please ensure there is ONLY one in the module list.
+    ///
+    /// The Start/Stop Mic will turn on/off the AudioCoroutine.
+    /// Which will be separate from the IsRecording, which will control pushing data actually.
+    /// Please seldom use these functions unless very necessarily.
+    /// </summary>
     public abstract class AudioCaptureModule : InworldAudioModule, IMicrophoneHandler
     {
         protected const int k_InputSampleRate = 16000;

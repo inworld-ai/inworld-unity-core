@@ -6,15 +6,19 @@
  *************************************************************************************************/
 
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Inworld.Audio
 {
+    /// <summary>
+    /// The base Sampling module for collecting InputBuffer.
+    /// </summary>
     public class AudioCollectModule : InworldAudioModule, ICollectAudioHandler
     {
         protected int m_LastPosition;
         protected int m_CurrPosition;
-        
+        protected CircularBuffer<short> m_AudioBuffer;
         public virtual int OnCollectAudio()
         {
             string deviceName = Audio.DeviceName;
@@ -32,11 +36,14 @@ namespace Inworld.Audio
             float[] rawInput = new float[nSize];
             if (!Audio.RecordingClip.GetData(rawInput, m_LastPosition))
                 return -1;
-            foreach (float sample in rawInput)
+            List<short> input = new List<short>();
+            foreach (short sample in rawInput)
             {
                 float clampedSample = Mathf.Clamp(sample, -1, 1);
-                Audio.InputBuffer.Enqueue(Convert.ToInt16(clampedSample * short.MaxValue));
+                input.Add(Convert.ToInt16(clampedSample * short.MaxValue));
             }
+            Audio.InputBuffer.Enqueue(new List<short>(input));
+
             m_LastPosition = m_CurrPosition % recClip.samples;
             return nSize;
         }
