@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
+using System;
 using UnityEngine;
 
 namespace Inworld.Audio
@@ -17,14 +18,25 @@ namespace Inworld.Audio
     /// Which will be separate from the IsRecording, which will control pushing data actually.
     /// Please seldom use these functions unless very necessarily.
     /// </summary>
-    public abstract class AudioCaptureModule : InworldAudioModule, IMicrophoneHandler
+    public class AudioCaptureModule : InworldAudioModule, IMicrophoneHandler
     {
+        [SerializeField] bool m_AutoStart = true;
         protected const int k_InputSampleRate = 16000;
         protected const int k_InputChannels = 1;
         protected const int k_InputBufferSecond = 1;
-        
+
+        void Start()
+        {
+            if (m_AutoStart && !IsMicRecording)
+            {
+                if (StartMicrophone())
+                    Audio.StartCalibrate();
+            }
+        }
+
         public virtual bool StartMicrophone()
         {
+            InworldAI.LogWarning("Starting Microphone");
             Audio.RecordingClip = Microphone.Start(Audio.DeviceName, true, k_InputBufferSecond, k_InputSampleRate);
             Audio.ResetPointer();
             Audio.StartAudioThread();
@@ -32,6 +44,7 @@ namespace Inworld.Audio
         }
         public virtual bool ChangeInputDevice(string deviceName)
         {
+            InworldAI.LogWarning($"Changing Microphone to {deviceName}");
             if (deviceName == Audio.DeviceName)
                 return true;
 
@@ -46,6 +59,7 @@ namespace Inworld.Audio
         }
         public virtual bool StopMicrophone()
         {
+            InworldAI.LogWarning("Ending Microphone");
             Microphone.End(Audio.DeviceName);
             Audio.InputBuffer.Clear();
             Audio.ResetPointer();

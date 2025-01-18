@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -32,6 +33,15 @@ namespace Inworld.Audio
             StopModule();
         }
 
+        public CircularBuffer<short> ShortBufferToSend
+        {
+            get
+            {
+                IProcessAudioHandler processor = Audio.GetModule<IProcessAudioHandler>();
+                return processor == null ? Audio.InputBuffer : processor.ProcessedBuffer;
+            }
+        }
+        
         IEnumerator VoiceDetectionCoroutine()
         {
             while (isActiveAndEnabled)
@@ -78,14 +88,14 @@ namespace Inworld.Audio
         // Root Mean Square, used to measure the variation of the noise.
         protected float CalculateRMS()
         {
-            double nMaxSample = Audio.ProcessedWaveData.Where(f => f > 0).Aggregate<short, double>(0, (current, sample) => current + (float)sample / short.MaxValue * sample / short.MaxValue);
-            return Mathf.Sqrt((float)nMaxSample / Audio.ProcessedWaveData.Count);
+            List<short> data = ShortBufferToSend.Dequeue();
+            double nMaxSample = data.Aggregate<short, double>(0, (current, f) => current + (float)f / short.MaxValue * f / short.MaxValue);
+            return Mathf.Sqrt((float)nMaxSample / data.Count);
         }
         protected float CalculateSNR()
         {
-            if (m_BackgroundNoise == 0)
-                return 0;  // Need to calibrate first.
-            return 20.0f * Mathf.Log10(CalculateRMS() / m_BackgroundNoise); 
+            float backgroundNoise = m_BackgroundNoise == 0 ? 0.001f : m_BackgroundNoise; 
+            return 20.0f * Mathf.Log10(CalculateRMS() / backgroundNoise); 
         }
     }
 }

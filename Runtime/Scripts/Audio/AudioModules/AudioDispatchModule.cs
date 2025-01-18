@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -17,6 +18,7 @@ namespace Inworld.Audio
     {
         [SerializeField] MicrophoneMode m_SamplingMode = MicrophoneMode.OPEN_MIC;
         [SerializeField] bool m_TestMode;
+        protected const int k_SizeofInt16 = sizeof(short);
         ConcurrentQueue<AudioChunk> m_AudioToSend = new ConcurrentQueue<AudioChunk>();
         int m_LastPosition;
         int m_CurrPosition;
@@ -41,7 +43,16 @@ namespace Inworld.Audio
 
         AudioChunk GetAudioChunk(List<short> data)
         {
-            AudioChunk chunk = new AudioChunk();
+            string charName = InworldController.CharacterHandler.CurrentCharacter ? InworldController.CharacterHandler.CurrentCharacter.BrainName : "";
+            int nWavCount = data.Count * k_SizeofInt16;
+            byte[] output = new byte[nWavCount];
+            Buffer.BlockCopy(data.ToArray(), 0, output, 0, nWavCount);
+            string audioData = Convert.ToBase64String(output);
+            AudioChunk chunk = new AudioChunk
+            {
+                chunk = audioData,
+                targetName = charName
+            };
             return chunk;
         }
         IEnumerator AudioDispatchingCoroutine()

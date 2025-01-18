@@ -16,13 +16,14 @@ namespace Inworld.Audio
     /// </summary>
     public class AudioCollectModule : InworldAudioModule, ICollectAudioHandler
     {
+        [SerializeField] bool m_AutoReconnect = true;
         protected int m_LastPosition;
         protected int m_CurrPosition;
-        protected CircularBuffer<short> m_AudioBuffer;
+
         public virtual int OnCollectAudio()
         {
             string deviceName = Audio.DeviceName;
-            if (!Audio.IsMicRecording)
+            if (m_AutoReconnect && !Audio.IsMicRecording)
                 Audio.StartMicrophone();
             AudioClip recClip = Audio.RecordingClip;
             if (!recClip)
@@ -37,7 +38,7 @@ namespace Inworld.Audio
             if (!Audio.RecordingClip.GetData(rawInput, m_LastPosition))
                 return -1;
             List<short> input = new List<short>();
-            foreach (short sample in rawInput)
+            foreach (float sample in rawInput)
             {
                 float clampedSample = Mathf.Clamp(sample, -1, 1);
                 input.Add(Convert.ToInt16(clampedSample * short.MaxValue));
