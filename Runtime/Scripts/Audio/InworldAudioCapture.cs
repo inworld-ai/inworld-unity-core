@@ -6,10 +6,8 @@
  *************************************************************************************************/
 
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using Inworld.Entities;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -27,10 +25,10 @@ namespace Inworld.Audio
         AudioSource m_RecordingSource;
 
         protected CircularBuffer<short> m_InputBuffer = new CircularBuffer<short>(k_SampleRate);
-        protected List<short> m_ProcessedWaveData = new List<short>();
+        protected CircularBuffer<short> m_ProcessedWaveData = new CircularBuffer<short>(k_SampleRate);
         protected IEnumerator m_AudioCoroutine;
         protected bool m_IsPlayerSpeaking;
-        protected bool m_IsRecording = false;
+
         protected bool m_IsCalibrating = false;
 
         public CircularBuffer<short> InputBuffer
@@ -39,7 +37,7 @@ namespace Inworld.Audio
             set => m_InputBuffer = value;
         }
 
-        public List<short> ProcessedWaveData => m_ProcessedWaveData;
+        public CircularBuffer<short> ProcessedWaveData => m_ProcessedWaveData;
 
         public string DeviceName
         {
@@ -82,11 +80,7 @@ namespace Inworld.Audio
             get => m_IsCalibrating;
             set => _SetBoolWithEvent(ref m_IsCalibrating, value, Event.onStartCalibrating, Event.onStopCalibrating);
         }
-        public bool IsRecording
-        {
-            get => m_IsRecording;
-            set => _SetBoolWithEvent(ref m_IsRecording, value, Event.onRecordingStart, Event.onRecordingEnd);
-        }
+
 
         public MicrophoneMode SendingMode
         {
@@ -98,8 +92,8 @@ namespace Inworld.Audio
                     module.SendingMode = value;
             }
         }
-
-        public bool IsAudioAvailable => m_ProcessedWaveData?.Count > 0;
+        //TODO(Yan): Remove this prop.
+        public bool IsAudioAvailable => true;//m_ProcessedWaveData?.Count > 0;
 
         public float Volume
         {

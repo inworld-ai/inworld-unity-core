@@ -11,9 +11,6 @@ namespace Inworld.Audio
 {
     public class PushToTalkModule : InworldAudioModule
     {
-        void Update()
-        {
-            
-        }
+
     }
 }

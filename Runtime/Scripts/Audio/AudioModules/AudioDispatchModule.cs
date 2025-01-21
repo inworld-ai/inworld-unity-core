@@ -19,7 +19,7 @@ namespace Inworld.Audio
         [SerializeField] MicrophoneMode m_SamplingMode = MicrophoneMode.OPEN_MIC;
         [SerializeField] bool m_TestMode;
         protected const int k_SizeofInt16 = sizeof(short);
-        ConcurrentQueue<AudioChunk> m_AudioToSend = new ConcurrentQueue<AudioChunk>();
+        readonly ConcurrentQueue<AudioChunk> m_AudioToSend = new ConcurrentQueue<AudioChunk>();
         int m_LastPosition;
         int m_CurrPosition;
 

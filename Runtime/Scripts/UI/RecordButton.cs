@@ -15,11 +15,11 @@ namespace Inworld.UI
         {
             if (InworldController.Client.Status == InworldConnectionStatus.Connected)
                 InworldController.Instance.CancelResponses();
-            InworldController.Audio.IsRecording = true;
+            InworldController.Audio.IsPlayerSpeaking = true;
         }
         public void OnPointerUp(PointerEventData eventData)
         {
-            InworldController.Audio.IsRecording = false;
+            InworldController.Audio.IsPlayerSpeaking = false;
         }
     }
 }

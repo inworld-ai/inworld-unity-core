@@ -17,6 +17,7 @@ namespace Inworld.Audio
     public class AudioCollectModule : InworldAudioModule, ICollectAudioHandler
     {
         [SerializeField] bool m_AutoReconnect = true;
+        
         protected int m_LastPosition;
         protected int m_CurrPosition;
 
