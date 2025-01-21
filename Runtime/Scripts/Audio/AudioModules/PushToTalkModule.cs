@@ -6,11 +6,22 @@
  *************************************************************************************************/
 
 using System;
+using UnityEngine.InputSystem;
 
 namespace Inworld.Audio
 {
     public class PushToTalkModule : InworldAudioModule
     {
+        InputAction m_PushToTalkInputAction;
 
+        void Awake()
+        {
+            m_PushToTalkInputAction = InworldAI.InputActions["PushToTalk"];
+        }
+
+        void Update()
+        {
+            Audio.IsPlayerSpeaking = m_PushToTalkInputAction.IsPressed();
+        }
     }
 }
