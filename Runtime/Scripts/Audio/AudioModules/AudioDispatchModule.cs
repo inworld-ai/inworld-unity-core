@@ -30,14 +30,10 @@ namespace Inworld.Audio
         }
         void OnEnable()
         {
-            Audio.Event.onPlayerStartSpeaking.AddListener(OnStartSendAudio);
-            Audio.Event.onPlayerStopSpeaking.AddListener(OnStopSendAudio);
             StartModule(AudioDispatchingCoroutine());
         }
         void OnDisable()
         {
-            Audio.Event.onPlayerStartSpeaking.RemoveListener(OnStartSendAudio);
-            Audio.Event.onPlayerStopSpeaking.RemoveListener(OnStopSendAudio);
             StopModule();
         }
 

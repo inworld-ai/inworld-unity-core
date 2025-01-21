@@ -72,9 +72,20 @@ namespace Inworld.Audio
         public bool IsPlayerSpeaking
         {
             get => m_IsPlayerSpeaking;
-            set => _SetBoolWithEvent(ref m_IsPlayerSpeaking, value, Event.onPlayerStartSpeaking, Event.onPlayerStopSpeaking);
+            set
+            {
+                _SetBoolWithEvent(ref m_IsPlayerSpeaking, value, Event.onPlayerStartSpeaking,
+                    Event.onPlayerStopSpeaking);
+                GetModules<ISendAudioHandler>().ForEach(h =>
+                {
+                    if (m_IsPlayerSpeaking)
+                        h.OnStartSendAudio();
+                    else
+                        h.OnStopSendAudio();
+                });
+            }
         }
-        
+
         public bool IsCalibrating
         {
             get => m_IsCalibrating;
