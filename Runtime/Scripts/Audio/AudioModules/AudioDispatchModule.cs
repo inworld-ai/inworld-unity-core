@@ -20,7 +20,6 @@ namespace Inworld.Audio
         [SerializeField] bool m_TestMode;
         protected const int k_SizeofInt16 = sizeof(short);
         readonly ConcurrentQueue<AudioChunk> m_AudioToSend = new ConcurrentQueue<AudioChunk>();
-        int m_LastPosition;
         int m_CurrPosition;
 
         public MicrophoneMode SendingMode
@@ -64,10 +63,10 @@ namespace Inworld.Audio
                         if (!OnSendAudio(audioChunk))
                             InworldAI.LogWarning($"Sending Audio to {audioChunk.targetName} Failed. ");
                     }
-                    if (m_LastPosition != ShortBufferToSend.lastPos || m_CurrPosition != ShortBufferToSend.currPos)
+                    if (m_CurrPosition != ShortBufferToSend.currPos)
                     {
+                        ShortBufferToSend.lastPos = m_CurrPosition;
                         m_AudioToSend?.Enqueue(GetAudioChunk(ShortBufferToSend.Dequeue()));
-                        m_LastPosition = ShortBufferToSend.lastPos;
                         m_CurrPosition = ShortBufferToSend.currPos;
                     }
                 }

@@ -36,8 +36,6 @@ namespace Inworld.Audio
             get => m_InputBuffer;
             set => m_InputBuffer = value;
         }
-        public CircularBuffer<short> ProcessedWaveData => m_ProcessedWaveData;
-
         public string DeviceName
         {
             get => m_DeviceName;
