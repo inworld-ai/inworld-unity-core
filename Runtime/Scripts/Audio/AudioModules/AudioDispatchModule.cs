@@ -67,6 +67,8 @@ namespace Inworld.Audio
                     if (m_LastPosition != ShortBufferToSend.lastPos || m_CurrPosition != ShortBufferToSend.currPos)
                     {
                         m_AudioToSend?.Enqueue(GetAudioChunk(ShortBufferToSend.Dequeue()));
+                        m_LastPosition = ShortBufferToSend.lastPos;
+                        m_CurrPosition = ShortBufferToSend.currPos;
                     }
                 }
                 yield return new WaitForSecondsRealtime(0.1f);

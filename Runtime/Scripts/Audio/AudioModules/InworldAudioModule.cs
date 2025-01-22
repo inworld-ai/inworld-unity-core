@@ -77,6 +77,11 @@ namespace Inworld.Audio
         void OnCalibrate();
     }
 
+    public interface IPlayerAudioEventHandler
+    {
+        IEnumerator OnPlayerUpdate();
+    }
+
     public interface IProcessAudioHandler
     {
         bool OnPreProcessAudio();

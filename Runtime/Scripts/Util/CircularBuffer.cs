@@ -49,12 +49,12 @@ namespace Inworld
         public List<T> Dequeue()
         {
             List<T> objs = new List<T>();
-            if (currPos <= lastPos)
+            if (currPos < lastPos)
             {
                 objs.AddRange(m_Buffer.GetRange(lastPos, m_Buffer.Count - lastPos));
                 objs.AddRange(m_Buffer.GetRange(0, currPos));
             }
-            else
+            else if (currPos > lastPos)
             {
                 objs.AddRange(m_Buffer.GetRange(lastPos, currPos - lastPos));
             }

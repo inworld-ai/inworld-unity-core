@@ -5,27 +5,28 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
-using System;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Inworld.Audio
 {
-    public class PushToTalkModule : PlayerEventModule
+    public class PlayerEventModule : InworldAudioModule, IPlayerAudioEventHandler
     {
-        InputAction m_PushToTalkInputAction;
-
-        void Awake()
+        protected virtual void OnEnable()
         {
-            m_PushToTalkInputAction = InworldAI.InputActions["PushToTalk"];
+            StartModule(OnPlayerUpdate());
         }
 
-        public override IEnumerator OnPlayerUpdate()
+        protected virtual void OnDisable()
+        {
+            StopModule();
+        }
+        
+        public virtual IEnumerator OnPlayerUpdate()
         {
             while (isActiveAndEnabled)
             {
-                Audio.IsPlayerSpeaking = m_PushToTalkInputAction.IsPressed();
+                Audio.IsPlayerSpeaking = true;
                 yield return new WaitForSecondsRealtime(0.1f);
             }
         }

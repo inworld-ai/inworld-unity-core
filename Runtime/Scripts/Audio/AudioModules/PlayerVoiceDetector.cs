@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace Inworld.Audio
 {
-    public class PlayerVoiceDetector : InworldAudioModule, ICalibrateAudioHandler
+    public class PlayerVoiceDetector : PlayerEventModule, ICalibrateAudioHandler
     {
         [SerializeField] [Range(0.1f, 1f)] float m_BufferSeconds = 0.5f; 
         [SerializeField] [Range(0.1f, 5f)] float m_MinAudioSessionDuration = 0.5f;
@@ -22,16 +22,6 @@ namespace Inworld.Audio
         protected float m_BackgroundNoise;
         protected float m_CalibratingTime;
         protected float m_AudioSessionSwitchingTime;
-        
-        void OnEnable()
-        {
-            StartModule(VoiceDetectionCoroutine());
-        }
-
-        void OnDisable()
-        {
-            StopModule();
-        }
 
         public CircularBuffer<short> ShortBufferToSend
         {
@@ -42,7 +32,7 @@ namespace Inworld.Audio
             }
         }
         
-        IEnumerator VoiceDetectionCoroutine()
+        public override IEnumerator OnPlayerUpdate()
         {
             while (isActiveAndEnabled)
             {

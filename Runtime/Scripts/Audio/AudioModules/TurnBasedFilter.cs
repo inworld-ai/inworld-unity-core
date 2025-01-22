@@ -10,19 +10,9 @@ using UnityEngine;
 
 namespace Inworld.Audio
 {
-    public class TurnBasedFilter : InworldAudioModule
+    public class TurnBasedFilter : PlayerEventModule
     {
-        void OnEnable()
-        {
-            StartModule(PlayerTurnDetection());
-        }
-
-        void OnDisable()
-        {
-            StopModule();
-        }
-
-        IEnumerator PlayerTurnDetection()
+        public override IEnumerator OnPlayerUpdate()
         {
             while (isActiveAndEnabled)
             {

@@ -148,13 +148,13 @@ namespace Inworld
         /// Convert the audio clip float data from any sample rate to 16000 sample rate, 1 channel short array.
         /// Short array is the data format we use in the Inworld server.
         /// </summary>
-        /// <param name="array">the output audio clip data.</param>
+        /// <param name="queue">the output audio clip data.</param>
         /// <param name="data">the raw wave data.</param>
         /// <param name="sampleRate">the output sample rate</param>
         /// <param name="channels">the output channels</param>
         public static void ConvertAudioClipDataToInt16Array(ref ConcurrentQueue<short> queue, float[] data, int sampleRate, int channels)
         {
-            Resample(out float[] resampledData, data, sampleRate, channels); 
+            float[] resampledData = Resample(data, sampleRate, channels);
             foreach (float sample in resampledData)
             {
                 float clampedSample = Mathf.Clamp(sample, -1, 1);

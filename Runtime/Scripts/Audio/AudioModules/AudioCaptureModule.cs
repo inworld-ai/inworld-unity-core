@@ -39,6 +39,8 @@ namespace Inworld.Audio
         {
             InworldAI.LogWarning("Starting Microphone");
             Audio.RecordingClip = Microphone.Start(Audio.DeviceName, true, k_InputBufferSecond, k_InputSampleRate);
+            Audio.RecordingSource.loop = true;
+            Audio.RecordingSource.Play();
             Audio.ResetPointer();
             Audio.StartAudioThread();
             return Audio.RecordingClip;
