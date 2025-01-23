@@ -39,7 +39,7 @@ namespace Inworld
         
         protected Token m_Token;
         protected InworldClient m_Client;
-        protected InworldAudioCapture m_AudioCapture;
+        protected InworldAudioManager m_AudioManager;
         protected CharacterHandler m_CharacterHandler;
         protected LLMRuntime m_LLMRuntime;
 #endregion
@@ -49,18 +49,18 @@ namespace Inworld
         /// <summary>
         /// Gets the AudioCapture of the InworldController.
         /// </summary>
-        public static InworldAudioCapture Audio
+        public static InworldAudioManager Audio
         {
             get
             {
                 if (!Instance) 
                     return null;
 
-                if (Instance.m_AudioCapture)
-                    return Instance.m_AudioCapture;
+                if (Instance.m_AudioManager)
+                    return Instance.m_AudioManager;
 
-                Instance.m_AudioCapture = Instance.GetComponentInChildren<InworldAudioCapture>();
-                return Instance.m_AudioCapture;
+                Instance.m_AudioManager = Instance.GetComponentInChildren<InworldAudioManager>();
+                return Instance.m_AudioManager;
             }
         }
         /// <summary>
@@ -507,7 +507,7 @@ namespace Inworld
         /// <param name="base64">the base64 string of the wave data to send.</param>
         public virtual bool SendAudio(string base64)
         {
-            if (!Audio || !Audio.IsAudioAvailable)
+            if (!Audio)
                 return false;
             if (CurrentCharacter && !string.IsNullOrEmpty(CurrentCharacter.ID))
                 return m_Client.SendAudio(CurrentCharacter.ID, base64);
@@ -520,7 +520,7 @@ namespace Inworld
         {
             if (Client.Status != InworldConnectionStatus.Connected)
                 InworldAI.LogException($"Tried to push audio, but not connected to server.");
-            StartCoroutine(m_AudioCapture.PushAudio());
+            StartCoroutine(m_AudioManager.PushAudio());
             StopAudio();
         }
 #endregion

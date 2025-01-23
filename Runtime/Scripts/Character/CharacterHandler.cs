@@ -62,7 +62,16 @@ namespace Inworld
         /// </summary>
         public InworldCharacter CurrentCharacter
         {
-            get => m_CurrentCharacter;
+            get
+            {
+                if (SelectingMethod == CharSelectingMethod.SightAngle)
+                    return m_CurrentCharacter;
+                if (m_CurrentCharacter)
+                    return m_CurrentCharacter;
+                if (m_CharacterList.Count == 1)
+                    m_CurrentCharacter = m_CharacterList[0];
+                return m_CurrentCharacter;
+            }
             set
             {
                 string oldBrainName = m_CurrentCharacter ? m_CurrentCharacter.BrainName : "";
@@ -76,6 +85,7 @@ namespace Inworld
                     m_CurrentCharacter.Event.onCharacterSelected.Invoke(m_CurrentCharacter.BrainName);
             }
         }
+
         /// <summary>
         /// Gets the current interacting characters in the group.
         /// If set, it'll also start audio sampling if `ManualAudioHandling` is false, and invoke the event OnCharacterChanged

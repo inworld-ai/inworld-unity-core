@@ -234,14 +234,12 @@ namespace Inworld
 
         protected virtual void OnEnable()
         {
-            InworldController.Audio.Event.onRecordingStart.AddListener(OnAudioCaptureStarted);
             InworldController.Client.OnStatusChanged += OnStatusChanged;
         }
         protected virtual void OnDisable()
         {
             if (!InworldController.Instance)
                 return;
-            InworldController.Audio.Event.onRecordingStart.RemoveListener(OnAudioCaptureStarted);
             InworldController.CharacterHandler.Unregister(this);
             InworldController.Client.OnStatusChanged -= OnStatusChanged;
         }
@@ -252,12 +250,7 @@ namespace Inworld
             InworldController.CharacterHandler.Unregister(this);
             m_CharacterEvents?.onCharacterDestroyed?.Invoke(BrainName);
         }
-        protected virtual void OnAudioCaptureStarted()
-        {
-            // TODO(Yan): Check if cancel Response here is necessary.
-            // if (InworldController.Audio.IsRecording)
-            //     CancelResponse();
-        }
+
         protected virtual void OnStatusChanged(InworldConnectionStatus newStatus)
         {
             if (newStatus == InworldConnectionStatus.Idle)

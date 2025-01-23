@@ -23,17 +23,17 @@ namespace Inworld.Audio
         protected const int k_InputChannels = 1;
         protected const int k_InputBufferSecond = 1;
         protected const int k_SizeofInt16 = sizeof(short);
-        InworldAudioCapture m_Capture;
+        InworldAudioManager m_Manager;
         IEnumerator m_ModuleCoroutine;
 
-        public InworldAudioCapture Audio
+        public InworldAudioManager Audio
         {
             get
             {
-                if (m_Capture != null)
-                    return m_Capture;
-                m_Capture = FindFirstObjectByType<InworldAudioCapture>();
-                return m_Capture;
+                if (m_Manager != null)
+                    return m_Manager;
+                m_Manager = FindFirstObjectByType<InworldAudioManager>();
+                return m_Manager;
             }
         }
         public virtual void StartModule(IEnumerator moduleCycle)
@@ -83,6 +83,8 @@ namespace Inworld.Audio
     public interface IPlayerAudioEventHandler
     {
         IEnumerator OnPlayerUpdate();
+        void StartVoiceDetecting();
+        void StopVoiceDetecting();
     }
 
     public interface IProcessAudioHandler

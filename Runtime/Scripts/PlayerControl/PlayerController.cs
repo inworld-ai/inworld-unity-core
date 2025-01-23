@@ -33,9 +33,15 @@ namespace Inworld.Sample
             {
                 m_CurrentUILayers = value;
                 if (m_CurrentUILayers > 0)
+                {
+                    InworldController.Audio.StopVoiceDetecting();
                     onCanvasOpen?.Invoke();
+                }
                 else
+                {
+                    InworldController.Audio.StartVoiceDetecting();
                     onCanvasClosed?.Invoke();
+                }
             }
         }
         

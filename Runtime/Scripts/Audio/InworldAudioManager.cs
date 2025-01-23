@@ -14,7 +14,7 @@ using UnityEngine.Events;
 namespace Inworld.Audio
 {
     [RequireComponent(typeof(AudioSource))]
-    public class InworldAudioCapture : MonoBehaviour
+    public class InworldAudioManager : MonoBehaviour
     {
         const int k_SampleRate = 16000;
         const string k_UniqueModuleChecker = "Find Multiple Modules with StartingAudio.\nPlease ensure there is only one in the feature list.";
@@ -25,7 +25,6 @@ namespace Inworld.Audio
         AudioSource m_RecordingSource;
 
         protected CircularBuffer<short> m_InputBuffer = new CircularBuffer<short>(k_SampleRate);
-        protected CircularBuffer<short> m_ProcessedWaveData = new CircularBuffer<short>(k_SampleRate);
         protected IEnumerator m_AudioCoroutine;
         protected bool m_IsPlayerSpeaking;
 
@@ -100,8 +99,6 @@ namespace Inworld.Audio
                     module.SendingMode = value;
             }
         }
-        //TODO(Yan): Remove this prop.
-        public bool IsAudioAvailable => true;//m_ProcessedWaveData?.Count > 0;
 
         public float Volume
         {
@@ -119,6 +116,7 @@ namespace Inworld.Audio
             if (micHandler == null)
                 return false;
             micHandler.StartMicrophone();
+            Event.onRecordingStart.Invoke();
             return true;
         }
 
@@ -128,6 +126,7 @@ namespace Inworld.Audio
             if (micHandler == null)
                 return false;
             micHandler.StopMicrophone();
+            Event.onRecordingEnd.Invoke();
             return true;
         }
 
@@ -147,6 +146,8 @@ namespace Inworld.Audio
             m_AudioCoroutine = null;
         }
         public void ResetPointer() => GetUniqueModule<ICollectAudioHandler>()?.ResetPointer();
+        public void StartVoiceDetecting() => GetUniqueModule<IPlayerAudioEventHandler>()?.StartVoiceDetecting();
+        public void StopVoiceDetecting() => GetUniqueModule<IPlayerAudioEventHandler>()?.StopVoiceDetecting();
         public void StartCalibrate() => GetModules<ICalibrateAudioHandler>().ForEach(module => module.OnStartCalibration());
         public void StopCalibrate() => GetModules<ICalibrateAudioHandler>().ForEach(module => module.OnStopCalibration());
         public void CollectAudio() => GetModules<ICollectAudioHandler>().ForEach(module => module.OnCollectAudio());

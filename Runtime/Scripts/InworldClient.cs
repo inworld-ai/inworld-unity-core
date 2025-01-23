@@ -882,6 +882,7 @@ namespace Inworld
         {
             if (string.IsNullOrEmpty(base64))
                 return false;
+            
             DataChunk dataChunk = new DataChunk
             {
                 type = DataType.AUDIO,

@@ -30,5 +30,8 @@ namespace Inworld.Audio
                 yield return new WaitForSecondsRealtime(0.1f);
             }
         }
+
+        public void StartVoiceDetecting() => enabled = true;
+        public void StopVoiceDetecting() => enabled = false;
     }
 }

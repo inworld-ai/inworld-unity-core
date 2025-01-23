@@ -17,6 +17,7 @@ namespace Inworld.Audio
     public class AudioDispatchModule: InworldAudioModule, ISendAudioHandler
     {
         [SerializeField] MicrophoneMode m_SamplingMode = MicrophoneMode.OPEN_MIC;
+        [SerializeField] int m_MaxCapacity = 100;
         [SerializeField] bool m_IsAudioDebugging;
         [SerializeField] bool m_TestMode;
         
@@ -32,6 +33,12 @@ namespace Inworld.Audio
                 return processor == null ? Audio.InputBuffer : processor.ProcessedBuffer;
             }
         }
+
+        public bool IsReadyToSend => InworldController.Instance
+                                     && InworldController.Client.Status == InworldConnectionStatus.Connected
+                                     && m_AudioToSend != null
+                                     && m_AudioToSend.Count > 0;
+
         public MicrophoneMode SendingMode
         {
             get => m_SamplingMode;
@@ -73,24 +80,37 @@ namespace Inworld.Audio
             {
                 if (Audio.IsPlayerSpeaking)
                 {
-                    if (m_AudioToSend != null 
-                        && m_AudioToSend.Count > 0 
-                        && m_AudioToSend.TryDequeue(out AudioChunk audioChunk))
-                    {
-                        if (!OnSendAudio(audioChunk))
-                            InworldAI.LogWarning($"Sending Audio to {audioChunk.targetName} Failed. ");
-                    }
-                    CircularBuffer<short> buffer = ShortBufferToSend;
-                    if (m_CurrPosition != buffer.currPos)
-                    {
-                        List<short> data = buffer.GetRange(m_CurrPosition, buffer.currPos);
-                        m_AudioToSend?.Enqueue(GetAudioChunk(data));
-                        m_CurrPosition = buffer.currPos;
-                        if (m_IsAudioDebugging)
-                            m_DebugInput.AddRange(data);
-                    }
+                    CheckAudioChunkToSend();
+                    ConverBufferToAudioChunk();
                 }
                 yield return new WaitForSecondsRealtime(0.1f);
+            }
+        }
+
+        protected virtual void CheckAudioChunkToSend()
+        {
+            if (IsReadyToSend)
+            {
+                if (m_AudioToSend?.TryDequeue(out AudioChunk audioChunk) ?? false)
+                {                        
+                    if (!OnSendAudio(audioChunk))
+                        InworldAI.LogWarning($"Sending Audio to {audioChunk.targetName} Failed. ");
+                }
+            }
+            else if (m_AudioToSend?.Count > m_MaxCapacity)
+                m_AudioToSend.TryDequeue(out _);
+        }
+
+        protected virtual void ConverBufferToAudioChunk()
+        {
+            CircularBuffer<short> buffer = ShortBufferToSend;
+            if (m_CurrPosition != buffer.currPos)
+            {
+                List<short> data = buffer.GetRange(m_CurrPosition, buffer.currPos);
+                m_AudioToSend?.Enqueue(GetAudioChunk(data));
+                m_CurrPosition = buffer.currPos;
+                if (m_IsAudioDebugging)
+                    m_DebugInput.AddRange(data);
             }
         }
 
