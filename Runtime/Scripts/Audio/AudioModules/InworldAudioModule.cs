@@ -32,7 +32,7 @@ namespace Inworld.Audio
             {
                 if (m_Capture != null)
                     return m_Capture;
-                m_Capture = InworldController.Audio;
+                m_Capture = FindFirstObjectByType<InworldAudioCapture>();
                 return m_Capture;
             }
         }

@@ -98,7 +98,7 @@ namespace Inworld.Audio
             m_PrevResult = Mathf.Sqrt((float)(nMaxSample / data.Count));
             return m_PrevResult;
         }
-        protected float CalculateSNR()
+        public float CalculateSNR()
         {
             float backgroundNoise = Mathf.Approximately(m_BackgroundNoise, float.MinValue) ? 0.001f : m_BackgroundNoise; 
             return 20.0f * Mathf.Log10(CalculateRMS() / backgroundNoise); 
