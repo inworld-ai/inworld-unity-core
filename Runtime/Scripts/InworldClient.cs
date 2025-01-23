@@ -765,7 +765,7 @@ namespace Inworld
         /// <param name="understandingMode">By default is FULL if you'd like the server to also return the response.</param>
         /// <param name="immediate">if sending immediately (need to make sure client has connected)</param>
         public virtual bool StartAudioTo(string brainName = null, 
-            MicrophoneMode micMode = MicrophoneMode.EXPECT_AUDIO_END, 
+            MicrophoneMode micMode = MicrophoneMode.OPEN_MIC, 
             UnderstandingMode understandingMode = UnderstandingMode.FULL,
             bool immediate = false)
         {
