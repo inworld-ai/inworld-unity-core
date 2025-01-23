@@ -19,7 +19,10 @@ namespace Inworld.Audio
     public abstract class InworldAudioModule : MonoBehaviour
     {
         public int Priority {get; set;}
-
+        protected const int k_InputSampleRate = 16000;
+        protected const int k_InputChannels = 1;
+        protected const int k_InputBufferSecond = 1;
+        protected const int k_SizeofInt16 = sizeof(short);
         InworldAudioCapture m_Capture;
         IEnumerator m_ModuleCoroutine;
 

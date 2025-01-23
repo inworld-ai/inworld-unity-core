@@ -21,10 +21,6 @@ namespace Inworld.Audio
     public class AudioCaptureModule : InworldAudioModule, IMicrophoneHandler
     {
         [SerializeField] bool m_AutoStart = true;
-        
-        protected const int k_InputSampleRate = 16000;
-        protected const int k_InputChannels = 1;
-        protected const int k_InputBufferSecond = 1;
 
         void Start()
         {

@@ -18,10 +18,18 @@ namespace Inworld.Audio
     {
         [SerializeField] MicrophoneMode m_SamplingMode = MicrophoneMode.OPEN_MIC;
         [SerializeField] bool m_TestMode;
-        protected const int k_SizeofInt16 = sizeof(short);
+        
         readonly ConcurrentQueue<AudioChunk> m_AudioToSend = new ConcurrentQueue<AudioChunk>();
         int m_CurrPosition;
 
+        public CircularBuffer<short> ShortBufferToSend
+        {
+            get
+            {
+                IProcessAudioHandler processor = Audio.GetModule<IProcessAudioHandler>();
+                return processor == null ? Audio.InputBuffer : processor.ProcessedBuffer;
+            }
+        }
         public MicrophoneMode SendingMode
         {
             get => m_SamplingMode;
@@ -63,22 +71,14 @@ namespace Inworld.Audio
                         if (!OnSendAudio(audioChunk))
                             InworldAI.LogWarning($"Sending Audio to {audioChunk.targetName} Failed. ");
                     }
-                    if (m_CurrPosition != ShortBufferToSend.currPos)
+                    CircularBuffer<short> buffer = ShortBufferToSend;
+                    if (m_CurrPosition != buffer.currPos)
                     {
-                        ShortBufferToSend.lastPos = m_CurrPosition;
-                        m_AudioToSend?.Enqueue(GetAudioChunk(ShortBufferToSend.Dequeue()));
-                        m_CurrPosition = ShortBufferToSend.currPos;
+                        m_AudioToSend?.Enqueue(GetAudioChunk(buffer.GetRange(m_CurrPosition, buffer.currPos)));
+                        m_CurrPosition = buffer.currPos;
                     }
                 }
                 yield return new WaitForSecondsRealtime(0.1f);
-            }
-        }
-        public CircularBuffer<short> ShortBufferToSend
-        {
-            get
-            {
-                IProcessAudioHandler processor = Audio.GetModule<IProcessAudioHandler>();
-                return processor == null ? Audio.InputBuffer : processor.ProcessedBuffer;
             }
         }
 

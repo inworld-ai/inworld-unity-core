@@ -15,14 +15,16 @@ namespace Inworld.Audio
 {
     public class PlayerVoiceDetector : PlayerEventModule, ICalibrateAudioHandler
     {
-        [SerializeField] [Range(0.1f, 1f)] float m_BufferSeconds = 0.5f; 
-        [SerializeField] [Range(0.1f, 5f)] float m_MinAudioSessionDuration = 0.5f;
-        [SerializeField] [Range(10f, 100f)] float m_PlayerVolumeThreashold = 30f;
+        [SerializeField] [Range(0.1f, 1f)] float m_BufferSeconds = 1f; 
+        [SerializeField] [Range(0.1f, 5f)] protected float m_MinAudioSessionDuration = 0.5f;
+        [SerializeField] [Range(10f, 100f)] protected float m_PlayerVolumeThreashold = 10f;
         
-        protected float m_BackgroundNoise;
+        protected float m_BackgroundNoise = float.MinValue;
         protected float m_CalibratingTime;
         protected float m_AudioSessionSwitchingTime;
-
+        protected int m_CurrPosition;
+        protected float m_PrevResult = float.MinValue;
+        
         public CircularBuffer<short> ShortBufferToSend
         {
             get
@@ -40,7 +42,7 @@ namespace Inworld.Audio
                     OnCalibrate();
                 else
                 {
-                    bool isPlayerSpeaking = CalculateSNR() > m_PlayerVolumeThreashold;
+                    bool isPlayerSpeaking = DetectPlayerSpeaking();
                     if (isPlayerSpeaking)
                     {
                         m_AudioSessionSwitchingTime = 0;
@@ -58,6 +60,7 @@ namespace Inworld.Audio
         }
         public void OnStartCalibration()
         {
+            m_CalibratingTime = 0;
             Audio.IsCalibrating = true;
         }
 
@@ -75,16 +78,29 @@ namespace Inworld.Audio
                 OnStopCalibration();
         }
         
+        protected virtual bool DetectPlayerSpeaking()
+        {
+            float result = CalculateSNR();
+            return CalculateSNR() > m_PlayerVolumeThreashold;
+        }
+
         // Root Mean Square, used to measure the variation of the noise.
         protected float CalculateRMS()
         {
-            List<short> data = ShortBufferToSend.Dequeue();
-            double nMaxSample = data.Aggregate<short, double>(0, (current, f) => current + (float)f / short.MaxValue * f / short.MaxValue);
-            return Mathf.Sqrt((float)nMaxSample / data.Count);
+            CircularBuffer<short> buffer = ShortBufferToSend;
+            if (buffer == null || m_CurrPosition == ShortBufferToSend.currPos)
+                return m_PrevResult;
+            List<short> data = buffer.GetRange(m_CurrPosition, buffer.currPos);
+            if (data.Count == 0)
+                return m_PrevResult;
+            m_CurrPosition = buffer.currPos;
+            double nMaxSample = data.Aggregate<short, double>(0, (current, s) => current + (float)s / short.MaxValue * s / short.MaxValue);
+            m_PrevResult = Mathf.Sqrt((float)(nMaxSample / data.Count));
+            return m_PrevResult;
         }
         protected float CalculateSNR()
         {
-            float backgroundNoise = m_BackgroundNoise == 0 ? 0.001f : m_BackgroundNoise; 
+            float backgroundNoise = Mathf.Approximately(m_BackgroundNoise, float.MinValue) ? 0.001f : m_BackgroundNoise; 
             return 20.0f * Mathf.Log10(CalculateRMS() / backgroundNoise); 
         }
     }

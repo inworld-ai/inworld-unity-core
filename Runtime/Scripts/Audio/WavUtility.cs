@@ -170,7 +170,8 @@ namespace Inworld
         /// <param name="channels">the output channels</param>
         public static ConcurrentQueue<short> ConvertAudioClipDataToInt16Queue(float[] data, int sampleRate, int channels)
         {
-            float[] resampledData = Resample(data, sampleRate, channels);
+            float[] resampledData = new float[data.Length];
+            Resample(out resampledData, data, sampleRate, channels);
             ConcurrentQueue<short> queue = new ConcurrentQueue<short>();
             foreach (float sample in resampledData)
             {

@@ -7,6 +7,7 @@
 
 
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Inworld
@@ -45,7 +46,24 @@ namespace Inworld
             }
             currPos = (nIndex + 1) % m_Size; 
         }
+        public List<T> ToList() => m_Buffer;
 
+        public List<T> GetRange(int start, int end)
+        {
+            List<T> objs = new List<T>();
+            if (start < 0 || start >= m_Size || end < 0 || end >= m_Size)
+                return objs;
+            if (end < start)
+            {
+                objs.AddRange(m_Buffer.GetRange(start, m_Buffer.Count - start));
+                objs.AddRange(m_Buffer.GetRange(0, end));
+            }
+            else if (end > start)
+            {
+                objs.AddRange(m_Buffer.GetRange(start, currPos - start));
+            }
+            return objs;
+        }
         public List<T> Dequeue()
         {
             List<T> objs = new List<T>();
