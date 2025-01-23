@@ -66,7 +66,11 @@ namespace Inworld.UI
             }
             iwChar.Data = m_Data;
             if (isSelected)
+            {
                 InworldController.CharacterHandler.Register(iwChar);
+                if (InworldController.CharacterHandler.CurrentCharacters.Count == 1)
+                    InworldController.CharacterHandler.CurrentCharacter = iwChar;
+            }
             else
                 InworldController.CharacterHandler.Unregister(iwChar);
         }

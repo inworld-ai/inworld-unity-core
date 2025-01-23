@@ -17,9 +17,11 @@ namespace Inworld.Audio
     public class AudioDispatchModule: InworldAudioModule, ISendAudioHandler
     {
         [SerializeField] MicrophoneMode m_SamplingMode = MicrophoneMode.OPEN_MIC;
+        [SerializeField] bool m_IsAudioDebugging;
         [SerializeField] bool m_TestMode;
         
         readonly ConcurrentQueue<AudioChunk> m_AudioToSend = new ConcurrentQueue<AudioChunk>();
+        List<short> m_DebugInput = new List<short>();
         int m_CurrPosition;
 
         public CircularBuffer<short> ShortBufferToSend
@@ -42,6 +44,13 @@ namespace Inworld.Audio
         void OnDisable()
         {
             StopModule();
+        }
+
+        void OnDestroy()
+        {
+            if (!m_IsAudioDebugging)
+                return;
+            WavUtility.ShortArrayToWavFile(m_DebugInput.ToArray(),"DebugInput.wav");
         }
 
         AudioChunk GetAudioChunk(List<short> data)
@@ -74,8 +83,11 @@ namespace Inworld.Audio
                     CircularBuffer<short> buffer = ShortBufferToSend;
                     if (m_CurrPosition != buffer.currPos)
                     {
-                        m_AudioToSend?.Enqueue(GetAudioChunk(buffer.GetRange(m_CurrPosition, buffer.currPos)));
+                        List<short> data = buffer.GetRange(m_CurrPosition, buffer.currPos);
+                        m_AudioToSend?.Enqueue(GetAudioChunk(data));
                         m_CurrPosition = buffer.currPos;
+                        if (m_IsAudioDebugging)
+                            m_DebugInput.AddRange(data);
                     }
                 }
                 yield return new WaitForSecondsRealtime(0.1f);
