@@ -5,6 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
+using System;
 using UnityEngine;
 using Inworld.Packet;
 using System.Collections;
@@ -35,6 +36,7 @@ namespace Inworld.Interactions
         protected bool m_IsContinueKeyPressed;
         protected bool m_LastFromPlayer;
         protected float m_AnimFactor;
+        
         /// <summary>
         /// Gets the factor for selecting animation clips.
         /// If without Audio, it's a random value between 0 and 1.
@@ -116,11 +118,12 @@ namespace Inworld.Interactions
             InworldController.Audio.Event.onPlayerStopSpeaking.RemoveListener(OnPlayerStopSpeaking);
             InworldController.Client.OnPacketReceived -= ReceivePacket;
         }
+
         protected virtual void OnCharacterDeselected(string brainName)
         {
             if (brainName != m_Character.BrainName)
                 return;
-            if (!m_Character.gameObject.activeSelf || m_FadeOutCoroutine != null)
+            if (m_Character.IsOnDisable || m_FadeOutCoroutine != null)
                 return;
             m_FadeOutCoroutine = CancelResponseAsync();
             StartCoroutine(m_FadeOutCoroutine);

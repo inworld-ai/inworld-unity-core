@@ -36,6 +36,10 @@ namespace Inworld
             set => m_VerboseLog = value;
         }
         /// <summary>
+        /// Get/Set if the character is trying to disable.
+        /// </summary>
+        public bool IsOnDisable { get; set; }
+        /// <summary>
         /// Gets the Unity Events of the character.
         /// </summary>
         public CharacterEvents Event => m_CharacterEvents;

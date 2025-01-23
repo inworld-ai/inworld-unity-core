@@ -153,14 +153,6 @@ namespace Inworld.Packet
         /// </summary>
         public virtual bool PrepareToSend()
         {
-	        if (this is TextPacket txtPacket)
-	        {
-		        Debug.LogWarning("Hit");
-	        }
-	        if (this is AudioPacket packet)
-	        {
-		        Debug.LogWarning("Hit");
-	        }
 	        if (!UpdateSessionInfo())
 		        return false;
 	        UpdateRouting();
