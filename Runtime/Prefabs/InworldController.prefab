@@ -44,8 +44,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a83291b474642d697cd7963c55a608e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SceneFullName: workspaces/unitytest/scenes/innequin_gallery
-  m_AutoScene: 0
+  m_SceneFullName: 
+  m_AutoScene: 1
   m_MaxWaitingListSize: 100
   m_Continuation:
     continuationType: 0
@@ -159,6 +159,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SamplingMode: 1
+  m_MaxCapacity: 100
+  m_IsAudioDebugging: 0
   m_TestMode: 0
 --- !u!1 &5556377780116934527
 GameObject:
@@ -259,7 +261,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 145bb2cdf859447dbec8aeb61f622abb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_AutoStart: 1
+  autoStart: 1
 --- !u!1 &6567225141630656796
 GameObject:
   m_ObjectHideFlags: 0

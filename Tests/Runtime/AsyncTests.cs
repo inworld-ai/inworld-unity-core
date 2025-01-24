@@ -62,7 +62,7 @@ namespace Inworld.Test.Async
             Assert.IsTrue(m_Conversation.Any(p => p is AudioPacket));
             InworldController.Client.Disconnect();
             m_Conversation.Clear();
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(2f);
             InworldController.Client.SendTextTo("Hello", k_TestQuin);
             yield return ConversationCheck(10);
             Assert.IsTrue(m_Conversation.Any(p => p is TextPacket));
@@ -128,7 +128,7 @@ namespace Inworld.Test.Async
                                                   && emoPacket.emotion.strength == Strength.STRONG));
         }
     }
-    	public class UnitarySessionTests : InworldRuntimeAsyncTest
+	public class UnitarySessionTests : InworldRuntimeAsyncTest
 	{
 		[UnityTest]
 		public IEnumerator AsyncTest_AutoChangeScene()

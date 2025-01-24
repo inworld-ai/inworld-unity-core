@@ -112,7 +112,7 @@ namespace Inworld.Audio
         public bool IsMicRecording => GetUniqueModule<IMicrophoneHandler>()?.IsMicRecording ?? false;
         public bool StartMicrophone()
         {
-            IMicrophoneHandler micHandler = GetUniqueModule<IMicrophoneHandler>();
+            IMicrophoneHandler micHandler = GetModule<IMicrophoneHandler>();
             if (micHandler == null)
                 return false;
             micHandler.StartMicrophone();
@@ -122,7 +122,7 @@ namespace Inworld.Audio
 
         public bool StopMicrophone()
         {
-            IMicrophoneHandler micHandler = GetUniqueModule<IMicrophoneHandler>();
+            IMicrophoneHandler micHandler = GetModule<IMicrophoneHandler>();
             if (micHandler == null)
                 return false;
             micHandler.StopMicrophone();
@@ -161,6 +161,21 @@ namespace Inworld.Audio
         {
             yield return new WaitForSeconds(1f);
         }
+
+        public bool TryDeleteModule<T>()
+        {
+            bool hasDeleted = false; 
+            for (int i = m_AudioModules.Count - 1; i >= 0; i--) 
+            {
+                T component = m_AudioModules[i].GetComponent<T>();
+                if (component == null) 
+                    continue;
+                m_AudioModules.RemoveAt(i); 
+                hasDeleted = true;
+            }
+            return hasDeleted;
+        }
+        public void AddModule(InworldAudioModule module) => m_AudioModules.Add(module);
 
         public T GetModule<T>() => m_AudioModules.Select(module => module.GetComponent<T>()).FirstOrDefault(result => result != null);
 

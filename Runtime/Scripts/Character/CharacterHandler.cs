@@ -78,10 +78,10 @@ namespace Inworld
                 string newBrainName = value ? value.BrainName : "";
                 if (oldBrainName == newBrainName)
                     return;
-                if (m_CurrentCharacter)
+                if (m_CurrentCharacter && m_CurrentCharacter.Event != null)
                     m_CurrentCharacter.Event.onCharacterDeselected.Invoke(m_CurrentCharacter.BrainName);
                 m_CurrentCharacter = value;
-                if (m_CurrentCharacter)
+                if (m_CurrentCharacter && m_CurrentCharacter.Event != null)
                     m_CurrentCharacter.Event.onCharacterSelected.Invoke(m_CurrentCharacter.BrainName);
             }
         }

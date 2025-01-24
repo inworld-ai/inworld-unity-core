@@ -233,6 +233,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3563318032317553185, guid: 3a0885e96397c414f80c73ab7dc0c72d, type: 3}
+      propertyPath: m_SceneFullName
+      value: workspaces/unitytest/scenes/innequin_gallery
+      objectReference: {fileID: 0}
+    - target: {fileID: 3563318032317553185, guid: 3a0885e96397c414f80c73ab7dc0c72d, type: 3}
       propertyPath: m_EnableGroupChat
       value: 1
       objectReference: {fileID: 0}
@@ -335,7 +339,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 162201157703380547, guid: d3611a2c36d56be4dbb74eaf7b5de58e, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -956.03406
+      value: -675.21246
       objectReference: {fileID: 0}
     - target: {fileID: 401423953070606001, guid: d3611a2c36d56be4dbb74eaf7b5de58e, type: 3}
       propertyPath: m_Name

@@ -20,11 +20,11 @@ namespace Inworld.Audio
     /// </summary>
     public class AudioCaptureModule : InworldAudioModule, IMicrophoneHandler
     {
-        [SerializeField] bool m_AutoStart = true;
+        [SerializeField] public bool autoStart = true;
 
         void Start()
         {
-            if (m_AutoStart && !IsMicRecording)
+            if (autoStart && !IsMicRecording)
             {
                 if (StartMicrophone())
                     Audio.StartCalibrate();
