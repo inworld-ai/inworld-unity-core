@@ -15,7 +15,7 @@ using UnityEngine;
 
 namespace Inworld.Audio
 {
-    public class WebGLCaptureModule : AudioCaptureModule, ICollectAudioHandler
+    public class WebGLCaptureModule : InworldAudioModule, IMicrophoneHandler, ICollectAudioHandler
     {
         public delegate void NativeCommand(string json);
         [DllImport("__Internal")] public static extern int WebGLInit(NativeCommand handler);
@@ -34,7 +34,9 @@ namespace Inworld.Audio
         protected List<AudioDevice> m_Devices = new List<AudioDevice>();
         protected int m_LastPosition;
         protected int m_CurrPosition;
-        public override bool IsMicRecording => WebGLIsRecording() != 0;
+
+
+        public bool IsMicRecording => WebGLIsRecording() != 0;
 
         protected void Awake()
         {
@@ -49,7 +51,25 @@ namespace Inworld.Audio
             s_WebGLBuffer = null;
         }
         string GetWebGLMicDeviceID() => m_Devices.FirstOrDefault(d => d.label == Audio.DeviceName)?.deviceId;
-        public override bool StartMicrophone()
+        
+        public List<string> ListMicDevices() => m_Devices.Select(device => device.label).ToList();
+        
+        public bool ChangeInputDevice(string deviceName)
+        {
+            InworldAI.LogWarning($"Changing Microphone to {deviceName}");
+            if (deviceName == Audio.DeviceName)
+                return true;
+
+            if (IsMicRecording)
+                StopMicrophone();
+
+            Audio.DeviceName = deviceName;
+            if (!StartMicrophone())
+                return false;
+            Audio.StartCalibrate();
+            return true;
+        }
+        public bool StartMicrophone()
         {
             if (m_Devices.Count == 0)
             {
@@ -76,7 +96,8 @@ namespace Inworld.Audio
             return true;
         }
 
-        public override bool StopMicrophone()
+
+        public bool StopMicrophone()
         {
             WebGLMicEnd();
             Audio.InputBuffer.Clear();
