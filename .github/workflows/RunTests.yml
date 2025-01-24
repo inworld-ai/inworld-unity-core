@@ -25,15 +25,7 @@ jobs:
         - name: Checkout Repo
           uses: actions/checkout@v4
           with:
-            lfs: true        
-
-        - name: Setup Environment
-          run: |
-            mkdir Tmp
-            mv Editor Tmp/
-            mv Runtime Tmp/
-            mv Tests Tmp/
-            mv package.json Tmp/package.json         
+            lfs: true      
 
         - name: Run Tests
           uses: game-ci/unity-test-runner@v4
