@@ -25,7 +25,15 @@ jobs:
         - name: Checkout Repo
           uses: actions/checkout@v4
           with:
-            lfs: true      
+            lfs: true        
+
+        - name: Setup Environment
+          run: |
+            mkdir Tmp
+            mv Editor Tmp/
+            mv Runtime Tmp/
+            mv Tests Tmp/
+            mv package.json Tmp/package.json         
 
         - name: Run Tests
           uses: game-ci/unity-test-runner@v4
@@ -35,6 +43,7 @@ jobs:
             UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
           with:             
             packageMode: true
+            projectPath: Tmp/
             testMode: ${{ matrix.testMode }}
             unityVersion: 2022.3.34f1
             
