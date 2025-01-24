@@ -5,8 +5,11 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
+#if !UNITY_WEBGL
 using System;
+using System.Collections.Generic;
 using UnityEngine;
+
 
 namespace Inworld.Audio
 {
@@ -65,6 +68,10 @@ namespace Inworld.Audio
             Audio.StopAudioThread();
             return true;
         }
+
+        public List<string> ListMicDevices() => new List<string>(Microphone.devices);
+
         public virtual bool IsMicRecording => Microphone.IsRecording(Audio.DeviceName);
     }
 }
+#endif

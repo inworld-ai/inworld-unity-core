@@ -8,6 +8,7 @@
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using Inworld.Entities;
 using UnityEngine;
 
@@ -61,6 +62,7 @@ namespace Inworld.Audio
 
     public interface IMicrophoneHandler
     {
+        List<string> ListMicDevices();
         bool IsMicRecording {get;}
         bool StartMicrophone();
         bool ChangeInputDevice(string deviceName);
