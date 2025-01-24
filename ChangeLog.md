@@ -1,3 +1,8 @@
+# 3.8.0
+1. Modualized Audio Capturing system.
+2. Support Project system.
+3. Bug fixes.
+
 # 3.7.0
 1. Updated Inworld log system.
 2. Updated Chat panel.

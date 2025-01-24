@@ -1,5 +1,5 @@
 /*************************************************************************************************
- * Copyright 2022-2024 Theai, Inc. dba Inworld AI
+ * Copyright 2022-2025 Theai, Inc. dba Inworld AI
  *
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
@@ -148,18 +148,56 @@ namespace Inworld
         /// Convert the audio clip float data from any sample rate to 16000 sample rate, 1 channel short array.
         /// Short array is the data format we use in the Inworld server.
         /// </summary>
-        /// <param name="array">the output audio clip data.</param>
+        /// <param name="queue">the output audio clip data.</param>
         /// <param name="data">the raw wave data.</param>
         /// <param name="sampleRate">the output sample rate</param>
         /// <param name="channels">the output channels</param>
         public static void ConvertAudioClipDataToInt16Array(ref ConcurrentQueue<short> queue, float[] data, int sampleRate, int channels)
         {
-            Resample(out float[] resampledData, data, sampleRate, channels); 
+            float[] resampledData = Resample(data, sampleRate, channels);
             foreach (float sample in resampledData)
             {
                 float clampedSample = Mathf.Clamp(sample, -1, 1);
                 queue.Enqueue(Convert.ToInt16(clampedSample * short.MaxValue));
             }
+        }
+        /// <summary>
+        /// Convert the audio clip float data from any sample rate to 16000 sample rate, 1 channel short array.
+        /// Short array is the data format we use in the Inworld server.
+        /// </summary>
+        /// <param name="data">the raw wave data.</param>
+        /// <param name="sampleRate">the output sample rate</param>
+        /// <param name="channels">the output channels</param>
+        public static ConcurrentQueue<short> ConvertAudioClipDataToInt16Queue(float[] data, int sampleRate, int channels)
+        {
+            float[] resampledData = new float[data.Length];
+            Resample(out resampledData, data, sampleRate, channels);
+            ConcurrentQueue<short> queue = new ConcurrentQueue<short>();
+            foreach (float sample in resampledData)
+            {
+                float clampedSample = Mathf.Clamp(sample, -1, 1);
+                queue.Enqueue(Convert.ToInt16(clampedSample * short.MaxValue));
+            }
+            return queue;
+        }
+        public static float[] Resample(float[] inputSamples, int inputSampleRate, int inputChannels)
+        {
+            if (inputSampleRate <= 0 || inputChannels <= 0 || inputSamples == null || inputSamples.Length == 0 ||
+                inputSampleRate == k_NetworkAudioSampleRate && inputChannels == 1)
+            {
+                return inputSamples;
+            } 
+            float ratio = Convert.ToSingle(inputSampleRate) * inputChannels / k_NetworkAudioSampleRate;
+            int outputSampleCount = Convert.ToInt32(inputSamples.Length / ratio);
+            float[] resamples = new float[outputSampleCount];
+            for (int i = 0; i < outputSampleCount; i++)
+            {
+                int sampleIndex1 = Mathf.FloorToInt(i * ratio);
+                int sampleIndex2 = Mathf.Min(Mathf.CeilToInt(i * ratio), inputSamples.Length - 1);
+                float diff = i * ratio - sampleIndex1;
+                resamples[i] = Mathf.Lerp(inputSamples[sampleIndex1], inputSamples[sampleIndex2], diff);
+            }
+            return resamples;
         }
         public static float[] ConvertInt16ArrayToFloatArray(short[] input)
         {

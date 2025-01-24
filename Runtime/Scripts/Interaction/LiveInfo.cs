@@ -1,5 +1,5 @@
 ﻿/*************************************************************************************************
- * Copyright 2022-2024 Theai, Inc. dba Inworld AI
+ * Copyright 2022-2025 Theai, Inc. dba Inworld AI
  *
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
@@ -60,12 +60,15 @@ namespace Inworld.Entities
 		// As InworldController.CharacterHandler would return directly in most cases.
 		public bool UpdateMultiTargets(string conversationID = "", List<string> brainNames = null)
 		{
-			if (brainNames?.Count == 1 && !string.IsNullOrEmpty(brainNames[0]))
-				return UpdateSingleTarget(brainNames[0]);
-			if (InworldController.CharacterHandler.CurrentCharacters.Count == 1)
-				return UpdateSingleTarget(InworldController.CharacterHandler.CurrentCharacters[0].BrainName);
-			if (!InworldController.Client.EnableGroupChat)
-				return false;
+			if (string.IsNullOrEmpty(conversationID))
+			{
+				if (brainNames?.Count == 1 && !string.IsNullOrEmpty(brainNames[0]))
+					return UpdateSingleTarget(brainNames[0]);
+				if (InworldController.CharacterHandler.CurrentCharacters.Count == 1)
+					return UpdateSingleTarget(InworldController.CharacterHandler.CurrentCharacters[0].BrainName);
+				if (!InworldController.Client.EnableGroupChat)
+					return false;
+			}
 			IsConversation = true;
 			if (string.IsNullOrEmpty(conversationID) && InworldController.CharacterHandler)
 				conversationID = InworldController.CharacterHandler.ConversationID;

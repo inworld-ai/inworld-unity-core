@@ -1,5 +1,5 @@
 /*************************************************************************************************
- * Copyright 2022-2024 Theai, Inc. dba Inworld AI
+ * Copyright 2022-2025 Theai, Inc. dba Inworld AI
  *
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
@@ -62,20 +62,30 @@ namespace Inworld
         /// </summary>
         public InworldCharacter CurrentCharacter
         {
-            get => m_CurrentCharacter;
+            get
+            {
+                if (SelectingMethod == CharSelectingMethod.SightAngle)
+                    return m_CurrentCharacter;
+                if (m_CurrentCharacter)
+                    return m_CurrentCharacter;
+                if (m_CharacterList.Count == 1)
+                    m_CurrentCharacter = m_CharacterList[0];
+                return m_CurrentCharacter;
+            }
             set
             {
                 string oldBrainName = m_CurrentCharacter ? m_CurrentCharacter.BrainName : "";
                 string newBrainName = value ? value.BrainName : "";
                 if (oldBrainName == newBrainName)
                     return;
-                if (m_CurrentCharacter)
+                if (m_CurrentCharacter && m_CurrentCharacter.Event != null)
                     m_CurrentCharacter.Event.onCharacterDeselected.Invoke(m_CurrentCharacter.BrainName);
                 m_CurrentCharacter = value;
-                if (m_CurrentCharacter)
+                if (m_CurrentCharacter && m_CurrentCharacter.Event != null)
                     m_CurrentCharacter.Event.onCharacterSelected.Invoke(m_CurrentCharacter.BrainName);
             }
         }
+
         /// <summary>
         /// Gets the current interacting characters in the group.
         /// If set, it'll also start audio sampling if `ManualAudioHandling` is false, and invoke the event OnCharacterChanged
@@ -144,6 +154,7 @@ namespace Inworld
         {
             if (character == null || !InworldController.Instance)
                 return;
+            character.IsOnDisable = true;
             if (character == CurrentCharacter)
                 CurrentCharacter = null;
             if (!m_CharacterList.Contains(character))

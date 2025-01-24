@@ -1,11 +1,12 @@
 ﻿/*************************************************************************************************
- * Copyright 2022-2024 Theai, Inc. dba Inworld AI
+ * Copyright 2022-2025 Theai, Inc. dba Inworld AI
  *
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
 using Inworld.Entities;
+using Inworld.Audio;
 using Inworld.LLM;
 using System;
 using System.Collections;
@@ -38,7 +39,7 @@ namespace Inworld
         
         protected Token m_Token;
         protected InworldClient m_Client;
-        protected AudioCapture m_AudioCapture;
+        protected InworldAudioManager m_AudioManager;
         protected CharacterHandler m_CharacterHandler;
         protected LLMRuntime m_LLMRuntime;
 #endregion
@@ -48,18 +49,18 @@ namespace Inworld
         /// <summary>
         /// Gets the AudioCapture of the InworldController.
         /// </summary>
-        public static AudioCapture Audio
+        public static InworldAudioManager Audio
         {
             get
             {
                 if (!Instance) 
                     return null;
 
-                if (Instance.m_AudioCapture)
-                    return Instance.m_AudioCapture;
+                if (Instance.m_AudioManager)
+                    return Instance.m_AudioManager;
 
-                Instance.m_AudioCapture = Instance.GetComponentInChildren<AudioCapture>();
-                return Instance.m_AudioCapture;
+                Instance.m_AudioManager = Instance.GetComponentInChildren<InworldAudioManager>();
+                return Instance.m_AudioManager;
             }
         }
         /// <summary>
@@ -485,7 +486,7 @@ namespace Inworld
                 return false;
             }
             if (CharacterHandler.CurrentCharacterNames.Count > 0)
-                return Audio.StartAudio();
+                return Audio.StartMicrophone();
             InworldAI.LogError("No characters in the session.");
             return false;
         }
@@ -494,7 +495,7 @@ namespace Inworld
         /// </summary>
         public virtual bool StopAudio()
         {
-            return Audio && Audio.StopAudio();
+            return Audio && Audio.StopMicrophone();
         }
         /// <summary>
         /// Send the wav data to the current character.
@@ -506,7 +507,7 @@ namespace Inworld
         /// <param name="base64">the base64 string of the wave data to send.</param>
         public virtual bool SendAudio(string base64)
         {
-            if (!Audio || !Audio.IsAudioAvailable)
+            if (!Audio)
                 return false;
             if (CurrentCharacter && !string.IsNullOrEmpty(CurrentCharacter.ID))
                 return m_Client.SendAudio(CurrentCharacter.ID, base64);
@@ -519,7 +520,7 @@ namespace Inworld
         {
             if (Client.Status != InworldConnectionStatus.Connected)
                 InworldAI.LogException($"Tried to push audio, but not connected to server.");
-            StartCoroutine(m_AudioCapture.PushAudio());
+            StartCoroutine(m_AudioManager.PushAudio());
             StopAudio();
         }
 #endregion

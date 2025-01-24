@@ -1,5 +1,5 @@
 ﻿/*************************************************************************************************
- * Copyright 2022-2024 Theai, Inc. dba Inworld AI
+ * Copyright 2022-2025 Theai, Inc. dba Inworld AI
  *
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
@@ -35,6 +35,10 @@ namespace Inworld
             get => m_VerboseLog;
             set => m_VerboseLog = value;
         }
+        /// <summary>
+        /// Get/Set if the character is trying to disable.
+        /// </summary>
+        public bool IsOnDisable { get; set; }
         /// <summary>
         /// Gets the Unity Events of the character.
         /// </summary>
@@ -230,14 +234,12 @@ namespace Inworld
 
         protected virtual void OnEnable()
         {
-            InworldController.Audio.Event.onRecordingStart.AddListener(OnAudioCaptureStarted);
             InworldController.Client.OnStatusChanged += OnStatusChanged;
         }
         protected virtual void OnDisable()
         {
             if (!InworldController.Instance)
                 return;
-            InworldController.Audio.Event.onRecordingStart.RemoveListener(OnAudioCaptureStarted);
             InworldController.CharacterHandler.Unregister(this);
             InworldController.Client.OnStatusChanged -= OnStatusChanged;
         }
@@ -248,11 +250,7 @@ namespace Inworld
             InworldController.CharacterHandler.Unregister(this);
             m_CharacterEvents?.onCharacterDestroyed?.Invoke(BrainName);
         }
-        protected virtual void OnAudioCaptureStarted()
-        {
-            if (InworldController.Audio.IsRecording)
-                CancelResponse();
-        }
+
         protected virtual void OnStatusChanged(InworldConnectionStatus newStatus)
         {
             if (newStatus == InworldConnectionStatus.Idle)

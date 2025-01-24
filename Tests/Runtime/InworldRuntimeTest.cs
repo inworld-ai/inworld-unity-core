@@ -1,5 +1,5 @@
 ﻿/*************************************************************************************************
- * Copyright 2022-2024 Theai, Inc. dba Inworld AI
+ * Copyright 2022-2025 Theai, Inc. dba Inworld AI
  *
  * Use of this source code is governed by the Inworld.ai Software Development Kit License Agreement
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
@@ -9,6 +9,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Inworld.Audio;
 using Inworld.Packet;
 using NUnit.Framework;
 using UnityEngine;
@@ -106,9 +107,12 @@ namespace Inworld.Test
 		public virtual IEnumerator InitEnv()
 		{
 			InworldAI.User.Name = k_PlayerName;
-			Object.Instantiate(InworldAI.ControllerPrefab);
+			InworldController ctrl = Object.Instantiate(InworldAI.ControllerPrefab);
 			Assert.NotNull(InworldController.Instance);
-			InworldController.Audio.IsMute = true;
+			Assert.IsTrue(InworldController.Audio.TryDeleteModule<AudioCaptureModule>());
+			AudioCaptureModule micCtrl = Object.FindFirstObjectByType<AudioCaptureModule>();
+			if (micCtrl != null)
+				Object.Destroy(micCtrl);
 			m_Conversation = new List<InworldPacket>();
 			InworldController.Client.OnStatusChanged += OnClientStatusChanged;
 			InworldController.Client.OnPacketReceived += OnPacketReceived;
@@ -126,6 +130,9 @@ namespace Inworld.Test
 			InworldController.Client.OnPacketReceived -= OnPacketReceived;
 			Object.DestroyImmediate(InworldController.Instance.gameObject);
 			Assert.IsNull(InworldController.Instance);
+			
 		}
+
+
     }
 }
