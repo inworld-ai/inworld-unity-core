@@ -28,6 +28,9 @@ namespace Inworld.Entities
         public List<InworldCharacterData> characters;
         
         [JsonIgnore]
+        public string FileName => name?.Replace("workspaces/", "");
+        
+        [JsonIgnore]
         public InworldKeySecret DefaultKey => keySecrets.Count > 0 ? keySecrets[0] : null;
         
         [JsonIgnore]

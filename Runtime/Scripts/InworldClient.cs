@@ -17,14 +17,15 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.Serialization;
 
 
 namespace Inworld
 {
     public class InworldClient : MonoBehaviour
     {
-#region Inspector Variables
-        [SerializeField] protected string m_SceneFullName;
+#region Inspector Variables 
+        [SerializeField] protected string m_SceneName;
         [Tooltip("If checked, we'll automatically find the first scene belonged to the characters.")] 
         [SerializeField] protected bool m_AutoScene = false;
         [SerializeField] protected int m_MaxWaitingListSize = 100;
@@ -141,8 +142,18 @@ namespace Inworld
         /// </summary>
         public string CurrentScene
         {
-            get => m_SceneFullName;
-            set => m_SceneFullName = value;
+            get
+            {
+                if (string.IsNullOrEmpty(m_SceneName))
+                    return "";
+                string[] splits = m_SceneName.Split('/');
+                if (splits.Length == 4)
+                    return m_SceneName;
+                if (!InworldController.Instance || !InworldController.Instance.GameData)
+                    return "";
+                return InworldAI.GetSceneFullName(InworldController.Instance.GameData.workspaceName, m_SceneName);
+            }
+            set => m_SceneName = value;
         }
 
         /// <summary>
@@ -187,9 +198,7 @@ namespace Inworld
             {
                 m_Error = value;
                 if (m_Error == null || !m_Error.IsValid)
-                {
                     return;
-                }
                 InworldAI.LogError(m_Error.message);
                 OnErrorReceived?.Invoke(m_Error);
                 m_CurrentReconnectThreshold *= 2;
@@ -201,11 +210,19 @@ namespace Inworld
 
         internal string SceneFullName
         {
-            get => m_SceneFullName;
-            set => m_SceneFullName = value;
+            get
+            {
+                string[] splits = m_SceneName.Split('/');
+                if (splits.Length == 4)
+                    return m_SceneName;
+                if (!InworldController.Instance || !InworldController.Instance.GameData)
+                    return "";
+                return InworldAI.GetSceneFullName(InworldController.Instance.GameData.workspaceName, m_SceneName);
+            }
+            set => m_SceneName = value;
         }
 
-#endregion
+        #endregion
 
 #region Unity LifeCycle
         protected virtual void OnEnable()
@@ -316,7 +333,7 @@ namespace Inworld
         {
             SendSessionConfig(loadHistory, gameSessionID);
             yield return null;
-            LoadScene(m_SceneFullName);
+            LoadScene(CurrentScene);
         }
         /// <summary>
         /// Send Feedback data to server.
@@ -397,8 +414,8 @@ namespace Inworld
             if (!string.IsNullOrEmpty(sceneFullName))
             {
                 InworldAI.Log($"Load Scene: {sceneFullName}");
-                m_SceneFullName = sceneFullName;
-                m_Socket.SendAsync(MutationPacket.LoadScene(m_SceneFullName));
+                m_SceneName = sceneFullName;
+                m_Socket.SendAsync(MutationPacket.LoadScene(m_SceneName));
             }
             else
             {
@@ -410,9 +427,9 @@ namespace Inworld
                 }
                 if (result.Count == 1 && result[0].Split(new[] { "/scenes/" }, StringSplitOptions.None).Length > 0)
                 {
-                    m_SceneFullName = result[0];
-                    InworldAI.Log($"Load Scene: {m_SceneFullName}");
-                    m_Socket.SendAsync(MutationPacket.LoadScene(m_SceneFullName));
+                    m_SceneName = result[0];
+                    InworldAI.Log($"Load Scene: {m_SceneName}");
+                    m_Socket.SendAsync(MutationPacket.LoadScene(m_SceneName));
                 }
                 else
                 {
@@ -1300,7 +1317,7 @@ namespace Inworld
         }
         IEnumerator _PostFeedback(string interactionID, string correlationID, Feedback feedback)
         {
-            string sessionFullName = InworldController.Instance.GetSessionFullName(m_SceneFullName);
+            string sessionFullName = InworldController.Instance.GetSessionFullName(m_SceneName);
             string callbackRef = _GetCallbackReference(sessionFullName, interactionID, correlationID);
             UnityWebRequest uwr = new UnityWebRequest(InworldController.Server.FeedbackURL(callbackRef), "POST");
             uwr.SetRequestHeader("Grpc-Metadata-session-id", InworldController.SessionID);

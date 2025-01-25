@@ -331,8 +331,8 @@ namespace Inworld
                 m_APIKey = gameData.apiKey;
             if (!string.IsNullOrEmpty(gameData.apiSecret))
                 m_APISecret = gameData.apiSecret;
-            if (!string.IsNullOrEmpty(gameData.sceneFullName) && m_Client)
-                m_Client.SceneFullName = gameData.sceneFullName;
+            if (!string.IsNullOrEmpty(gameData.sceneName) && m_Client)
+                m_Client.SceneFullName = InworldAI.GetSceneFullName(gameData.workspaceName, gameData.sceneName);
             if (gameData.capabilities != null)
                 InworldAI.Capabilities = gameData.capabilities;
             return true;

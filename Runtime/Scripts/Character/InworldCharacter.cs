@@ -121,13 +121,12 @@ namespace Inworld
                 if (Data == null)
                     return "";
                 string brainName = Data.brainName;
-                string[] splits = brainName.Split('/');
-                if (splits.Length == 4)
+                if (brainName.Contains("/characters/"))
                     return brainName;
                 if (!InworldController.Instance || !InworldController.Instance.GameData)
                     return "";
-                string wsName = InworldController.Instance.GameData.workspaceFullName;
-                return $"{wsName}/characters/{brainName}";
+                string wsName = InworldController.Instance.GameData.workspaceName;
+                return InworldAI.GetCharacterFullName(wsName, brainName);
             }
         }
 
