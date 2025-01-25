@@ -10,20 +10,21 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 
 namespace Inworld
 {
     public class InworldGameData : ScriptableObject
     {
-        public string workspaceFullName; 
-        public string sceneFullName; 
+        public string workspaceName; 
+        public string sceneName; 
         public string apiKey;
         public string apiSecret;
         public List<InworldCharacterData> characters;
         public Capabilities capabilities;
 
-        public string WsFileName => workspaceFullName.Replace("workspaces/", "");
+        public string WsFileName => workspaceName.Replace("workspaces/", "");
 
         /// <summary>
         /// Get the generated name for the scriptable object.
@@ -32,8 +33,8 @@ namespace Inworld
         {
             get
             {
-                string[] data = sceneFullName.Split('/');
-                return data.Length < 4 ? sceneFullName : $"{data[3]}_{data[1]}";
+                string[] data = sceneName.Split('/');
+                return data.Length < 4 ? sceneName : data[3];
             }
         }
         /// <summary>
@@ -49,7 +50,7 @@ namespace Inworld
         public void Init(string workspace, InworldKeySecret keySecret)
         {
             if (!string.IsNullOrEmpty(workspace))
-                workspaceFullName = workspace;
+                workspaceName = workspace;
             if (keySecret != null)
             {
                 apiKey = keySecret.key;
@@ -70,7 +71,7 @@ namespace Inworld
         {
             if (sceneData != null)
             {
-                sceneFullName = sceneData.name;
+                sceneName = sceneData.name;
                 if (characters == null)
                     characters = new List<InworldCharacterData>();
                 if (sceneData.characterReferences.Count > 0)

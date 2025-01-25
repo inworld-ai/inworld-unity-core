@@ -164,6 +164,34 @@ namespace Inworld
         public static TextAsset WebGLMicResampler => Instance.m_MicrophoneWebGLResampler;
 #endif
         /// <summary>
+        /// Get the workspace full name.
+        /// </summary>
+        /// <param name="workspace"></param>
+        /// <returns></returns>
+        public static string GetWorkspaceFullName(string workspace) => $"workspaces/{workspace}";
+        /// <summary>
+        /// Get the scene full name.
+        /// </summary>
+        /// <param name="workspace"></param>
+        /// <param name="scene"></param>
+        /// <returns></returns>
+        public static string GetSceneFullName(string workspace, string scene)
+        {
+            return workspace.StartsWith("workspaces/") ? $"{workspace}/scenes/{scene}" : $"workspaces/{workspace}/scenes/{scene}";
+        }
+
+        /// <summary>
+        /// Get the character full name.
+        /// </summary>
+        /// <param name="workspace"></param>
+        /// <param name="character"></param>
+        /// <returns></returns>
+        public static string GetCharacterFullName(string workspace, string character)
+        {
+            return workspace.StartsWith("workspaces/") ? $"{workspace}/characters/{character}" : $"workspaces/{workspace}/characters/{character}";
+        }
+
+        /// <summary>
         /// Logs a basic type of debug message used in Inworld.
         /// If the DebugMode is enabled, the message will also be displayed in the console.
         /// </summary>

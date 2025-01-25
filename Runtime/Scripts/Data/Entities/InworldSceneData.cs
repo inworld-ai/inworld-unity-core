@@ -27,6 +27,19 @@ namespace Inworld.Entities
         public List<SceneCharacterReference> characters;
 
         /// <summary>
+        /// Get the generated name for the scriptable object.
+        /// </summary>
+        [JsonIgnore]
+
+        public string SceneFileName
+        {
+            get
+            {
+                string[] data = name.Split('/');
+                return data.Length > 0 ? data[^1] : name;
+            }
+        }
+        /// <summary>
         /// Returns true if all the characters are inside this scene.
         /// </summary>
         /// <param name="characterNames">the brainName of all the characters.</param>

@@ -67,6 +67,16 @@ namespace Inworld.Entities
         public override string ToString() => $"{givenName}: {brainName} ID: {agentId}";
 
         [JsonIgnore]
+
+        public string ShortBrainName
+        {
+            get
+            {
+                string[] data = brainName.Split('/');
+                return data.Length > 0 ? data[^1] : brainName;
+            }
+        }
+        [JsonIgnore]
         public string CharacterFileName
         {
             get
