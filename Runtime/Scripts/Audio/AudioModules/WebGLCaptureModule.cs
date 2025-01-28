@@ -5,7 +5,7 @@
  * that can be found in the LICENSE.md file or at https://www.inworld.ai/sdk-license
  *************************************************************************************************/
 
-#if UNITY_WEBGL
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -185,4 +185,3 @@ namespace Inworld.Audio
         }  
     }
 }
-#endif

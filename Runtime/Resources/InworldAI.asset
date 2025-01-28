@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 209222c347cb7fd4a8238dd0db261e25, type: 3}
   m_Name: InworldAI
   m_EditorClassIdentifier: 
-  m_UserSetting: {fileID: 11400000, guid: 75feb39dad6f37546b400f868d99159a, type: 2}
+  m_UserSetting: {fileID: 11400000, guid: ff52f4b954a0459489fa76a4530e5d61, type: 2}
   m_Capabilities:
     audio: 1
     emotions: 1
