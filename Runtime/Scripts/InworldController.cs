@@ -525,10 +525,6 @@ namespace Inworld
         }
 #endregion
 
-        protected virtual void Awake()
-        {
-            DontDestroyOnLoad(gameObject);
-        }
         protected virtual void OnEnable()
         {
             InworldAI.InputActions.Enable();
