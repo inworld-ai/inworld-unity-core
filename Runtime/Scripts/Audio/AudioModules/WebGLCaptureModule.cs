@@ -14,6 +14,7 @@ using AOT;
 using Inworld.Entities;
 using UnityEngine;
 
+#if !UNITY_ANDROID
 namespace Inworld.Audio
 {
     public class WebGLCaptureModule : InworldAudioModule, IMicrophoneHandler, ICollectAudioHandler
@@ -185,3 +186,4 @@ namespace Inworld.Audio
         }  
     }
 }
+#endif
