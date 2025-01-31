@@ -73,7 +73,9 @@ namespace Inworld.Audio
             float rms = CalculateRMS();
             if (rms > m_BackgroundNoise)
                 m_BackgroundNoise = rms;
-            m_CalibratingTime += Time.fixedUnscaledDeltaTime;
+            // YAN: Remove the first frame as the fixedDeltaTime is extremely high.
+            if (Time.fixedUnscaledDeltaTime < m_BufferSeconds)
+                m_CalibratingTime += Time.fixedUnscaledDeltaTime;
             if (m_CalibratingTime >= m_BufferSeconds)
                 OnStopCalibration();
         }
