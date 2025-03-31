@@ -33,11 +33,6 @@ namespace Inworld.LLM.Service
 		// The generation configuration to use instead of the model's default one.
 		[JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
 		public TextGenerationConfig text_generation_config;
-
-		// Format that the model must output. Used to enable JSON mode.
-		[JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-		[JsonConverter(typeof(StringEnumConverter))]
-		public ResponseFormat response_format = ResponseFormat.RESPONSE_FORMAT_JSON;
 		
 		public CompleteChatRequest(ServingID serving, List<Message> messages, TextGenerationConfig config = null)
 		{
