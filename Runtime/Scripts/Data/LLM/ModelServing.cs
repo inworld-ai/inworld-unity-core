@@ -38,6 +38,10 @@ namespace Inworld.LLM.ModelServing
 					model = "inworld-mage";
 					service_provider = ServiceProvider.SERVICE_PROVIDER_INWORLD;
 					break;
+				case ModelName.GPT_4o:
+					model = "gpt-4o";
+					service_provider = ServiceProvider.SERVICE_PROVIDER_OPENAI;
+					break;
 				case ModelName.Undefined:
 				case ModelName.Inworld_Dragon:
 				default:

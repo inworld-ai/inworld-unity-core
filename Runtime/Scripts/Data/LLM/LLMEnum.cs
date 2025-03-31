@@ -15,7 +15,8 @@ namespace Inworld.LLM
 		Llama3_1_Druid_70B,
 		Inworld_Dragon,
 		Inworld_Dragon2,
-		Inworld_Mage
+		Inworld_Mage,
+		GPT_4o
 	}
 	public enum Kind
 	{
