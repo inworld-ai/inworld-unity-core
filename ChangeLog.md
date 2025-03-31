@@ -1,3 +1,7 @@
+# 3.8.1
+1. Expose blendshape index for manual lipsync integration.
+2. Replace with onnxruntime for local VAD
+
 # 3.8.0
 1. Modualized Audio Capturing system.
 2. Support Project system.
