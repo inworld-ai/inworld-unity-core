@@ -181,11 +181,7 @@ namespace Inworld
         /// <param name="parameters">The parameters and values of the trigger.</param>
         public virtual bool SendTrigger(string trigger, bool needCancelResponse = true, Dictionary<string, string> parameters = null)
         {
-            // 1. Interrupt current speaking.
-            if (needCancelResponse)
-                CancelResponse();
-            // 2. Send Text. YAN: Now all trigger has to be lower cases.
-            return InworldController.Client.SendTriggerTo(trigger.ToLower(), parameters, BrainName);
+            return InworldController.Client.SendTriggerTo(trigger.ToLower(), parameters, BrainName, needCancelResponse);
         }
         /// <summary>
         /// Enable target goal of this character.
